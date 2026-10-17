@@ -1,6 +1,9 @@
 import { auth, signIn, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
+import LanguageSwitcher from "./LanguageSwitcher";
 import Logo from "./Logo";
 
 const linkClass = "hover:text-bleu underline-offset-4 hover:underline";
@@ -9,20 +12,23 @@ const buttonClass =
 
 const Navbar = async () => {
   const session = await auth();
+  const locale = await getLocale();
+  const t = getDictionary(locale).nav;
   return (
     <header className="h-14 px-4 sm:px-6 bg-papier border-b-[1.5px] border-encre">
       <nav className="h-full flex justify-between items-center gap-4">
-        <Link href="/" aria-label="Cortège, accueil">
+        <Link href="/" aria-label={t.home}>
           <Logo />
         </Link>
-        <div className="flex items-center gap-4 sm:gap-6 text-[0.95rem]">
+        <div className="flex items-center gap-3 sm:gap-6 text-[0.95rem]">
+          <LanguageSwitcher locale={locale} label={t.language} />
           <Link href="/manifestations" className={linkClass}>
-            Carte
+            {t.map}
           </Link>
           {session && session.user ? (
             <>
               <Link href="/startup/create" className={linkClass}>
-                Créer
+                {t.create}
               </Link>
               <Link href={`/user/${session.user.id}`} className={`${linkClass} hidden sm:inline`}>
                 {session.user.name}
@@ -34,7 +40,7 @@ const Navbar = async () => {
                 }}
               >
                 <button type="submit" className={buttonClass}>
-                  Se déconnecter
+                  {t.signOut}
                 </button>
               </form>
             </>
@@ -46,7 +52,7 @@ const Navbar = async () => {
               }}
             >
               <button type="submit" className={buttonClass}>
-                Se connecter
+                {t.signIn}
               </button>
             </form>
           )}

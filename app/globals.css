@@ -16,7 +16,7 @@
 body {
   color: rgb(var(--encre));
   background: rgb(var(--papier));
-  font-family: var(--font-bricolage), system-ui, sans-serif;
+  font-family: var(--font-bricolage), var(--font-arabic), system-ui, sans-serif;
   font-optical-sizing: auto;
 }
 

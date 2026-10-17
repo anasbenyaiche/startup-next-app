@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { countryName, getDictionary, plural, type Dictionary, type Locale } from "@/lib/i18n";
 import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestations";
 
 const LEAFLET_VERSION = "1.9.4";
 const REFRESH_MS = 15 * 60 * 1000;
 const WORLD = "";
 
-const TYPE_STYLES: Record<string, { label: string; color: string }> = {
-  // Encres riso ; le rose est réservé à la marque et au direct.
-  "141": { label: "Manifestation, rassemblement", color: "#2f55d4" },
-  "143": { label: "Grève, boycott", color: "#e09a00" },
-  "144": { label: "Blocage, occupation", color: "#7a3fd1" },
-  "145": { label: "Émeute, violences", color: "#e5322d" },
-  "142": { label: "Grève de la faim", color: "#0e9f8e" },
-  "140": { label: "Autre protestation", color: "#8a8fa0" },
+// Encres riso ; le rose est réservé à la marque et au direct.
+const TYPE_COLORS: Record<string, string> = {
+  "141": "#2f55d4",
+  "143": "#e09a00",
+  "144": "#7a3fd1",
+  "145": "#e5322d",
+  "142": "#0e9f8e",
+  "140": "#8a8fa0",
 };
 const TYPE_ORDER = ["141", "143", "144", "145", "142", "140"];
 
@@ -93,12 +94,12 @@ function applyTypeFilter(places: ManifestationPlace[], active: Set<string>): Pla
   return result.sort((a, b) => b.mentions - a.mentions);
 }
 
-function groupByCountry(places: Place[]): Country[] {
+function groupByCountry(places: Place[], locale: Locale): Country[] {
   const countries = new Map<string, Country>();
   for (const p of places) {
     let c = countries.get(p.country);
     if (!c) {
-      c = { code: p.country, name: p.countryName, count: 0, places: [] };
+      c = { code: p.country, name: countryName(locale, p.country, p.countryName), count: 0, places: [] };
       countries.set(p.country, c);
     }
     c.count += p.count;
@@ -111,7 +112,7 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
 }
 
-function popupHtml(p: Place, active: Set<string>) {
+function popupHtml(p: Place, active: Set<string>, locale: Locale, t: Dictionary) {
   const items = p.sources
     .filter((s) => active.has(s.type))
     .map((s) => {
@@ -119,17 +120,30 @@ function popupHtml(p: Place, active: Set<string>) {
       try {
         host = new URL(s.url).hostname.replace(/^www\./, "");
       } catch {}
-      return `<li style="margin:2px 0"><span style="color:${TYPE_STYLES[s.type].color}">●</span> ${escapeHtml(
-        TYPE_STYLES[s.type].label,
-      )} — <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(host)}</a></li>`;
+      return `<li style="margin:2px 0"><span style="color:${TYPE_COLORS[s.type]}">●</span> ${escapeHtml(
+        t.types[s.type],
+      )} : <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(host)}</a></li>`;
     })
     .join("");
-  return `<strong>${escapeHtml(p.location)}</strong><br/>${p.count} événement(s), ${p.mentions} mention(s)<br/><span style="color:#6b7280">Dernier : ${new Date(
+  const n = (v: number) => v.toLocaleString(locale);
+  return `<div dir="${locale === "ar" ? "rtl" : "ltr"}"><strong>${escapeHtml(p.location)}</strong><br/>${n(p.count)} ${plural(
+    locale,
+    p.count,
+    t.map.protests,
+  )}, ${n(p.mentions)} ${plural(locale, p.mentions, t.map.mentions)}<br/><span style="color:#6b7080">${t.map.latest} : ${new Date(
     p.latestAt,
-  ).toLocaleString("fr-FR")}</span><ul style="padding-left:0;list-style:none;margin:6px 0 0">${items}</ul>`;
+  ).toLocaleString(locale)}</span><ul style="padding:0;list-style:none;margin:6px 0 0">${items}</ul></div>`;
 }
 
-export default function ManifestationsMap() {
+export default function ManifestationsMap({
+  locale,
+  defaultCountry,
+}: {
+  locale: Locale;
+  // Pays du visiteur (code FIPS), ouvert par défaut s'il a des manifestations.
+  defaultCountry: string | null;
+}) {
+  const t = getDictionary(locale);
   const mapEl = useRef<HTMLDivElement>(null);
   const map = useRef<LMap | null>(null);
   const layer = useRef<LLayerGroup | null>(null);
@@ -142,13 +156,19 @@ export default function ManifestationsMap() {
   const [loading, setLoading] = useState(true);
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set(TYPE_ORDER));
   const [country, setCountry] = useState(WORLD);
-  // Pays demandé dans l'URL (?pays=FR), appliqué dès que carte et données sont prêtes.
-  const requestedCountry = useRef<string | null>(null);
+  // Pays à ouvrir dès que carte et données sont prêtes : celui de l'URL (?pays=FR),
+  // sinon celui du visiteur. Ce dernier n'est appliqué que s'il a des manifestations.
+  const requestedCountry = useRef<{ code: string; explicit: boolean } | null>(null);
 
   useEffect(() => {
-    requestedCountry.current = new URLSearchParams(window.location.search).get("pays")?.toUpperCase() || null;
-    if (requestedCountry.current) setCountry(requestedCountry.current);
-  }, []);
+    const fromUrl = new URLSearchParams(window.location.search).get("pays")?.toUpperCase();
+    if (fromUrl) {
+      requestedCountry.current = { code: fromUrl, explicit: true };
+      setCountry(fromUrl);
+    } else if (defaultCountry) {
+      requestedCountry.current = { code: defaultCountry, explicit: false };
+    }
+  }, [defaultCountry]);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,7 +180,7 @@ export default function ManifestationsMap() {
         L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
           maxZoom: 18,
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>, données <a href="https://www.gdeltproject.org/">GDELT</a>',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>, <a href="https://www.gdeltproject.org/">GDELT</a>',
         }).addTo(map.current);
         layer.current = L.layerGroup().addTo(map.current);
         setMapReady(true);
@@ -200,7 +220,7 @@ export default function ManifestationsMap() {
   }, [hours]);
 
   const allPlaces = useMemo(() => applyTypeFilter(data?.places ?? [], activeTypes), [data, activeTypes]);
-  const countries = useMemo(() => groupByCountry(allPlaces), [allPlaces]);
+  const countries = useMemo(() => groupByCountry(allPlaces, locale), [allPlaces, locale]);
   const selected = countries.find((c) => c.code === country);
   const places = useMemo(
     () => (country === WORLD ? allPlaces : (countries.find((c) => c.code === country)?.places ?? [])),
@@ -215,20 +235,21 @@ export default function ManifestationsMap() {
     // Les plus gros lieux sont dessinés en dernier pour rester au-dessus.
     for (let i = places.length - 1; i >= 0; i--) {
       const p = places[i];
-      const style = TYPE_STYLES[p.mainType];
+      const color = TYPE_COLORS[p.mainType];
       const m = L.circleMarker([p.lat, p.lng], {
         radius: Math.min(26, 3 + Math.sqrt(p.mentions) * 1.4),
-        color: style.color,
-        fillColor: style.color,
+        color,
+        fillColor: color,
         fillOpacity: 0.55,
         weight: 1.5,
       })
-        .bindPopup(popupHtml(p, activeTypes), { maxWidth: 320 })
+        .bindPopup(popupHtml(p, activeTypes, locale, t), { maxWidth: 320 })
         .bindTooltip(`${p.location} (${p.count})`);
       m.addTo(layer.current);
       markers.current.set(p.key, m);
     }
-  }, [places, activeTypes, mapReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t ne change qu'avec locale
+  }, [places, activeTypes, mapReady, locale]);
 
   const selectCountry = (code: string) => {
     setCountry(code);
@@ -243,10 +264,10 @@ export default function ManifestationsMap() {
   };
 
   useEffect(() => {
-    const code = requestedCountry.current;
-    if (!code || !mapReady || countries.length === 0) return;
+    const request = requestedCountry.current;
+    if (!request || !mapReady || countries.length === 0) return;
     requestedCountry.current = null;
-    selectCountry(code);
+    if (request.explicit || countries.some((c) => c.code === request.code)) selectCountry(request.code);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ne s'applique qu'une fois, au chargement
   }, [mapReady, countries]);
 
@@ -265,44 +286,44 @@ export default function ManifestationsMap() {
 
   const total = places.reduce((n, p) => n + p.count, 0);
   const listButton =
-    "w-full text-left flex items-center gap-2.5 rounded-[3px] px-1.5 py-1 hover:bg-papier-fonce hover:text-bleu";
+    "w-full text-start flex items-center gap-2.5 rounded-[3px] px-1.5 py-1 hover:bg-papier-fonce hover:text-bleu";
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
-      <aside className="md:w-[22rem] w-full md:h-full max-h-[48vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-r-[1.5px] border-encre bg-papier p-5 space-y-5">
+      <aside className="md:w-[22rem] w-full md:h-full max-h-[48vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5">
         <div>
           <h1 className="display text-[2.6rem]">
-            {country === WORLD ? "Le monde" : (selected?.name ?? country)}
+            {country === WORLD ? t.map.world : (selected?.name ?? country)}
           </h1>
           <p className="mt-2 flex items-center gap-2 text-sm text-gris">
             <span className="live-dot" aria-hidden="true" />
             {error
-              ? "Mise à jour interrompue"
+              ? t.map.interrupted
               : data
-                ? `En direct, mis à jour à ${new Date(data.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`
-                : "Connexion au flux de presse…"}
+                ? t.map.live(new Date(data.updatedAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))
+                : t.map.connecting}
           </p>
         </div>
 
         <label className="block">
-          <span className="sr-only">Pays</span>
+          <span className="sr-only">{t.map.country}</span>
           <select
             value={country}
             onChange={(e) => selectCountry(e.target.value)}
             className="w-full rounded-[3px] border-[1.5px] border-encre bg-papier px-2.5 py-2 font-semibold"
           >
-            <option value={WORLD}>Tous les pays</option>
-            {country !== WORLD && !selected && <option value={country}>{country} (aucun événement)</option>}
+            <option value={WORLD}>{t.map.allCountries}</option>
+            {country !== WORLD && !selected && <option value={country}>{country} ({t.map.noEvents})</option>}
             {countries.map((c) => (
               <option key={c.code} value={c.code}>
-                {c.name} ({c.count})
+                {c.name} ({c.count.toLocaleString(locale)})
               </option>
             ))}
           </select>
         </label>
 
         <fieldset>
-          <legend className="text-sm text-gris mb-1.5">Période</legend>
+          <legend className="text-sm text-gris mb-1.5">{t.map.period}</legend>
           <div className="grid grid-cols-3 rounded-[3px] border-[1.5px] border-encre overflow-hidden">
             {[6, 24, 72].map((h) => (
               <button
@@ -320,7 +341,7 @@ export default function ManifestationsMap() {
         </fieldset>
 
         <fieldset>
-          <legend className="text-sm text-gris mb-1.5">Types</legend>
+          <legend className="text-sm text-gris mb-1.5">{t.map.types}</legend>
           <div className="flex flex-wrap gap-1.5">
             {TYPE_ORDER.map((code) => {
               const on = activeTypes.has(code);
@@ -335,9 +356,9 @@ export default function ManifestationsMap() {
                 >
                   <span
                     className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ background: on ? TYPE_STYLES[code].color : "transparent", boxShadow: `inset 0 0 0 1.5px ${TYPE_STYLES[code].color}` }}
+                    style={{ background: on ? TYPE_COLORS[code] : "transparent", boxShadow: `inset 0 0 0 1.5px ${TYPE_COLORS[code]}` }}
                   />
-                  {TYPE_STYLES[code].label}
+                  {t.types[code]}
                 </button>
               );
             })}
@@ -347,36 +368,39 @@ export default function ManifestationsMap() {
         <div className="border-t-[1.5px] border-encre pt-4">
           {error ? (
             <p className="text-[#c0262d]">
-              Le flux de presse ne répond pas ({error}). La carte réessaiera dans 15 minutes.
+              {t.map.feedDown(error)}
             </p>
           ) : loading && !data ? (
-            <p className="text-gris">Lecture des articles de presse… jusqu&apos;à une minute pour 72 h.</p>
+            <p className="text-gris">{t.map.reading}</p>
           ) : (
             <p className="text-lg leading-snug">
-              <strong className="tabular-nums">{total.toLocaleString("fr-FR")}</strong> manifestations dans{" "}
-              <strong className="tabular-nums">{places.length.toLocaleString("fr-FR")}</strong> lieux
+              <strong className="tabular-nums">{total.toLocaleString(locale)}</strong>{" "}
+              {plural(locale, total, t.map.protests)} {t.map.in}{" "}
+              <strong className="tabular-nums">{places.length.toLocaleString(locale)}</strong>{" "}
+              {plural(locale, places.length, t.map.places)}
               {country === WORLD && (
                 <>
-                  , <strong className="tabular-nums">{countries.length}</strong> pays
+                  , <strong className="tabular-nums">{countries.length.toLocaleString(locale)}</strong>{" "}
+                  {plural(locale, countries.length, t.map.countries)}
                 </>
               )}
-              {loading && <span className="text-gris text-sm"> (actualisation)</span>}
+              {loading && <span className="text-gris text-sm"> {t.map.refreshing}</span>}
             </p>
           )}
           {data && data.filesFailed > 0 && (
-            <p className="text-sm text-gris mt-1">{data.filesFailed} relevé(s) de 15 min manquant(s) sur la période.</p>
+            <p className="text-sm text-gris mt-1">{t.map.missingSlots(data.filesFailed)}</p>
           )}
         </div>
 
         {country === WORLD ? (
           <section>
-            <h2 className="font-bold mb-1.5">Pays les plus actifs</h2>
+            <h2 className="font-bold mb-1.5">{t.map.topCountries}</h2>
             <ol>
               {countries.slice(0, 50).map((c) => (
                 <li key={c.code}>
                   <button onClick={() => selectCountry(c.code)} className={listButton}>
                     <span className="truncate flex-1">{c.name}</span>
-                    <span className="text-gris tabular-nums">{c.count}</span>
+                    <span className="text-gris tabular-nums">{c.count.toLocaleString(locale)}</span>
                   </button>
                 </li>
               ))}
@@ -385,9 +409,9 @@ export default function ManifestationsMap() {
         ) : (
           <section>
             <div className="flex items-baseline justify-between mb-1.5">
-              <h2 className="font-bold">Lieux les plus actifs</h2>
+              <h2 className="font-bold">{t.map.topPlaces}</h2>
               <button onClick={() => selectCountry(WORLD)} className="text-sm text-bleu hover:underline underline-offset-4">
-                Voir le monde
+                {t.map.seeWorld}
               </button>
             </div>
             <ol>
@@ -396,10 +420,10 @@ export default function ManifestationsMap() {
                   <button onClick={() => focusPlace(p)} className={listButton}>
                     <span
                       className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ background: TYPE_STYLES[p.mainType].color }}
+                      style={{ background: TYPE_COLORS[p.mainType] }}
                     />
                     <span className="truncate flex-1">{p.location}</span>
-                    <span className="text-gris tabular-nums">{p.count}</span>
+                    <span className="text-gris tabular-nums">{p.count.toLocaleString(locale)}</span>
                   </button>
                 </li>
               ))}
@@ -407,7 +431,8 @@ export default function ManifestationsMap() {
           </section>
         )}
       </aside>
-      <div ref={mapEl} className="flex-1 min-h-[52vh] z-0" />
+      {/* Leaflet ne gère pas le sens droite-à-gauche : la carte reste en LTR. */}
+      <div ref={mapEl} dir="ltr" className="flex-1 min-h-[52vh] z-0" />
     </div>
   );
 }

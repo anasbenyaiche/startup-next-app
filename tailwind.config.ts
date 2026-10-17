@@ -17,7 +17,7 @@ export default {
         bleu: "rgb(var(--bleu) / <alpha-value>)",
       },
       fontFamily: {
-        sans: ["var(--font-bricolage)", "system-ui", "sans-serif"],
+        sans: ["var(--font-bricolage)", "var(--font-arabic)", "system-ui", "sans-serif"],
       },
     },
   },

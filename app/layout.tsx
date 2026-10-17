@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Bricolage_Grotesque, Noto_Sans_Arabic } from "next/font/google";
+import { dir, getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -8,19 +10,28 @@ const bricolage = Bricolage_Grotesque({
   axes: ["opsz", "wdth"],
 });
 
-export const metadata: Metadata = {
-  title: "Cortège",
-  description: "Les manifestations du monde entier sur une carte, mise à jour toutes les 15 minutes.",
-};
+// Bricolage n'a pas de glyphes arabes ; le navigateur ne télécharge cette police
+// que si la page contient de l'arabe.
+const arabic = Noto_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  preload: false,
+});
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getDictionary(await getLocale());
+  return { title: "Cortège", description: t.meta.description };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="fr">
-      <body className={`${bricolage.variable} antialiased`}>{children}</body>
+    <html lang={locale} dir={dir(locale)}>
+      <body className={`${bricolage.variable} ${arabic.variable} antialiased`}>{children}</body>
     </html>
   );
 }
