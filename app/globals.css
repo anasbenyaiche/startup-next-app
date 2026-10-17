@@ -2,20 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Canaux RGB pour que Tailwind puisse appliquer l'opacité (bg-encre/10). */
+/* Palette risographie : papier, encre, rose fluo (marque et direct), bleu riso. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --papier: 242 243 238;
+  --papier-fonce: 228 230 222;
+  --encre: 30 33 64;
+  --gris: 107 111 128;
+  --rose: 255 79 163;
+  --bleu: 47 85 212;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--encre));
+  background: rgb(var(--papier));
+  font-family: var(--font-bricolage), var(--font-arabic), system-ui, sans-serif;
+  font-optical-sizing: auto;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--bleu));
+  outline-offset: 2px;
+}
+
+/* Titres façon lettrage de banderole : la même famille, en version étroite. */
+.display {
+  font-stretch: 75%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+}
+
+/* Le seul mouvement de l'interface : le point « en direct ». */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  background: rgb(var(--rose));
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(var(--rose));
+  animation: live-pulse 2s ease-out infinite;
+}
+@keyframes live-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after {
+    animation: none;
+  }
+}
+
+/* Popups Leaflet accordés au thème. */
+.leaflet-container {
+  font-family: inherit;
+  background: rgb(var(--papier-fonce));
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgb(var(--papier));
+  color: rgb(var(--encre));
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 rgb(var(--encre));
+}
+.leaflet-popup-content-wrapper {
+  border: 1.5px solid rgb(var(--encre));
+}
+.leaflet-popup-content a {
+  color: rgb(var(--bleu));
 }

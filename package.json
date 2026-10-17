@@ -8,12 +8,13 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "packageManager": "yarn@3.6.3",
+  "packageManager": "yarn@1.22.22",
   "overrides": {
     "react": "$react",
     "react-dom": "$react-dom"
   },
   "dependencies": {
+    "ioredis": "5.4.1",
     "next": "15.1.4",
     "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",

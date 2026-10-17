@@ -1,15 +1,12 @@
+import { parseHours } from "@/lib/api-params";
 import { getManifestations } from "@/lib/manifestations";
 
-export const revalidate = 900;
-
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const hours = Math.min(72, Math.max(1, Number(url.searchParams.get("hours")) || 24));
-
+  const hours = parseHours(new URL(request.url).searchParams.get("hours"));
   try {
     const data = await getManifestations(hours);
     return Response.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=300" },
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur inconnue";

@@ -1,23 +1,37 @@
 import { auth, signIn, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
+import { getDictionary } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
+import LanguageSwitcher from "./LanguageSwitcher";
+import Logo from "./Logo";
+
+const linkClass = "whitespace-nowrap hover:text-bleu underline-offset-4 hover:underline";
+const buttonClass =
+  "whitespace-nowrap rounded-[3px] border-[1.5px] border-encre px-2 sm:px-3 py-1 text-sm sm:text-base font-semibold hover:bg-encre hover:text-papier transition-colors";
 
 const Navbar = async () => {
   const session = await auth();
+  const locale = await getLocale();
+  const t = getDictionary(locale).nav;
   return (
-    <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
-      <nav className="flex justify-between items-center">
-        <Link href="/">
-          <img height={50} width={100} src="/images/logo.png" alt="logo" />
+    <header className="h-14 px-3 sm:px-6 bg-papier border-b-[1.5px] border-encre">
+      <nav className="h-full flex justify-between items-center gap-4">
+        <Link href="/" aria-label={t.home}>
+          <Logo />
         </Link>
-        <div className="flex items-center gap-5">
-          <Link href="/manifestations">
-            <span>Manifestations</span>
+        <div className="flex items-center gap-2.5 sm:gap-6 text-[0.95rem]">
+          <LanguageSwitcher locale={locale} label={t.language} />
+          <Link href="/manifestations" className={linkClass}>
+            {t.map}
           </Link>
           {session && session.user ? (
             <>
-              <Link href="/startup/create">
-                <span>create</span>
+              <Link href="/startup/create" className={linkClass}>
+                {t.create}
+              </Link>
+              <Link href={`/user/${session.user.id}`} className={`${linkClass} hidden sm:inline`}>
+                {session.user.name}
               </Link>
               <form
                 action={async () => {
@@ -25,27 +39,22 @@ const Navbar = async () => {
                   await signOut();
                 }}
               >
-                <button type="submit">
-                  <span>Logout</span>
+                <button type="submit" className={buttonClass}>
+                  {t.signOut}
                 </button>
               </form>
-              <Link href={`/user/${session.user.id}`}>
-                <span>{session.user.name}</span>
-              </Link>
             </>
           ) : (
-            <>
-              <form
-                action={async () => {
-                  "use server";
-                  await signIn("github");
-                }}
-              >
-                <button type="submit">
-                  <span>Login</span>
-                </button>
-              </form>
-            </>
+            <form
+              action={async () => {
+                "use server";
+                await signIn("github");
+              }}
+            >
+              <button type="submit" className={buttonClass}>
+                {t.signIn}
+              </button>
+            </form>
           )}
         </div>
       </nav>
