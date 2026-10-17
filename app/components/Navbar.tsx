@@ -1,23 +1,31 @@
 import { auth, signIn, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
+import Logo from "./Logo";
+
+const linkClass = "hover:text-bleu underline-offset-4 hover:underline";
+const buttonClass =
+  "rounded-[3px] border-[1.5px] border-encre px-3 py-1 font-semibold hover:bg-encre hover:text-papier transition-colors";
 
 const Navbar = async () => {
   const session = await auth();
   return (
-    <header className="px-5 py-3 bg-white shadow-sm font-work-sans">
-      <nav className="flex justify-between items-center">
-        <Link href="/">
-          <img height={50} width={100} src="/images/logo.png" alt="logo" />
+    <header className="h-14 px-4 sm:px-6 bg-papier border-b-[1.5px] border-encre">
+      <nav className="h-full flex justify-between items-center gap-4">
+        <Link href="/" aria-label="Cortège, accueil">
+          <Logo />
         </Link>
-        <div className="flex items-center gap-5">
-          <Link href="/manifestations">
-            <span>Manifestations</span>
+        <div className="flex items-center gap-4 sm:gap-6 text-[0.95rem]">
+          <Link href="/manifestations" className={linkClass}>
+            Carte
           </Link>
           {session && session.user ? (
             <>
-              <Link href="/startup/create">
-                <span>create</span>
+              <Link href="/startup/create" className={linkClass}>
+                Créer
+              </Link>
+              <Link href={`/user/${session.user.id}`} className={`${linkClass} hidden sm:inline`}>
+                {session.user.name}
               </Link>
               <form
                 action={async () => {
@@ -25,27 +33,22 @@ const Navbar = async () => {
                   await signOut();
                 }}
               >
-                <button type="submit">
-                  <span>Logout</span>
+                <button type="submit" className={buttonClass}>
+                  Se déconnecter
                 </button>
               </form>
-              <Link href={`/user/${session.user.id}`}>
-                <span>{session.user.name}</span>
-              </Link>
             </>
           ) : (
-            <>
-              <form
-                action={async () => {
-                  "use server";
-                  await signIn("github");
-                }}
-              >
-                <button type="submit">
-                  <span>Login</span>
-                </button>
-              </form>
-            </>
+            <form
+              action={async () => {
+                "use server";
+                await signIn("github");
+              }}
+            >
+              <button type="submit" className={buttonClass}>
+                Se connecter
+              </button>
+            </form>
           )}
         </div>
       </nav>

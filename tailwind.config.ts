@@ -9,8 +9,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        papier: "var(--papier)",
+        "papier-fonce": "var(--papier-fonce)",
+        encre: "var(--encre)",
+        gris: "var(--gris)",
+        rose: "var(--rose)",
+        bleu: "var(--bleu)",
+      },
+      fontFamily: {
+        sans: ["var(--font-bricolage)", "system-ui", "sans-serif"],
       },
     },
   },

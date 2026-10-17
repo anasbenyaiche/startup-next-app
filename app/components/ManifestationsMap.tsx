@@ -8,12 +8,13 @@ const REFRESH_MS = 15 * 60 * 1000;
 const WORLD = "";
 
 const TYPE_STYLES: Record<string, { label: string; color: string }> = {
-  "141": { label: "Manifestation / rassemblement", color: "#2563eb" },
-  "143": { label: "Grève / boycott", color: "#d97706" },
-  "144": { label: "Blocage / occupation", color: "#7c3aed" },
-  "145": { label: "Émeute / violences", color: "#dc2626" },
-  "142": { label: "Grève de la faim", color: "#0d9488" },
-  "140": { label: "Autre protestation", color: "#6b7280" },
+  // Encres riso ; le rose est réservé à la marque et au direct.
+  "141": { label: "Manifestation, rassemblement", color: "#2f55d4" },
+  "143": { label: "Grève, boycott", color: "#e09a00" },
+  "144": { label: "Blocage, occupation", color: "#7a3fd1" },
+  "145": { label: "Émeute, violences", color: "#e5322d" },
+  "142": { label: "Grève de la faim", color: "#0e9f8e" },
+  "140": { label: "Autre protestation", color: "#8a8fa0" },
 };
 const TYPE_ORDER = ["141", "143", "144", "145", "142", "140"];
 
@@ -141,6 +142,13 @@ export default function ManifestationsMap() {
   const [loading, setLoading] = useState(true);
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set(TYPE_ORDER));
   const [country, setCountry] = useState(WORLD);
+  // Pays demandé dans l'URL (?pays=FR), appliqué dès que carte et données sont prêtes.
+  const requestedCountry = useRef<string | null>(null);
+
+  useEffect(() => {
+    requestedCountry.current = new URLSearchParams(window.location.search).get("pays")?.toUpperCase() || null;
+    if (requestedCountry.current) setCountry(requestedCountry.current);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,10 +156,11 @@ export default function ManifestationsMap() {
       .then((L) => {
         if (cancelled || !mapEl.current || map.current) return;
         map.current = L.map(mapEl.current, { preferCanvas: true, worldCopyJump: true }).setView([25, 10], 2);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        // Fond de carte gris clair (CARTO Positron) : les points de couleur ressortent.
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
           maxZoom: 18,
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Données : <a href="https://www.gdeltproject.org/">GDELT</a>',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>, données <a href="https://www.gdeltproject.org/">GDELT</a>',
         }).addTo(map.current);
         layer.current = L.layerGroup().addTo(map.current);
         setMapReady(true);
@@ -211,8 +220,8 @@ export default function ManifestationsMap() {
         radius: Math.min(26, 3 + Math.sqrt(p.mentions) * 1.4),
         color: style.color,
         fillColor: style.color,
-        fillOpacity: 0.45,
-        weight: 1,
+        fillOpacity: 0.55,
+        weight: 1.5,
       })
         .bindPopup(popupHtml(p, activeTypes), { maxWidth: 320 })
         .bindTooltip(`${p.location} (${p.count})`);
@@ -223,11 +232,23 @@ export default function ManifestationsMap() {
 
   const selectCountry = (code: string) => {
     setCountry(code);
+    const url = new URL(window.location.href);
+    if (code) url.searchParams.set("pays", code);
+    else url.searchParams.delete("pays");
+    window.history.replaceState(null, "", url);
     const c = countries.find((x) => x.code === code);
     if (!map.current) return;
     if (!c) map.current.setView([25, 10], 2);
     else map.current.fitBounds(c.places.map((p) => [p.lat, p.lng]), { maxZoom: 8, padding: [30, 30] });
   };
+
+  useEffect(() => {
+    const code = requestedCountry.current;
+    if (!code || !mapReady || countries.length === 0) return;
+    requestedCountry.current = null;
+    selectCountry(code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- ne s'applique qu'une fois, au chargement
+  }, [mapReady, countries]);
 
   const focusPlace = (p: Place) => {
     map.current?.setView([p.lat, p.lng], 10);
@@ -243,117 +264,150 @@ export default function ManifestationsMap() {
     });
 
   const total = places.reduce((n, p) => n + p.count, 0);
-  const listButton = "w-full text-left text-sm flex items-center gap-2 hover:bg-gray-100 rounded px-1 py-0.5";
+  const listButton =
+    "w-full text-left flex items-center gap-2.5 rounded-[3px] px-1.5 py-1 hover:bg-papier-fonce hover:text-bleu";
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-74px)]">
-      <aside className="md:w-80 w-full md:h-full max-h-[45vh] md:max-h-none overflow-y-auto border-r border-gray-200 bg-white text-gray-900 p-4 space-y-4">
+    <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
+      <aside className="md:w-[22rem] w-full md:h-full max-h-[48vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-r-[1.5px] border-encre bg-papier p-5 space-y-5">
         <div>
-          <h1 className="text-xl font-bold">
-            Manifestations {country === WORLD ? "dans le monde" : `· ${selected?.name ?? country}`}
+          <h1 className="display text-[2.6rem]">
+            {country === WORLD ? "Le monde" : (selected?.name ?? country)}
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Événements détectés dans la presse mondiale (GDELT), mis à jour toutes les 15 min.
+          <p className="mt-2 flex items-center gap-2 text-sm text-gris">
+            <span className="live-dot" aria-hidden="true" />
+            {error
+              ? "Mise à jour interrompue"
+              : data
+                ? `En direct, mis à jour à ${new Date(data.updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`
+                : "Connexion au flux de presse…"}
           </p>
         </div>
 
-        <select
-          value={country}
-          onChange={(e) => selectCountry(e.target.value)}
-          className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white"
-        >
-          <option value={WORLD}>🌍 Monde entier</option>
-          {country !== WORLD && !selected && <option value={country}>{country} (aucun événement)</option>}
-          {countries.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.name} ({c.count})
-            </option>
-          ))}
-        </select>
+        <label className="block">
+          <span className="sr-only">Pays</span>
+          <select
+            value={country}
+            onChange={(e) => selectCountry(e.target.value)}
+            className="w-full rounded-[3px] border-[1.5px] border-encre bg-papier px-2.5 py-2 font-semibold"
+          >
+            <option value={WORLD}>Tous les pays</option>
+            {country !== WORLD && !selected && <option value={country}>{country} (aucun événement)</option>}
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name} ({c.count})
+              </option>
+            ))}
+          </select>
+        </label>
 
-        <div className="flex gap-2">
-          {[6, 24, 72].map((h) => (
-            <button
-              key={h}
-              onClick={() => setHours(h)}
-              className={`px-3 py-1 rounded text-sm border ${
-                hours === h ? "bg-gray-900 text-white border-gray-900" : "border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {h} h
-            </button>
-          ))}
-        </div>
+        <fieldset>
+          <legend className="text-sm text-gris mb-1.5">Période</legend>
+          <div className="grid grid-cols-3 rounded-[3px] border-[1.5px] border-encre overflow-hidden">
+            {[6, 24, 72].map((h) => (
+              <button
+                key={h}
+                onClick={() => setHours(h)}
+                aria-pressed={hours === h}
+                className={`py-1.5 font-semibold [&:not(:first-child)]:border-l-[1.5px] border-encre ${
+                  hours === h ? "bg-encre text-papier" : "hover:bg-papier-fonce"
+                }`}
+              >
+                {h} h
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
-        <div className="space-y-1">
-          {TYPE_ORDER.map((code) => (
-            <label key={code} className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" checked={activeTypes.has(code)} onChange={() => toggleType(code)} />
-              <span className="inline-block w-3 h-3 rounded-full" style={{ background: TYPE_STYLES[code].color }} />
-              {TYPE_STYLES[code].label}
-            </label>
-          ))}
-        </div>
+        <fieldset>
+          <legend className="text-sm text-gris mb-1.5">Types</legend>
+          <div className="flex flex-wrap gap-1.5">
+            {TYPE_ORDER.map((code) => {
+              const on = activeTypes.has(code);
+              return (
+                <button
+                  key={code}
+                  onClick={() => toggleType(code)}
+                  aria-pressed={on}
+                  className={`flex items-center gap-1.5 rounded-full border-[1.5px] px-2.5 py-0.5 text-sm ${
+                    on ? "border-encre" : "border-encre/25 text-gris line-through decoration-1"
+                  }`}
+                >
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full"
+                    style={{ background: on ? TYPE_STYLES[code].color : "transparent", boxShadow: `inset 0 0 0 1.5px ${TYPE_STYLES[code].color}` }}
+                  />
+                  {TYPE_STYLES[code].label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
-        <div className="text-sm border-t pt-3">
+        <div className="border-t-[1.5px] border-encre pt-4">
           {error ? (
-            <p className="text-red-600">Erreur : {error}</p>
+            <p className="text-[#c0262d]">
+              Le flux de presse ne répond pas ({error}). La carte réessaiera dans 15 minutes.
+            </p>
           ) : loading && !data ? (
-            <p className="text-gray-500">Collecte des données… (jusqu&apos;à une minute en 72 h)</p>
+            <p className="text-gris">Lecture des articles de presse… jusqu&apos;à une minute pour 72 h.</p>
           ) : (
-            <>
-              <p>
-                <strong>{total.toLocaleString("fr-FR")}</strong> événement(s) dans{" "}
-                <strong>{places.length.toLocaleString("fr-FR")}</strong> lieu(x)
-                {country === WORLD && (
-                  <>
-                    {" "}
-                    · <strong>{countries.length}</strong> pays
-                  </>
-                )}
-                {loading && <span className="text-gray-400"> · actualisation…</span>}
-              </p>
-              {data && (
-                <p className="text-xs text-gray-500">
-                  Dernier lot GDELT : {new Date(data.updatedAt).toLocaleString("fr-FR")}
-                  {data.filesFailed > 0 && ` · ${data.filesFailed} fichier(s) manquant(s)`}
-                </p>
+            <p className="text-lg leading-snug">
+              <strong className="tabular-nums">{total.toLocaleString("fr-FR")}</strong> manifestations dans{" "}
+              <strong className="tabular-nums">{places.length.toLocaleString("fr-FR")}</strong> lieux
+              {country === WORLD && (
+                <>
+                  , <strong className="tabular-nums">{countries.length}</strong> pays
+                </>
               )}
-            </>
+              {loading && <span className="text-gris text-sm"> (actualisation)</span>}
+            </p>
+          )}
+          {data && data.filesFailed > 0 && (
+            <p className="text-sm text-gris mt-1">{data.filesFailed} relevé(s) de 15 min manquant(s) sur la période.</p>
           )}
         </div>
 
         {country === WORLD ? (
-          <ol className="space-y-1">
-            <li className="text-xs uppercase tracking-wide text-gray-500">Pays les plus actifs</li>
-            {countries.slice(0, 50).map((c) => (
-              <li key={c.code}>
-                <button onClick={() => selectCountry(c.code)} className={listButton}>
-                  <span className="truncate flex-1">{c.name}</span>
-                  <span className="text-gray-500 tabular-nums">{c.count}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
+          <section>
+            <h2 className="font-bold mb-1.5">Pays les plus actifs</h2>
+            <ol>
+              {countries.slice(0, 50).map((c) => (
+                <li key={c.code}>
+                  <button onClick={() => selectCountry(c.code)} className={listButton}>
+                    <span className="truncate flex-1">{c.name}</span>
+                    <span className="text-gris tabular-nums">{c.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
         ) : (
-          <ol className="space-y-1">
-            <li className="text-xs uppercase tracking-wide text-gray-500">Lieux les plus actifs</li>
-            {places.slice(0, 50).map((p) => (
-              <li key={p.key}>
-                <button onClick={() => focusPlace(p)} className={listButton}>
-                  <span
-                    className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ background: TYPE_STYLES[p.mainType].color }}
-                  />
-                  <span className="truncate flex-1">{p.location}</span>
-                  <span className="text-gray-500 tabular-nums">{p.count}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
+          <section>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <h2 className="font-bold">Lieux les plus actifs</h2>
+              <button onClick={() => selectCountry(WORLD)} className="text-sm text-bleu hover:underline underline-offset-4">
+                Voir le monde
+              </button>
+            </div>
+            <ol>
+              {places.slice(0, 50).map((p) => (
+                <li key={p.key}>
+                  <button onClick={() => focusPlace(p)} className={listButton}>
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: TYPE_STYLES[p.mainType].color }}
+                    />
+                    <span className="truncate flex-1">{p.location}</span>
+                    <span className="text-gris tabular-nums">{p.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
         )}
       </aside>
-      <div ref={mapEl} className="flex-1 min-h-[55vh] z-0" />
+      <div ref={mapEl} className="flex-1 min-h-[52vh] z-0" />
     </div>
   );
 }
