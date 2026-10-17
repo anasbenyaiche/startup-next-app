@@ -5,9 +5,79 @@ import type { ArticlePreview } from "@/lib/article-preview";
 import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
 import type { ActorStat, PlaceDetails as Details } from "@/lib/manifestations";
 import { FAMILY_COLORS, TYPE_FAMILY } from "./map-colors";
+import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 // Les premiers articles sont les plus sûrs (triés par confiance) ; le reste sur demande.
 const ARTICLES_SHOWN = 8;
+
+// Hauteurs fixes de l'histogramme fantôme (même nombre de barres que le vrai pour 24 h).
+const GHOST_BARS = [30, 45, 38, 52, 60, 44, 70, 55, 48, 62, 80, 66, 58, 72, 50, 64, 76, 54, 42, 58, 68, 46, 36, 50];
+
+function DetailsSkeleton({ label }: { label: string }) {
+  return (
+    <LoadingRegion label={label} className="space-y-6">
+      <header className="space-y-2.5">
+        <Skeleton className="h-9 w-3/5" />
+        <Skeleton className="h-4 w-2/5" />
+        <Skeleton className="h-4 w-3/4" />
+      </header>
+      <div className="grid grid-cols-3 gap-3 border-y-[1.5px] border-encre/20 py-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-7 w-12" />
+            <Skeleton className="h-3.5 w-16" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-44" />
+        <Skeleton className="h-3.5 w-36" />
+        <Skeleton className="h-3.5 w-52" />
+        <Skeleton className="h-3.5 w-48" />
+      </div>
+      <div>
+        <Skeleton className="h-5 w-48 mb-3" />
+        <div className="flex h-16 items-end gap-[2px]" aria-hidden="true">
+          {GHOST_BARS.map((h, i) => (
+            <Skeleton key={i} className="flex-1 rounded-b-none" style={{ height: `${h}%` }} />
+          ))}
+        </div>
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-32" />
+        {SKELETON_WIDTHS.slice(0, 3).map((w, i) => (
+          <div key={i} className="space-y-1.5">
+            <Skeleton className="h-3.5" style={{ width: w }} />
+            <Skeleton className="h-2 rounded-full" style={{ width: `${90 - i * 25}%` }} />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-5 w-36" />
+        <div className="flex flex-wrap gap-1.5">
+          {["w-16", "w-28", "w-20", "w-24"].map((w) => (
+            <Skeleton key={w} className={`h-7 rounded-full ${w}`} />
+          ))}
+        </div>
+      </div>
+      <ArticlesSkeleton count={3} />
+    </LoadingRegion>
+  );
+}
+
+function ArticlesSkeleton({ count }: { count: number }) {
+  return (
+    <div className="space-y-3">
+      {SKELETON_WIDTHS.slice(0, count).map((w, i) => (
+        <div key={i} className="border-s-[3px] border-encre/10 ps-3 space-y-1.5">
+          <Skeleton className="h-4" style={{ width: w }} />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-2/5" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 type State = { status: "loading" } | { status: "error"; notFound: boolean } | { status: "ready"; details: Details };
 
@@ -109,12 +179,14 @@ export default function PlaceDetails({
   const [state, setState] = useState<State>({ status: "loading" });
   const [previews, setPreviews] = useState<Record<string, ArticlePreview>>({});
   const [allArticles, setAllArticles] = useState(false);
+  const [previewsLoading, setPreviewsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setState({ status: "loading" });
     setPreviews({});
     setAllArticles(false);
+    setPreviewsLoading(true);
     const q = `hours=${hours}&key=${encodeURIComponent(placeKey)}`;
     fetch(`/api/manifestations/place?${q}`)
       .then(async (res) => {
@@ -123,9 +195,16 @@ export default function PlaceDetails({
         setState({ status: "ready", details: await res.json() });
         // Les aperçus d'articles arrivent ensuite : ils demandent de lire chaque page.
         const p = await fetch(`/api/manifestations/articles?${q}`).then((r) => (r.ok ? r.json() : { previews: [] }));
-        if (!cancelled) setPreviews(Object.fromEntries((p.previews as ArticlePreview[]).map((a) => [a.url, a])));
+        if (cancelled) return;
+        setPreviews(Object.fromEntries((p.previews as ArticlePreview[]).map((a) => [a.url, a])));
+        setPreviewsLoading(false);
       })
-      .catch(() => !cancelled && setState({ status: "error", notFound: false }));
+      .catch(() => {
+        if (cancelled) return;
+        // Un échec des aperçus seuls laisse les articles affichés par leur domaine.
+        setState((prev) => (prev.status === "ready" ? prev : { status: "error", notFound: false }));
+        setPreviewsLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -139,9 +218,9 @@ export default function PlaceDetails({
 
   if (state.status === "loading") {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {back}
-        <p className="text-gris">{d.loading}</p>
+        <DetailsSkeleton label={d.loading} />
       </div>
     );
   }
@@ -271,8 +350,19 @@ export default function PlaceDetails({
           <p className="text-gris">{d.noArticles}</p>
         ) : (
           <ol className="space-y-3">
-            {x.articles.slice(0, allArticles ? undefined : ARTICLES_SHOWN).map((a) => {
+            {x.articles.slice(0, allArticles ? undefined : ARTICLES_SHOWN).map((a, i) => {
               const p = previews[a.url];
+              if (!p && previewsLoading && i < ARTICLES_SHOWN) {
+                return (
+                  <li key={a.url} className="border-s-[3px] ps-3 space-y-1.5" style={{ borderColor: FAMILY_COLORS[TYPE_FAMILY[a.type]] }}>
+                    <Skeleton className="h-4" style={{ width: SKELETON_WIDTHS[i] }} />
+                    <Skeleton className="h-3 w-full" />
+                    <p className="text-xs text-gris">
+                      {a.domain}, {time(a.addedAt)}
+                    </p>
+                  </li>
+                );
+              }
               return (
                 <li key={a.url} className="border-s-[3px] ps-3" style={{ borderColor: FAMILY_COLORS[TYPE_FAMILY[a.type]] }}>
                   <a

@@ -6,6 +6,7 @@ import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestati
 import type { Family } from "@/lib/protest-types";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map-colors";
 import PlaceDetails from "./PlaceDetails";
+import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 const LEAFLET_VERSION = "1.9.4";
 const REFRESH_MS = 15 * 60 * 1000;
@@ -204,6 +205,9 @@ export default function ManifestationsMap({
 
   useEffect(() => {
     let cancelled = false;
+    // Changer de période vide la carte : garder l'ancienne période affichée
+    // pendant le calcul laisserait croire qu'elle correspond au nouveau choix.
+    setData(null);
     const load = async () => {
       setLoading(true);
       try {
@@ -432,7 +436,10 @@ export default function ManifestationsMap({
               {error ? (
                 <p className="text-[#c0262d]">{t.map.feedDown(error)}</p>
               ) : loading && !data ? (
-                <p className="text-gris">{t.map.reading}</p>
+                <LoadingRegion label={t.map.reading}>
+                  <Skeleton className="h-6 w-4/5" />
+                  <p className="mt-2 text-sm text-gris">{t.map.reading}</p>
+                </LoadingRegion>
               ) : (
                 <p className="text-lg leading-snug">
                   <strong className="tabular-nums">{total.toLocaleString(locale)}</strong>{" "}
@@ -451,7 +458,20 @@ export default function ManifestationsMap({
               {data && data.filesFailed > 0 && <p className="text-sm text-gris mt-1">{t.map.missingSlots(data.filesFailed)}</p>}
             </div>
 
-            {country === WORLD ? (
+            {!data && !error ? (
+              // Même rythme que la liste : une ligne par lieu ou par pays.
+              <section aria-hidden="true">
+                <Skeleton className="h-5 w-40 mb-2.5" />
+                {SKELETON_WIDTHS.map((w, i) => (
+                  <div key={i} className="flex items-center gap-2.5 px-1.5 py-1 h-8">
+                    <span className="flex-1">
+                      <Skeleton className="h-4" style={{ width: w }} />
+                    </span>
+                    <Skeleton className="h-4 w-6" />
+                  </div>
+                ))}
+              </section>
+            ) : country === WORLD ? (
               <section>
                 <h2 className="font-bold mb-1.5">{t.map.topCountries}</h2>
                 <ol>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { countryName, getDictionary, type Locale } from "@/lib/i18n";
 import type { ManifestationsResult } from "@/lib/manifestations";
+import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 type CountryCount = { code: string; name: string; count: number };
 
@@ -32,7 +33,25 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
   }, []);
 
   if (error) return <p className="text-gris">{t.unreachable}</p>;
-  if (!all) return <p className="text-gris">{t.loading}</p>;
+  if (!all) {
+    // Même grille que le classement : nom, nombre, jauge.
+    return (
+      <LoadingRegion label={t.loading}>
+        <ol className="divide-y divide-encre/15 border-y-[1.5px] border-encre">
+          {SKELETON_WIDTHS.slice(0, 8).map((w, i) => (
+            <li key={i} className="grid grid-cols-[1fr_auto] items-center gap-x-4 py-2.5">
+              <span className="flex h-7 items-center">
+                <Skeleton className="h-4" style={{ width: w }} />
+              </span>
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="col-span-2 mt-1.5 h-[3px]" style={{ width: `${100 - i * 9}%` }} />
+            </li>
+          ))}
+        </ol>
+        <Skeleton className="mt-4 h-3.5 w-32" />
+      </LoadingRegion>
+    );
+  }
   if (all.length === 0) return <p className="text-gris">{t.empty}</p>;
 
   const top = all.slice(0, 8);
