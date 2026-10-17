@@ -7,9 +7,7 @@ const GDELT_BASE = "http://data.gdeltproject.org/gdeltv2";
 const LAST_UPDATE_URL = `${GDELT_BASE}/lastupdate.txt`;
 const SLOT_MS = 15 * 60 * 1000;
 const FETCH_CONCURRENCY = 8;
-
-// Codes pays FIPS utilisés par GDELT : métropole + outre-mer.
-const FRANCE_FIPS = new Set(["FR", "RE", "GP", "MQ", "FG", "MF", "NC", "FP", "TB", "RN", "SB", "WF"]);
+const MAX_SOURCES_PER_PLACE = 6;
 
 export const PROTEST_TYPES: Record<string, string> = {
   "140": "Manifestation (autre)",
@@ -36,7 +34,6 @@ const COL = {
   geoType: 51,
   geoName: 52,
   geoCountry: 53,
-  geoAdm1: 54,
   geoLat: 56,
   geoLong: 57,
   dateAdded: 59,
@@ -49,7 +46,8 @@ export type ManifestationEvent = {
   typeLabel: string;
   actors: string[];
   location: string;
-  region: string;
+  country: string;
+  countryName: string;
   lat: number;
   lng: number;
   mentions: number;
@@ -59,12 +57,27 @@ export type ManifestationEvent = {
   sourceUrl: string;
 };
 
+// Les événements sont agrégés par lieu côté serveur : en mondial, il y en a
+// des dizaines de milliers sur 72 h, trop pour être envoyés un par un.
+export type ManifestationPlace = {
+  key: string;
+  location: string;
+  country: string;
+  countryName: string;
+  lat: number;
+  lng: number;
+  byType: Record<string, { count: number; mentions: number }>;
+  latestAt: string;
+  sources: { url: string; type: string }[];
+};
+
 export type ManifestationsResult = {
   updatedAt: string;
   hours: number;
   filesFetched: number;
   filesFailed: number;
-  events: ManifestationEvent[];
+  totalEvents: number;
+  places: ManifestationPlace[];
 };
 
 // Extrait le premier fichier d'une archive ZIP (les exports GDELT n'en contiennent qu'un).
@@ -103,8 +116,8 @@ export function parseExport(csv: string): ManifestationEvent[] {
     const c = line.split("\t");
     if (c.length < 61) continue;
     if (c[COL.eventRootCode] !== "14") continue;
-    if (!FRANCE_FIPS.has(c[COL.geoCountry])) continue;
-    // Type 1 = pays entier (centroïde de la France) : position inexploitable sur une carte.
+    if (!c[COL.geoCountry]) continue;
+    // Type 1 = pays entier (centroïde du pays) : position inexploitable sur une carte.
     if (c[COL.geoType] === "1") continue;
 
     const lat = parseFloat(c[COL.geoLat]);
@@ -114,14 +127,17 @@ export function parseExport(csv: string): ManifestationEvent[] {
     const type = PROTEST_TYPES[c[COL.eventBaseCode]] ? c[COL.eventBaseCode] : "140";
     const actors = [c[COL.actor1Name], c[COL.actor2Name]].filter(Boolean);
     const added = c[COL.dateAdded];
+    const location = c[COL.geoName];
 
     events.push({
       id: c[COL.id],
       type,
       typeLabel: PROTEST_TYPES[type],
       actors,
-      location: c[COL.geoName],
-      region: c[COL.geoAdm1],
+      location,
+      country: c[COL.geoCountry],
+      // GDELT ne fournit que le code FIPS ; le nom du pays est le dernier segment du lieu.
+      countryName: location.split(",").pop()?.trim() || c[COL.geoCountry],
       lat,
       lng,
       mentions: parseInt(c[COL.numMentions], 10) || 0,
@@ -151,12 +167,55 @@ async function latestSlot(): Promise<Date> {
   );
 }
 
+// Événements déjà analysés par créneau : un fichier passé ne change plus,
+// on évite ainsi de re-télécharger et re-décompresser à chaque requête.
+const slotCache = new Map<string, ManifestationEvent[]>();
+const MAX_CACHED_SLOTS = 4 * 80;
+
 async function fetchSlot(stamp: string): Promise<ManifestationEvent[]> {
-  // Les fichiers d'un créneau passé ne changent plus : cache long.
-  const res = await fetch(`${GDELT_BASE}/${stamp}.export.CSV.zip`, { next: { revalidate: 86400 } });
+  const cached = slotCache.get(stamp);
+  if (cached) return cached;
+  // Pas de cache Next : les archives peuvent dépasser sa limite de 2 Mo par entrée.
+  const res = await fetch(`${GDELT_BASE}/${stamp}.export.CSV.zip`, { cache: "no-store" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const zip = Buffer.from(await res.arrayBuffer());
-  return parseExport(unzipFirstEntry(zip).toString("utf8"));
+  const events = parseExport(unzipFirstEntry(zip).toString("utf8"));
+  slotCache.set(stamp, events);
+  if (slotCache.size > MAX_CACHED_SLOTS) {
+    const oldest = [...slotCache.keys()].sort()[0];
+    slotCache.delete(oldest);
+  }
+  return events;
+}
+
+export function groupByPlace(events: Iterable<ManifestationEvent>): ManifestationPlace[] {
+  const places = new Map<string, ManifestationPlace>();
+  for (const e of events) {
+    const key = `${e.lat.toFixed(3)},${e.lng.toFixed(3)}`;
+    let p = places.get(key);
+    if (!p) {
+      p = {
+        key,
+        location: e.location,
+        country: e.country,
+        countryName: e.countryName,
+        lat: e.lat,
+        lng: e.lng,
+        byType: {},
+        latestAt: e.dateAdded,
+        sources: [],
+      };
+      places.set(key, p);
+    }
+    const t = (p.byType[e.type] ??= { count: 0, mentions: 0 });
+    t.count++;
+    t.mentions += e.mentions;
+    if (e.dateAdded > p.latestAt) p.latestAt = e.dateAdded;
+    if (e.sourceUrl && p.sources.length < MAX_SOURCES_PER_PLACE && !p.sources.some((s) => s.url === e.sourceUrl)) {
+      p.sources.push({ url: e.sourceUrl, type: e.type });
+    }
+  }
+  return [...places.values()];
 }
 
 export async function getManifestations(hours: number): Promise<ManifestationsResult> {
@@ -164,6 +223,8 @@ export async function getManifestations(hours: number): Promise<ManifestationsRe
   const count = Math.max(1, Math.round((hours * 3600 * 1000) / SLOT_MS));
   const stamps = Array.from({ length: count }, (_, i) => slotStamp(new Date(latest.getTime() - i * SLOT_MS)));
 
+  // Les créneaux sont parcourus du plus récent au plus ancien : les sources
+  // gardées pour chaque lieu sont donc les plus récentes.
   const byId = new Map<string, ManifestationEvent>();
   let failed = 0;
   for (let i = 0; i < stamps.length; i += FETCH_CONCURRENCY) {
@@ -173,16 +234,16 @@ export async function getManifestations(hours: number): Promise<ManifestationsRe
         failed++;
         continue;
       }
-      for (const e of r.value) byId.set(e.id, e);
+      for (const e of r.value) if (!byId.has(e.id)) byId.set(e.id, e);
     }
   }
 
-  const events = [...byId.values()].sort((a, b) => b.dateAdded.localeCompare(a.dateAdded));
   return {
     updatedAt: latest.toISOString(),
     hours,
     filesFetched: stamps.length - failed,
     filesFailed: failed,
-    events,
+    totalEvents: byId.size,
+    places: groupByPlace(byId.values()),
   };
 }
