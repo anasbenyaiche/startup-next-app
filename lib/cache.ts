@@ -15,7 +15,8 @@ let redisDown = false;
 
 function getRedis(): Redis | null {
   if (globalForRedis.redis !== undefined) return globalForRedis.redis;
-  const url = process.env.REDIS_URL;
+  // KV_URL : nom donné par certaines intégrations Redis de Vercel.
+  const url = process.env.REDIS_URL ?? process.env.KV_URL;
   if (!url) return (globalForRedis.redis = null);
 
   const client = new Redis(url, {

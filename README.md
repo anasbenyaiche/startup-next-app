@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cortège
 
-## Getting Started
+Les manifestations du monde entier sur une carte, à partir des articles de presse
+analysés par [GDELT](https://www.gdeltproject.org/), mise à jour toutes les 15 minutes.
 
-First, run the development server:
+## Développement
 
 ```bash
-npm run dev
-# or
+yarn
+cp .env.example .env.local   # puis renseigner AUTH_SECRET
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variables d'environnement
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `AUTH_SECRET` | oui | Secret de next-auth (`npx auth secret` pour en générer un). |
+| `REDIS_URL` ou `KV_URL` | conseillé en production | Cache partagé des données GDELT. Sans Redis, chaque instance garde son cache en mémoire. |
+| `GDELT_BASE_URL` | non | Miroir des fichiers GDELT, utile pour les tests. |
 
-## Learn More
+## Déploiement sur Vercel
 
-To learn more about Next.js, take a look at the following resources:
+1. Importer le dépôt sur [vercel.com/new](https://vercel.com/new) : Next.js et Yarn sont détectés seuls.
+2. Ajouter `AUTH_SECRET` dans *Settings → Environment Variables*.
+3. Ajouter une base Redis (par exemple Upstash depuis l'onglet *Storage*) et vérifier que
+   `REDIS_URL` ou `KV_URL` est bien défini pour le projet.
+4. Chaque push crée un déploiement de prévisualisation ; un merge sur `main` met la production à jour.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Sur Vercel, le pays du visiteur vient de l'en-tête `x-vercel-ip-country` : la langue et
+le pays ouvert sur la carte s'adaptent sans configuration.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Les routes d'API ont une durée maximale de 60 secondes. Le premier calcul sur 72 h peut
+la dépasser ; avec Redis, chaque fichier GDELT lu est gardé, et la requête suivante
+reprend là où la précédente s'est arrêtée.
