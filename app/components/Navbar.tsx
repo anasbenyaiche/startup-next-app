@@ -27,11 +27,11 @@ const Navbar = async () => {
           </Link>
           {session && session.user ? (
             <>
-              <Link href="/startup/create" className={linkClass}>
+              <Link href="/startup/create" className={`${linkClass} hidden sm:inline`}>
                 {t.create}
               </Link>
-              <Link href={`/user/${session.user.id}`} className={`${linkClass} hidden sm:inline`}>
-                {session.user.name}
+              <Link href="/profil" className={linkClass}>
+                {getDictionary(locale).nav2.profile}
               </Link>
               <form
                 action={async () => {

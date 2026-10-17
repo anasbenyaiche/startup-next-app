@@ -168,11 +168,14 @@ export default function PlaceDetails({
   hours,
   locale,
   onBack,
+  renderFollow,
 }: {
   placeKey: string;
   hours: number;
   locale: Locale;
   onBack: () => void;
+  // Bouton « Suivre ce lieu », fourni par la carte qui connaît le profil.
+  renderFollow?: (details: Details) => React.ReactNode;
 }) {
   const t = getDictionary(locale);
   const d = t.details;
@@ -244,7 +247,10 @@ export default function PlaceDetails({
       {back}
 
       <header>
-        <h1 className="display text-[2.2rem]">{x.location.split(",")[0]}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="display text-[2.2rem]">{x.location.split(",")[0]}</h1>
+          {renderFollow?.(x)}
+        </div>
         <p className="mt-1 text-gris">{[...x.location.split(",").slice(1, -1).map((s) => s.trim()), countryName(locale, x.country, x.countryName)].join(", ")}</p>
         <p className="mt-2 text-sm flex items-start gap-2">
           <span

@@ -37,7 +37,7 @@ function getRedis(): Redis | null {
 
 // Client prêt à servir, en attendant au plus 1 s une connexion en cours
 // (cas de la première requête après le démarrage du serveur).
-async function readyRedis(): Promise<Redis | null> {
+export async function readyRedis(): Promise<Redis | null> {
   const client = getRedis();
   if (!client) return null;
   if (client.status === "ready") return client;

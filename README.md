@@ -20,6 +20,26 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 | `AUTH_SECRET` | oui | Secret de next-auth (`npx auth secret` pour en générer un). |
 | `REDIS_URL` ou `KV_URL` | conseillé en production | Cache partagé des données GDELT. Sans Redis, chaque instance garde son cache en mémoire. |
 | `GDELT_BASE_URL` | non | Miroir des fichiers GDELT, utile pour les tests. |
+| `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | pour les profils | Application OAuth GitHub ; URL de retour `<site>/api/auth/callback/github`. |
+| `NEXT_PUBLIC_ADS_CONTACT` | non | Adresse de l'encart « Votre annonce ici ». |
+| `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_ADSENSE_SLOT` | non | Bloc Google AdSense, utilisé quand aucun annonceur direct n'est actif. |
+
+Les profils (suivis, réglages) sont stockés dans Redis : en production, Redis est
+nécessaire pour qu'ils survivent aux redémarrages.
+
+## Publicité
+
+L'encart de la carte affiche, dans l'ordre :
+
+1. un **annonceur direct** déclaré dans `lib/sponsors.ts`, ciblé sur le pays affiché ;
+2. sinon un bloc **Google AdSense**, si les deux variables sont définies (dans l'Union
+   européenne, activez le message de consentement « Confidentialité et messages » d'AdSense) ;
+3. sinon l'encart **« Votre annonce ici »**, si `NEXT_PUBLIC_ADS_CONTACT` est défini.
+
+Les affichages et les clics des annonceurs directs sont comptés par mois dans Redis
+(`ads:<id>:<AAAA-MM>:views` et `:clicks`), sans aucune donnée sur les visiteurs.
+Les suivis des utilisateurs ne servent jamais au ciblage : ils peuvent révéler des
+opinions politiques, une catégorie de données protégée par le RGPD.
 
 ## Déploiement sur Vercel
 
