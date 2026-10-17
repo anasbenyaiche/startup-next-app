@@ -9,12 +9,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        papier: "var(--papier)",
-        "papier-fonce": "var(--papier-fonce)",
-        encre: "var(--encre)",
-        gris: "var(--gris)",
-        rose: "var(--rose)",
-        bleu: "var(--bleu)",
+        papier: "rgb(var(--papier) / <alpha-value>)",
+        "papier-fonce": "rgb(var(--papier-fonce) / <alpha-value>)",
+        encre: "rgb(var(--encre) / <alpha-value>)",
+        gris: "rgb(var(--gris) / <alpha-value>)",
+        rose: "rgb(var(--rose) / <alpha-value>)",
+        bleu: "rgb(var(--bleu) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-bricolage)", "system-ui", "sans-serif"],

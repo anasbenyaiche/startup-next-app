@@ -21,7 +21,7 @@ export default function Home() {
           </p>
           <Link
             href="/manifestations"
-            className="mt-8 inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-5 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_var(--rose)] hover:bg-bleu hover:border-bleu"
+            className="mt-8 inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-5 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_rgb(var(--rose))] hover:bg-bleu hover:border-bleu"
           >
             Ouvrir la carte
           </Link>
