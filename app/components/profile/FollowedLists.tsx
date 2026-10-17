@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toggleFollowCountry, toggleFollowPlace } from "@/app/actions/profile";
-import { getDictionary, type Locale } from "@/lib/i18n";
+import { getDictionary, localePath, type Locale } from "@/lib/i18n";
 import type { ManifestationsResult } from "@/lib/manifestations";
 import type { FollowedPlace } from "@/lib/profile";
 import { Skeleton } from "../Skeleton";
@@ -68,7 +68,7 @@ export default function FollowedLists({
           <ul className="mt-2 divide-y divide-encre/15">
             {countries.map((code) => (
               <li key={code} className={row}>
-                <Link href={`/manifestations?pays=${code}`} className="flex-1 text-lg font-semibold hover:text-bleu hover:underline underline-offset-4">
+                <Link href={localePath(locale, `/manifestations?pays=${code}`)} className="flex-1 text-lg font-semibold hover:text-bleu hover:underline underline-offset-4">
                   {names[code] ?? code}
                 </Link>
                 {count(counts?.byCountry.get(code))}
@@ -99,7 +99,7 @@ export default function FollowedLists({
             {places.map((place) => (
               <li key={place.key} className={row}>
                 <Link
-                  href={`/manifestations?pays=${place.country}&lieu=${encodeURIComponent(place.key)}`}
+                  href={localePath(locale, `/manifestations?pays=${place.country}&lieu=${encodeURIComponent(place.key)}`)}
                   className="flex-1 min-w-0 hover:text-bleu hover:underline underline-offset-4"
                 >
                   <span className="block truncate text-lg font-semibold">{place.label.split(",")[0]}</span>

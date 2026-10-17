@@ -20,6 +20,7 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 | `AUTH_SECRET` | oui | Secret de next-auth (`npx auth secret` pour en générer un). |
 | `REDIS_URL` ou `KV_URL` | conseillé en production | Cache partagé des données GDELT. Sans Redis, chaque instance garde son cache en mémoire. |
 | `GDELT_BASE_URL` | non | Miroir des fichiers GDELT, utile pour les tests. |
+| `NEXT_PUBLIC_SITE_URL` | conseillé | Adresse publique (ex. `https://cortege.app`) pour les adresses canoniques, le sitemap et les aperçus. |
 | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | pour les profils | Application OAuth GitHub ; URL de retour `<site>/api/auth/callback/github`. |
 | `NEXT_PUBLIC_ADS_CONTACT` | non | Adresse de l'encart « Votre annonce ici ». |
 | `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_ADSENSE_SLOT` | non | Bloc Google AdSense, utilisé quand aucun annonceur direct n'est actif. |
@@ -55,3 +56,18 @@ le pays ouvert sur la carte s'adaptent sans configuration.
 Les routes d'API ont une durée maximale de 60 secondes. Le premier calcul sur 72 h peut
 la dépasser ; avec Redis, chaque fichier GDELT lu est gardé, et la requête suivante
 reprend là où la précédente s'est arrêtée.
+
+## Référencement
+
+- **Une adresse par langue** : `/fr`, `/en`, `/es`, `/pt`, `/de`, `/ar`. Une adresse sans langue
+  (`/`, anciens liens) redirige vers la langue du visiteur. Chaque page déclare ses versions
+  dans les autres langues (`hreflang`) et son adresse canonique.
+- **Pages pays indexables**, rendues côté serveur avec les chiffres du moment :
+  `/fr/pays/france`, `/en/country/france`, `/de/land/frankreich`… et une page qui les liste
+  (`/fr/pays`). Un pays sans manifestation récente est marqué `noindex`.
+- `sitemap.xml` (pages et pays actifs, avec leurs versions linguistiques) et `robots.txt`.
+- Données structurées schema.org (site, fil d'Ariane, listes) et images d'aperçu générées
+  par page (`/api/og`).
+
+Après la mise en ligne : déclarer le site et le sitemap dans Google Search Console et
+Bing Webmaster Tools.

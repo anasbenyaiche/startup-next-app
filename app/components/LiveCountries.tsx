@@ -2,21 +2,34 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { countryName, getDictionary, type Locale } from "@/lib/i18n";
+import { FIPS_TO_ISO } from "@/lib/countries";
+import { COUNTRY_SEGMENT, countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
 import type { ManifestationsResult } from "@/lib/manifestations";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
-type CountryCount = { code: string; name: string; count: number };
+type CountryCount = { code: string; name: string; count: number; href?: string };
+
+type Initial = { updatedAt: string; countries: CountryCount[] } | null;
 
 // Pays où la presse signale le plus de manifestations sur les 6 dernières heures,
 // plus le pays du visiteur s'il n'est pas dans le haut du classement.
-export default function LiveCountries({ locale, visitorFips }: { locale: Locale; visitorFips: string | null }) {
+export default function LiveCountries({
+  locale,
+  visitorFips,
+  initial,
+}: {
+  locale: Locale;
+  visitorFips: string | null;
+  // Classement déjà calculé par le serveur (données en cache), sinon chargé ici.
+  initial: Initial;
+}) {
   const t = getDictionary(locale).home;
-  const [all, setAll] = useState<CountryCount[] | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [all, setAll] = useState<CountryCount[] | null>(initial?.countries ?? null);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(initial?.updatedAt ?? null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (initial) return;
     fetch("/api/manifestations?hours=6")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data: ManifestationsResult) => {
@@ -30,6 +43,7 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
         setUpdatedAt(data.updatedAt);
       })
       .catch(() => setError(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chargement unique si le serveur n'a rien fourni
   }, []);
 
   if (error) return <p className="text-gris">{t.unreachable}</p>;
@@ -58,7 +72,12 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
   const max = top[0].count;
   const visitor = visitorFips ? all.find((c) => c.code === visitorFips) : undefined;
   const fmt = (n: number) => n.toLocaleString(locale);
-  const name = (c: { code: string; name: string }) => countryName(locale, c.code, c.name);
+  // Noms et liens fournis par le serveur quand il a rendu le classement (pour une
+  // hydratation identique) ; sinon calculés ici, avec un lien par code ISO que la
+  // page pays redirige vers son adresse lisible.
+  const name = (c: CountryCount) => (initial ? c.name : countryName(locale, c.code, c.name));
+  const href = (c: CountryCount) =>
+    c.href ?? localePath(locale, `/${COUNTRY_SEGMENT[locale]}/${(FIPS_TO_ISO[c.code] ?? c.code).toLowerCase()}`);
 
   return (
     <>
@@ -66,7 +85,7 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
         {top.map((c) => (
           <li key={c.code}>
             <Link
-              href={`/manifestations?pays=${c.code}`}
+              href={href(c)}
               className="group grid grid-cols-[1fr_auto] items-center gap-x-4 py-2.5 hover:text-bleu"
             >
               <span className="text-lg font-semibold group-hover:underline underline-offset-4">
@@ -90,7 +109,7 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
         <p className="mt-4">
           <span className="text-gris">{t.yourCountry} </span>
           {visitor ? (
-            <Link href={`/manifestations?pays=${visitor.code}`} className="font-semibold hover:text-bleu hover:underline underline-offset-4">
+            <Link href={href(visitor)} className="font-semibold hover:text-bleu hover:underline underline-offset-4">
               {name(visitor)}, {fmt(visitor.count)}
             </Link>
           ) : (

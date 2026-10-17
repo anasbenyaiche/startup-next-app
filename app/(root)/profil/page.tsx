@@ -6,7 +6,7 @@ import DeleteMyData from "@/app/components/profile/DeleteMyData";
 import FollowedLists from "@/app/components/profile/FollowedLists";
 import PreferencesForm from "@/app/components/profile/PreferencesForm";
 import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
-import { countryName, getDictionary, type Locale } from "@/lib/i18n";
+import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProfile } from "@/lib/profile";
 
@@ -39,7 +39,7 @@ export default async function ProfilePage() {
         <form
           action={async () => {
             "use server";
-            await signInToFollow("/profil");
+            await signInToFollow(localePath(locale, "/profil"));
           }}
         >
           <button

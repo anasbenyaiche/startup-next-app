@@ -173,6 +173,32 @@ const fr = {
     houseSubject: "Annoncer sur Cortège",
     houseCta: "Nous écrire",
   },
+  seo: {
+    homeTitle: "Cortège : les manifestations dans le monde, en direct",
+    homeDescription:
+      "Carte en direct des manifestations, grèves, blocages et émeutes signalés par la presse du monde entier, mise à jour toutes les 15 minutes.",
+    mapTitle: "Carte des manifestations en direct",
+    mapDescription:
+      "Où manifeste-t-on maintenant ? Carte interactive des manifestations et des grèves dans le monde, avec la fiabilité de chaque signalement.",
+    countriesTitle: "Manifestations par pays",
+    countriesDescription: "Les pays où la presse signale des manifestations, grèves et blocages en ce moment, mis à jour toutes les 15 minutes.",
+    countriesIntro: "Les pays où la presse a signalé des manifestations ces dernières 24 heures, du plus actif au moins actif.",
+    countryTitle: (c: string) => `${c} : manifestations et grèves aujourd'hui`,
+    countryDescription: (c: string, n: number) =>
+      `${c} : ${n} manifestations signalées par la presse en 24 h. Lieux, types d'action et fiabilité, mis à jour toutes les 15 minutes.`,
+    // Nombres déjà accordés (« 45 manifestations », « 1 lieu »).
+    countryIntro: (protests: string, places: string, time: string) =>
+      `Ces dernières 24 heures, la presse a signalé environ ${protests} dans ${places}. Mis à jour le ${time}.`,
+    countryNoData:
+      "Aucune manifestation n'a été signalée par la presse ces dernières 24 heures, ou les données sont en cours de calcul. La carte en direct reste disponible.",
+    topPlaces: "Lieux les plus actifs",
+    byFamily: "Types d'action",
+    openMap: "Voir sur la carte en direct",
+    otherCountries: "Autres pays actifs",
+    allCountries: "Tous les pays",
+    home: "Accueil",
+    reliabilityShort: (score: number) => `fiabilité ${score}/100`,
+  },
   types: {
     "141": "Manifestation, rassemblement",
     "143": "Grève, boycott",
@@ -324,6 +350,31 @@ const en: Dictionary = {
     houseSubject: "Advertising on Cortège",
     houseCta: "Write to us",
   },
+  seo: {
+    homeTitle: "Cortège: protests around the world, live",
+    homeDescription:
+      "Live map of protests, strikes, blockades and riots reported by the press worldwide, updated every 15 minutes.",
+    mapTitle: "Live protest map",
+    mapDescription:
+      "Where are people protesting right now? Interactive map of protests and strikes worldwide, with the reliability of each report.",
+    countriesTitle: "Protests by country",
+    countriesDescription: "Countries where the press is reporting protests, strikes and blockades right now, updated every 15 minutes.",
+    countriesIntro: "Countries where the press reported protests in the last 24 hours, from most to least active.",
+    countryTitle: (c) => `${c}: protests and strikes today`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protests reported by the press in the last 24 h. Places, types of action and reliability, updated every 15 minutes.`,
+    countryIntro: (protests, places, time) =>
+      `In the last 24 hours, the press reported about ${protests} in ${places}. Updated ${time}.`,
+    countryNoData:
+      "No protests were reported by the press in the last 24 hours, or the data is still being computed. The live map is still available.",
+    topPlaces: "Most active places",
+    byFamily: "Types of action",
+    openMap: "See the live map",
+    otherCountries: "Other active countries",
+    allCountries: "All countries",
+    home: "Home",
+    reliabilityShort: (score) => `reliability ${score}/100`,
+  },
   types: {
     "141": "Demonstration, rally",
     "143": "Strike, boycott",
@@ -472,6 +523,31 @@ const es: Dictionary = {
     houseText: "Llega a un público que sigue la actualidad social, país por país. Anuncio elegido según el país mostrado, sin rastreo.",
     houseSubject: "Anunciarse en Cortège",
     houseCta: "Escríbenos",
+  },
+  seo: {
+    homeTitle: "Cortège: las protestas del mundo, en directo",
+    homeDescription:
+      "Mapa en directo de las manifestaciones, huelgas, bloqueos y disturbios que recoge la prensa de todo el mundo, actualizado cada 15 minutos.",
+    mapTitle: "Mapa de protestas en directo",
+    mapDescription:
+      "¿Dónde se protesta ahora? Mapa interactivo de manifestaciones y huelgas en el mundo, con la fiabilidad de cada aviso.",
+    countriesTitle: "Protestas por país",
+    countriesDescription: "Los países donde la prensa informa ahora de manifestaciones, huelgas y bloqueos, actualizado cada 15 minutos.",
+    countriesIntro: "Los países donde la prensa informó de protestas en las últimas 24 horas, del más activo al menos activo.",
+    countryTitle: (c) => `${c}: protestas y huelgas hoy`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protestas recogidas por la prensa en 24 h. Lugares, tipos de acción y fiabilidad, actualizado cada 15 minutos.`,
+    countryIntro: (protests, places, time) =>
+      `En las últimas 24 horas, la prensa informó de unas ${protests} en ${places}. Actualizado el ${time}.`,
+    countryNoData:
+      "La prensa no ha informado de protestas en las últimas 24 horas, o los datos se están calculando. El mapa en directo sigue disponible.",
+    topPlaces: "Lugares más activos",
+    byFamily: "Tipos de acción",
+    openMap: "Ver el mapa en directo",
+    otherCountries: "Otros países activos",
+    allCountries: "Todos los países",
+    home: "Inicio",
+    reliabilityShort: (score) => `fiabilidad ${score}/100`,
   },
   types: {
     "141": "Manifestación, concentración",
@@ -622,6 +698,31 @@ const pt: Dictionary = {
     houseSubject: "Anunciar no Cortège",
     houseCta: "Escreva-nos",
   },
+  seo: {
+    homeTitle: "Cortège: os protestos do mundo, ao vivo",
+    homeDescription:
+      "Mapa ao vivo das manifestações, greves, bloqueios e motins noticiados pela imprensa de todo o mundo, atualizado a cada 15 minutos.",
+    mapTitle: "Mapa de protestos ao vivo",
+    mapDescription:
+      "Onde se protesta agora? Mapa interativo de manifestações e greves no mundo, com a fiabilidade de cada notícia.",
+    countriesTitle: "Protestos por país",
+    countriesDescription: "Os países onde a imprensa noticia agora manifestações, greves e bloqueios, atualizado a cada 15 minutos.",
+    countriesIntro: "Os países onde a imprensa noticiou protestos nas últimas 24 horas, do mais ativo ao menos ativo.",
+    countryTitle: (c) => `${c}: protestos e greves hoje`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protestos noticiados pela imprensa em 24 h. Locais, tipos de ação e fiabilidade, atualizado a cada 15 minutos.`,
+    countryIntro: (protests, places, time) =>
+      `Nas últimas 24 horas, a imprensa noticiou cerca de ${protests} em ${places}. Atualizado em ${time}.`,
+    countryNoData:
+      "A imprensa não noticiou protestos nas últimas 24 horas, ou os dados estão a ser calculados. O mapa ao vivo continua disponível.",
+    topPlaces: "Locais mais ativos",
+    byFamily: "Tipos de ação",
+    openMap: "Ver o mapa ao vivo",
+    otherCountries: "Outros países ativos",
+    allCountries: "Todos os países",
+    home: "Início",
+    reliabilityShort: (score) => `fiabilidade ${score}/100`,
+  },
   types: {
     "141": "Manifestação, concentração",
     "143": "Greve, boicote",
@@ -770,6 +871,31 @@ const de: Dictionary = {
     houseText: "Erreichen Sie Menschen, die soziale Nachrichten Land für Land verfolgen. Auswahl nach angezeigtem Land, ohne Tracking.",
     houseSubject: "Werben auf Cortège",
     houseCta: "Schreiben Sie uns",
+  },
+  seo: {
+    homeTitle: "Cortège: Proteste weltweit, live",
+    homeDescription:
+      "Live-Karte der Demonstrationen, Streiks, Blockaden und Ausschreitungen, über die die Presse weltweit berichtet, alle 15 Minuten aktualisiert.",
+    mapTitle: "Live-Karte der Proteste",
+    mapDescription:
+      "Wo wird gerade protestiert? Interaktive Karte der Demonstrationen und Streiks weltweit, mit der Verlässlichkeit jeder Meldung.",
+    countriesTitle: "Proteste nach Land",
+    countriesDescription: "Die Länder, in denen die Presse gerade über Demonstrationen, Streiks und Blockaden berichtet, alle 15 Minuten aktualisiert.",
+    countriesIntro: "Die Länder, in denen die Presse in den letzten 24 Stunden über Proteste berichtet hat, vom aktivsten zum am wenigsten aktiven.",
+    countryTitle: (c) => `${c}: Proteste und Streiks heute`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} Proteste in 24 h laut Presse. Orte, Arten der Aktion und Verlässlichkeit, alle 15 Minuten aktualisiert.`,
+    countryIntro: (protests, places, time) =>
+      `In den letzten 24 Stunden berichtete die Presse über etwa ${protests} an ${places}. Aktualisiert am ${time}.`,
+    countryNoData:
+      "Die Presse hat in den letzten 24 Stunden über keine Proteste berichtet, oder die Daten werden noch berechnet. Die Live-Karte bleibt verfügbar.",
+    topPlaces: "Aktivste Orte",
+    byFamily: "Arten der Aktion",
+    openMap: "Live-Karte öffnen",
+    otherCountries: "Weitere aktive Länder",
+    allCountries: "Alle Länder",
+    home: "Startseite",
+    reliabilityShort: (score) => `Verlässlichkeit ${score}/100`,
   },
   types: {
     "141": "Demonstration, Kundgebung",
@@ -920,6 +1046,26 @@ const ar: Dictionary = {
     houseSubject: "الإعلان على Cortège",
     houseCta: "راسلنا",
   },
+  seo: {
+    homeTitle: "Cortège: الاحتجاجات في العالم، مباشرة",
+    homeDescription: "خريطة مباشرة للمظاهرات والإضرابات وعمليات الإغلاق وأعمال الشغب التي تنقلها الصحافة في العالم كله، تُحدَّث كل 15 دقيقة.",
+    mapTitle: "خريطة الاحتجاجات المباشرة",
+    mapDescription: "أين يحتج الناس الآن؟ خريطة تفاعلية للمظاهرات والإضرابات في العالم، مع موثوقية كل رصد.",
+    countriesTitle: "الاحتجاجات حسب البلد",
+    countriesDescription: "البلدان التي تنقل الصحافة منها الآن مظاهرات وإضرابات وعمليات إغلاق، تُحدَّث كل 15 دقيقة.",
+    countriesIntro: "البلدان التي رصدت فيها الصحافة احتجاجات خلال آخر 24 ساعة، من الأكثر نشاطًا إلى الأقل.",
+    countryTitle: (c) => `${c}: الاحتجاجات والإضرابات اليوم`,
+    countryDescription: (c, n) => `${c}: عدد الاحتجاجات التي رصدتها الصحافة خلال 24 ساعة: ${n}. الأماكن وأنواع التحرك والموثوقية، تُحدَّث كل 15 دقيقة.`,
+    countryIntro: (protests, places, time) => `خلال آخر 24 ساعة رصدت الصحافة نحو ${protests} في ${places}. آخر تحديث ${time}.`,
+    countryNoData: "لم ترصد الصحافة أي احتجاج خلال آخر 24 ساعة، أو أن البيانات قيد الحساب. الخريطة المباشرة متاحة دائمًا.",
+    topPlaces: "الأماكن الأكثر نشاطًا",
+    byFamily: "أنواع التحرك",
+    openMap: "عرض الخريطة المباشرة",
+    otherCountries: "بلدان نشطة أخرى",
+    allCountries: "كل البلدان",
+    home: "الرئيسية",
+    reliabilityShort: (score) => `الموثوقية ${score}/100`,
+  },
   types: {
     "141": "مظاهرة، تجمع",
     "143": "إضراب، مقاطعة",
@@ -964,4 +1110,37 @@ assign("ar", "SA AE EG IQ JO KW LB LY OM QA SY YE BH SD PS");
 export function localeForCountry(iso: string | null): Locale | null {
   if (!iso) return null;
   return COUNTRY_LOCALE[iso.toUpperCase()] ?? "en";
+}
+
+// --- Adresses localisées (référencement) -----------------------------------
+
+// Segment de l'adresse des pages pays, dans la langue de la page.
+export const COUNTRY_SEGMENT: Record<Locale, string> = {
+  fr: "pays",
+  en: "country",
+  es: "pais",
+  pt: "pais",
+  de: "land",
+  ar: "country",
+};
+
+// Chemin public d'une page : la langue en tête, pour que chaque version ait sa propre adresse.
+export function localePath(locale: Locale, path: string): string {
+  return `/${locale}${path === "/" ? "" : path}`;
+}
+
+// Identifiant lisible d'un pays dans l'adresse (« france », « allemagne »…).
+// L'arabe utilise les noms anglais, pour des adresses en caractères latins.
+export function countrySlug(locale: Locale, fips: string): string {
+  const name = countryName(locale === "ar" ? "en" : locale, fips, fips);
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function countryPath(locale: Locale, fips: string): string {
+  return localePath(locale, `/${COUNTRY_SEGMENT[locale]}/${countrySlug(locale, fips)}`);
 }

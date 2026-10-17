@@ -1,7 +1,7 @@
 import { auth, signIn, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
-import { getDictionary } from "@/lib/i18n";
+import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Logo from "./Logo";
@@ -17,20 +17,20 @@ const Navbar = async () => {
   return (
     <header className="h-14 px-3 sm:px-6 bg-papier border-b-[1.5px] border-encre">
       <nav className="h-full flex justify-between items-center gap-4">
-        <Link href="/" aria-label={t.home}>
+        <Link href={localePath(locale, "/")} aria-label={t.home}>
           <Logo />
         </Link>
         <div className="flex items-center gap-2.5 sm:gap-6 text-[0.95rem]">
           <LanguageSwitcher locale={locale} label={t.language} />
-          <Link href="/manifestations" className={linkClass}>
+          <Link href={localePath(locale, "/manifestations")} className={linkClass}>
             {t.map}
           </Link>
           {session && session.user ? (
             <>
-              <Link href="/startup/create" className={`${linkClass} hidden sm:inline`}>
+              <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
                 {t.create}
               </Link>
-              <Link href="/profil" className={linkClass}>
+              <Link href={localePath(locale, "/profil")} className={linkClass}>
                 {getDictionary(locale).nav2.profile}
               </Link>
               <form
@@ -48,7 +48,7 @@ const Navbar = async () => {
             <form
               action={async () => {
                 "use server";
-                await signIn("github");
+                await signIn("github", { redirectTo: localePath(locale, "/profil") });
               }}
             >
               <button type="submit" className={buttonClass}>
