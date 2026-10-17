@@ -1,4 +1,5 @@
 import { inflateRawSync } from "zlib";
+import { cacheGet, cacheSet } from "./cache";
 
 // GDELT 2.0 publie toutes les 15 minutes un export CSV (zippé) de tous les
 // événements détectés dans la presse mondiale. Le code CAMEO racine "14"
@@ -167,24 +168,27 @@ async function latestSlot(): Promise<Date> {
   );
 }
 
-// Événements déjà analysés par créneau : un fichier passé ne change plus,
-// on évite ainsi de re-télécharger et re-décompresser à chaque requête.
-const slotCache = new Map<string, ManifestationEvent[]>();
-const MAX_CACHED_SLOTS = 4 * 80;
+// Un fichier de 15 min ne change plus une fois publié : on garde ses
+// manifestations un peu plus longtemps que la plus longue période affichée (72 h).
+const SLOT_TTL = 4 * 24 * 3600;
+// Le résultat agrégé vaut jusqu'au prochain fichier GDELT.
+const AGGREGATE_TTL = 15 * 60;
 
 async function fetchSlot(stamp: string): Promise<ManifestationEvent[]> {
-  const cached = slotCache.get(stamp);
+  const key = `gdelt:slot:${stamp}`;
+  const cached = await cacheGet<ManifestationEvent[]>(key);
   if (cached) return cached;
   // Pas de cache Next : les archives peuvent dépasser sa limite de 2 Mo par entrée.
   const res = await fetch(`${GDELT_BASE}/${stamp}.export.CSV.zip`, { cache: "no-store" });
+  // GDELT saute parfois un créneau : on le note vide une heure (il peut arriver en retard).
+  if (res.status === 404) {
+    await cacheSet(key, [], 3600);
+    return [];
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const zip = Buffer.from(await res.arrayBuffer());
   const events = parseExport(unzipFirstEntry(zip).toString("utf8"));
-  slotCache.set(stamp, events);
-  if (slotCache.size > MAX_CACHED_SLOTS) {
-    const oldest = [...slotCache.keys()].sort()[0];
-    slotCache.delete(oldest);
-  }
+  await cacheSet(key, events, SLOT_TTL);
   return events;
 }
 
@@ -220,6 +224,10 @@ export function groupByPlace(events: Iterable<ManifestationEvent>): Manifestatio
 
 export async function getManifestations(hours: number): Promise<ManifestationsResult> {
   const latest = await latestSlot();
+  const aggregateKey = `gdelt:agg:${hours}:${slotStamp(latest)}`;
+  const cached = await cacheGet<ManifestationsResult>(aggregateKey);
+  if (cached) return cached;
+
   const count = Math.max(1, Math.round((hours * 3600 * 1000) / SLOT_MS));
   const stamps = Array.from({ length: count }, (_, i) => slotStamp(new Date(latest.getTime() - i * SLOT_MS)));
 
@@ -238,7 +246,7 @@ export async function getManifestations(hours: number): Promise<ManifestationsRe
     }
   }
 
-  return {
+  const result: ManifestationsResult = {
     updatedAt: latest.toISOString(),
     hours,
     filesFetched: stamps.length - failed,
@@ -246,4 +254,7 @@ export async function getManifestations(hours: number): Promise<ManifestationsRe
     totalEvents: byId.size,
     places: groupByPlace(byId.values()),
   };
+  // Un résultat incomplet (fichiers en échec) n'est pas partagé : la requête suivante réessaiera.
+  if (failed === 0) await cacheSet(aggregateKey, result, AGGREGATE_TTL);
+  return result;
 }
