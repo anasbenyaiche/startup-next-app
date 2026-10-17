@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { signInToFollow, toggleFollowCountry, toggleFollowPlace } from "@/app/actions/profile";
 import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
 import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestations";
+import type { Profile } from "@/lib/profile";
 import type { Family } from "@/lib/protest-types";
+import AdSlot from "./AdSlot";
+import FollowButton from "./FollowButton";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map-colors";
 import PlaceDetails from "./PlaceDetails";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
@@ -142,10 +146,13 @@ function updateUrl(params: Record<string, string | null>) {
 export default function ManifestationsMap({
   locale,
   defaultCountry,
+  profile,
 }: {
   locale: Locale;
   // Pays du visiteur (code FIPS), ouvert par défaut s'il a des manifestations.
   defaultCountry: string | null;
+  // Profil de l'utilisateur connecté (suivis et réglages), sinon null.
+  profile: Profile | null;
 }) {
   const t = getDictionary(locale);
   const mapEl = useRef<HTMLDivElement>(null);
@@ -154,11 +161,18 @@ export default function ManifestationsMap({
   const markers = useRef(new Map<string, { marker: LCircleMarker; place: Place }>());
 
   const [mapReady, setMapReady] = useState(false);
-  const [hours, setHours] = useState(24);
+  const [hours, setHours] = useState(profile?.defaultHours ?? 24);
   const [data, setData] = useState<ManifestationsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<Filters>({ types: new Set(ALL_TYPES), cityOnly: false, multiSource: false });
+  const [filters, setFilters] = useState<Filters>({
+    types: new Set(ALL_TYPES),
+    cityOnly: profile?.cityOnly ?? false,
+    multiSource: profile?.multiSource ?? false,
+  });
+  const [followedCountries, setFollowedCountries] = useState(profile?.followedCountries ?? []);
+  const [followedPlaces, setFollowedPlaces] = useState(profile?.followedPlaces ?? []);
+  const [followPending, startFollow] = useTransition();
   const [country, setCountry] = useState(WORLD);
   const [selected, setSelected] = useState<string | null>(null);
   // Pays à ouvrir dès que carte et données sont prêtes : celui de l'URL (?pays=FR),
@@ -171,6 +185,10 @@ export default function ManifestationsMap({
     if (fromUrl) {
       requestedCountry.current = { code: fromUrl, explicit: true };
       setCountry(fromUrl);
+    } else if (profile?.defaultCountry) {
+      // Choisi dans le profil : affiché même sans manifestation en cours.
+      requestedCountry.current = { code: profile.defaultCountry, explicit: true };
+      setCountry(profile.defaultCountry);
     } else if (defaultCountry) {
       requestedCountry.current = { code: defaultCountry, explicit: false };
     }
@@ -178,6 +196,7 @@ export default function ManifestationsMap({
     if (place) setSelected(place);
     const h = Number(params.get("periode"));
     if ([6, 24, 72].includes(h)) setHours(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lecture unique de l'URL et du profil à l'ouverture
   }, [defaultCountry]);
 
   useEffect(() => {
@@ -309,6 +328,17 @@ export default function ManifestationsMap({
       return { ...prev, types };
     });
 
+  // Suivre demande d'être connecté : sinon, connexion puis retour sur la même vue.
+  const follow = (action: () => Promise<Profile>) =>
+    startFollow(async () => {
+      if (!profile) return signInToFollow(window.location.pathname + window.location.search);
+      const updated = await action();
+      setFollowedCountries(updated.followedCountries);
+      setFollowedPlaces(updated.followedPlaces);
+    });
+
+  const followedCountryRows = countries.filter((c) => followedCountries.includes(c.code));
+
   const total = places.reduce((n, p) => n + p.incidents, 0);
   const listButton =
     "w-full text-start flex items-center gap-2.5 rounded-[3px] px-1.5 py-1 hover:bg-papier-fonce hover:text-bleu";
@@ -323,11 +353,38 @@ export default function ManifestationsMap({
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
       <aside className="md:w-[23rem] w-full md:h-full max-h-[52vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5">
         {selected ? (
-          <PlaceDetails placeKey={selected} hours={hours} locale={locale} onBack={() => selectPlace(null)} />
+          <PlaceDetails
+            placeKey={selected}
+            hours={hours}
+            locale={locale}
+            onBack={() => selectPlace(null)}
+            renderFollow={(details) => (
+              <FollowButton
+                following={followedPlaces.some((p) => p.key === selected)}
+                pending={followPending}
+                signedIn={!!profile}
+                labels={{ on: t.follow.followingPlace, off: t.follow.followPlace, signIn: t.follow.signInToFollow }}
+                onClick={() =>
+                  follow(() => toggleFollowPlace({ key: selected, label: details.location, country: details.country }))
+                }
+              />
+            )}
+          />
         ) : (
           <>
             <div>
-              <h1 className="display text-[2.6rem]">{country === WORLD ? t.map.world : (current?.name ?? country)}</h1>
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="display text-[2.6rem]">{country === WORLD ? t.map.world : (current?.name ?? country)}</h1>
+                {country !== WORLD && (
+                  <FollowButton
+                    following={followedCountries.includes(country)}
+                    pending={followPending}
+                    signedIn={!!profile}
+                    labels={{ on: t.follow.followingCountry, off: t.follow.followCountry, signIn: t.follow.signInToFollow }}
+                    onClick={() => follow(() => toggleFollowCountry(country))}
+                  />
+                )}
+              </div>
               <p className="mt-2 flex items-center gap-2 text-sm text-gris">
                 <span className="live-dot" aria-hidden="true" />
                 {error
@@ -457,6 +514,24 @@ export default function ManifestationsMap({
               )}
               {data && data.filesFailed > 0 && <p className="text-sm text-gris mt-1">{t.map.missingSlots(data.filesFailed)}</p>}
             </div>
+
+            <AdSlot locale={locale} country={country === WORLD ? null : country} />
+
+            {country === WORLD && followedCountryRows.length > 0 && (
+              <section>
+                <h2 className="font-bold mb-1.5">{t.follow.yourFollows}</h2>
+                <ol>
+                  {followedCountryRows.map((c) => (
+                    <li key={c.code}>
+                      <button onClick={() => selectCountry(c.code)} className={listButton}>
+                        <span className="truncate flex-1">{c.name}</span>
+                        <span className="text-gris tabular-nums">{c.incidents.toLocaleString(locale)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
             {!data && !error ? (
               // Même rythme que la liste : une ligne par lieu ou par pays.

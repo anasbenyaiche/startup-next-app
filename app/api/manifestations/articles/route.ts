@@ -2,6 +2,10 @@ import { getArticlePreview } from "@/lib/article-preview";
 import { parseHours, parsePlaceKey } from "@/lib/api-params";
 import { getPlaceDetails } from "@/lib/manifestations";
 
+// Le premier calcul d'une période télécharge jusqu'à 576 fichiers GDELT. Chaque fichier
+// est mis en cache dès qu'il est lu : avec Redis, si la fonction est coupée, la requête suivante reprend.
+export const maxDuration = 60;
+
 const MAX_PREVIEWS = 8;
 const CONCURRENCY = 4;
 

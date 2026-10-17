@@ -26,8 +26,12 @@ function fromAcceptLanguage(value: string | null): Locale | null {
   return null;
 }
 
-// Langue : choix explicite (cookie) > pays du visiteur > langue du navigateur > français.
+// Langue : celle de l'adresse (/fr/…, posée par le middleware), sinon choix explicite
+// (cookie) > pays du visiteur > langue du navigateur > français.
 export async function getLocale(): Promise<Locale> {
+  const fromUrl = (await headers()).get("x-locale");
+  if (isLocale(fromUrl)) return fromUrl;
+
   const cookie = (await cookies()).get(LOCALE_COOKIE)?.value;
   if (isLocale(cookie)) return cookie;
 

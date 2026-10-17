@@ -126,6 +126,79 @@ const fr = {
     LEG: "Parlementaires", MED: "Médias", REF: "Réfugiés", MOD: "Modérés", RAD: "Radicaux",
     NGO: "ONG", IGO: "Organisations internationales", MNC: "Multinationales",
   } as Record<string, string>,
+  nav2: { profile: "Mon profil" },
+  follow: {
+    followCountry: "Suivre ce pays",
+    followingCountry: "Pays suivi",
+    followPlace: "Suivre ce lieu",
+    followingPlace: "Lieu suivi",
+    signInToFollow: "Se connecter pour suivre",
+    yourFollows: "Vos suivis",
+  },
+  profile: {
+    title: "Mon profil",
+    privateNote:
+      "Votre profil est privé : personne d'autre ne voit ce que vous suivez, et ces choix ne servent jamais à la publicité.",
+    memberSince: (date: string) => `Profil créé le ${date}`,
+    signInTitle: "Suivez les pays et les lieux qui vous importent",
+    signInText:
+      "Connectez-vous pour retrouver vos pays et vos lieux en un coup d'œil, avec le nombre de manifestations des dernières 24 heures, et ouvrir la carte avec vos réglages.",
+    signInCta: "Se connecter avec GitHub",
+    countries: "Pays suivis",
+    places: "Lieux suivis",
+    last24h: "sur 24 h",
+    noCountries: "Vous ne suivez aucun pays. Sur la carte, choisissez un pays puis « Suivre ce pays ».",
+    noPlaces: "Vous ne suivez aucun lieu. Sur la carte, ouvrez un lieu puis « Suivre ce lieu ».",
+    unfollow: "Ne plus suivre",
+    prefs: "Ouverture de la carte",
+    prefsHint: "La carte s'ouvre avec ces réglages. Un lien partagé qui précise un pays ou une période reste prioritaire.",
+    defaultCountry: "Pays affiché",
+    visitorCountry: "Celui d'où je me connecte",
+    defaultPeriod: "Période",
+    save: "Enregistrer",
+    saved: "Réglages enregistrés",
+    data: "Vos données",
+    dataText:
+      "Nous gardons seulement vos suivis et vos réglages, rattachés à votre identifiant GitHub. Rien n'est partagé ni vendu.",
+    delete: "Supprimer mes données",
+    deleteConfirm: "Supprimer vos suivis et vos réglages ? C'est définitif.",
+    deleted: "Vos suivis et vos réglages ont été supprimés.",
+  },
+  ads: {
+    label: "Annonce",
+    visit: "Visiter le site",
+    houseTitle: "Votre annonce ici",
+    houseText:
+      "Touchez un public qui suit l'actualité sociale, pays par pays. Annonce choisie selon le pays affiché, sans pistage.",
+    houseSubject: "Annoncer sur Cortège",
+    houseCta: "Nous écrire",
+  },
+  seo: {
+    homeTitle: "Cortège : les manifestations dans le monde, en direct",
+    homeDescription:
+      "Carte en direct des manifestations, grèves, blocages et émeutes signalés par la presse du monde entier, mise à jour toutes les 15 minutes.",
+    mapTitle: "Carte des manifestations en direct",
+    mapDescription:
+      "Où manifeste-t-on maintenant ? Carte interactive des manifestations et des grèves dans le monde, avec la fiabilité de chaque signalement.",
+    countriesTitle: "Manifestations par pays",
+    countriesDescription: "Les pays où la presse signale des manifestations, grèves et blocages en ce moment, mis à jour toutes les 15 minutes.",
+    countriesIntro: "Les pays où la presse a signalé des manifestations ces dernières 24 heures, du plus actif au moins actif.",
+    countryTitle: (c: string) => `${c} : manifestations et grèves aujourd'hui`,
+    countryDescription: (c: string, n: number) =>
+      `${c} : ${n} manifestations signalées par la presse en 24 h. Lieux, types d'action et fiabilité, mis à jour toutes les 15 minutes.`,
+    // Nombres déjà accordés (« 45 manifestations », « 1 lieu »).
+    countryIntro: (protests: string, places: string, time: string) =>
+      `Ces dernières 24 heures, la presse a signalé environ ${protests} dans ${places}. Mis à jour le ${time}.`,
+    countryNoData:
+      "Aucune manifestation n'a été signalée par la presse ces dernières 24 heures, ou les données sont en cours de calcul. La carte en direct reste disponible.",
+    topPlaces: "Lieux les plus actifs",
+    byFamily: "Types d'action",
+    openMap: "Voir sur la carte en direct",
+    otherCountries: "Autres pays actifs",
+    allCountries: "Tous les pays",
+    home: "Accueil",
+    reliabilityShort: (score: number) => `fiabilité ${score}/100`,
+  },
   types: {
     "141": "Manifestation, rassemblement",
     "143": "Grève, boycott",
@@ -233,6 +306,75 @@ const en: Dictionary = {
     LEG: "Legislators", MED: "Media", REF: "Refugees", MOD: "Moderates", RAD: "Radicals",
     NGO: "NGOs", IGO: "International organisations", MNC: "Multinationals",
   },
+  nav2: { profile: "My profile" },
+  follow: {
+    followCountry: "Follow this country",
+    followingCountry: "Following",
+    followPlace: "Follow this place",
+    followingPlace: "Following",
+    signInToFollow: "Sign in to follow",
+    yourFollows: "You follow",
+  },
+  profile: {
+    title: "My profile",
+    privateNote: "Your profile is private: nobody else sees what you follow, and these choices are never used for advertising.",
+    memberSince: (date) => `Profile created on ${date}`,
+    signInTitle: "Follow the countries and places that matter to you",
+    signInText:
+      "Sign in to see your countries and places at a glance, with the number of protests in the last 24 hours, and open the map with your settings.",
+    signInCta: "Sign in with GitHub",
+    countries: "Countries you follow",
+    places: "Places you follow",
+    last24h: "in 24 h",
+    noCountries: "You don't follow any country yet. On the map, pick a country, then “Follow this country”.",
+    noPlaces: "You don't follow any place yet. On the map, open a place, then “Follow this place”.",
+    unfollow: "Unfollow",
+    prefs: "Opening the map",
+    prefsHint: "The map opens with these settings. A shared link that sets a country or a period still wins.",
+    defaultCountry: "Country shown",
+    visitorCountry: "The one I connect from",
+    defaultPeriod: "Period",
+    save: "Save",
+    saved: "Settings saved",
+    data: "Your data",
+    dataText: "We only keep what you follow and your settings, linked to your GitHub ID. Nothing is shared or sold.",
+    delete: "Delete my data",
+    deleteConfirm: "Delete what you follow and your settings? This can't be undone.",
+    deleted: "What you followed and your settings have been deleted.",
+  },
+  ads: {
+    label: "Ad",
+    visit: "Visit the website",
+    houseTitle: "Your ad here",
+    houseText: "Reach people who follow social news, country by country. Ads are chosen by the country on screen, with no tracking.",
+    houseSubject: "Advertising on Cortège",
+    houseCta: "Write to us",
+  },
+  seo: {
+    homeTitle: "Cortège: protests around the world, live",
+    homeDescription:
+      "Live map of protests, strikes, blockades and riots reported by the press worldwide, updated every 15 minutes.",
+    mapTitle: "Live protest map",
+    mapDescription:
+      "Where are people protesting right now? Interactive map of protests and strikes worldwide, with the reliability of each report.",
+    countriesTitle: "Protests by country",
+    countriesDescription: "Countries where the press is reporting protests, strikes and blockades right now, updated every 15 minutes.",
+    countriesIntro: "Countries where the press reported protests in the last 24 hours, from most to least active.",
+    countryTitle: (c) => `${c}: protests and strikes today`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protests reported by the press in the last 24 h. Places, types of action and reliability, updated every 15 minutes.`,
+    countryIntro: (protests, places, time) =>
+      `In the last 24 hours, the press reported about ${protests} in ${places}. Updated ${time}.`,
+    countryNoData:
+      "No protests were reported by the press in the last 24 hours, or the data is still being computed. The live map is still available.",
+    topPlaces: "Most active places",
+    byFamily: "Types of action",
+    openMap: "See the live map",
+    otherCountries: "Other active countries",
+    allCountries: "All countries",
+    home: "Home",
+    reliabilityShort: (score) => `reliability ${score}/100`,
+  },
   types: {
     "141": "Demonstration, rally",
     "143": "Strike, boycott",
@@ -337,6 +479,75 @@ const es: Dictionary = {
     ELI: "Élites", ENV: "Ecologistas", HLH: "Salud", HRI: "Derechos humanos", LAB: "Sindicatos, trabajadores",
     LEG: "Legisladores", MED: "Medios", REF: "Refugiados", MOD: "Moderados", RAD: "Radicales",
     NGO: "ONG", IGO: "Organizaciones internacionales", MNC: "Multinacionales",
+  },
+  nav2: { profile: "Mi perfil" },
+  follow: {
+    followCountry: "Seguir este país",
+    followingCountry: "Siguiendo",
+    followPlace: "Seguir este lugar",
+    followingPlace: "Siguiendo",
+    signInToFollow: "Inicia sesión para seguir",
+    yourFollows: "Lo que sigues",
+  },
+  profile: {
+    title: "Mi perfil",
+    privateNote: "Tu perfil es privado: nadie más ve lo que sigues, y estas elecciones nunca se usan para publicidad.",
+    memberSince: (date) => `Perfil creado el ${date}`,
+    signInTitle: "Sigue los países y lugares que te importan",
+    signInText:
+      "Inicia sesión para ver tus países y lugares de un vistazo, con el número de protestas de las últimas 24 horas, y abrir el mapa con tus ajustes.",
+    signInCta: "Iniciar sesión con GitHub",
+    countries: "Países que sigues",
+    places: "Lugares que sigues",
+    last24h: "en 24 h",
+    noCountries: "Aún no sigues ningún país. En el mapa, elige un país y luego «Seguir este país».",
+    noPlaces: "Aún no sigues ningún lugar. En el mapa, abre un lugar y luego «Seguir este lugar».",
+    unfollow: "Dejar de seguir",
+    prefs: "Apertura del mapa",
+    prefsHint: "El mapa se abre con estos ajustes. Un enlace compartido que indique un país o un periodo tiene prioridad.",
+    defaultCountry: "País mostrado",
+    visitorCountry: "El de mi conexión",
+    defaultPeriod: "Periodo",
+    save: "Guardar",
+    saved: "Ajustes guardados",
+    data: "Tus datos",
+    dataText: "Solo guardamos lo que sigues y tus ajustes, vinculados a tu identificador de GitHub. Nada se comparte ni se vende.",
+    delete: "Eliminar mis datos",
+    deleteConfirm: "¿Eliminar lo que sigues y tus ajustes? Es definitivo.",
+    deleted: "Se han eliminado lo que seguías y tus ajustes.",
+  },
+  ads: {
+    label: "Anuncio",
+    visit: "Visitar el sitio",
+    houseTitle: "Tu anuncio aquí",
+    houseText: "Llega a un público que sigue la actualidad social, país por país. Anuncio elegido según el país mostrado, sin rastreo.",
+    houseSubject: "Anunciarse en Cortège",
+    houseCta: "Escríbenos",
+  },
+  seo: {
+    homeTitle: "Cortège: las protestas del mundo, en directo",
+    homeDescription:
+      "Mapa en directo de las manifestaciones, huelgas, bloqueos y disturbios que recoge la prensa de todo el mundo, actualizado cada 15 minutos.",
+    mapTitle: "Mapa de protestas en directo",
+    mapDescription:
+      "¿Dónde se protesta ahora? Mapa interactivo de manifestaciones y huelgas en el mundo, con la fiabilidad de cada aviso.",
+    countriesTitle: "Protestas por país",
+    countriesDescription: "Los países donde la prensa informa ahora de manifestaciones, huelgas y bloqueos, actualizado cada 15 minutos.",
+    countriesIntro: "Los países donde la prensa informó de protestas en las últimas 24 horas, del más activo al menos activo.",
+    countryTitle: (c) => `${c}: protestas y huelgas hoy`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protestas recogidas por la prensa en 24 h. Lugares, tipos de acción y fiabilidad, actualizado cada 15 minutos.`,
+    countryIntro: (protests, places, time) =>
+      `En las últimas 24 horas, la prensa informó de unas ${protests} en ${places}. Actualizado el ${time}.`,
+    countryNoData:
+      "La prensa no ha informado de protestas en las últimas 24 horas, o los datos se están calculando. El mapa en directo sigue disponible.",
+    topPlaces: "Lugares más activos",
+    byFamily: "Tipos de acción",
+    openMap: "Ver el mapa en directo",
+    otherCountries: "Otros países activos",
+    allCountries: "Todos los países",
+    home: "Inicio",
+    reliabilityShort: (score) => `fiabilidad ${score}/100`,
   },
   types: {
     "141": "Manifestación, concentración",
@@ -443,6 +654,75 @@ const pt: Dictionary = {
     LEG: "Deputados", MED: "Media", REF: "Refugiados", MOD: "Moderados", RAD: "Radicais",
     NGO: "ONG", IGO: "Organizações internacionais", MNC: "Multinacionais",
   },
+  nav2: { profile: "O meu perfil" },
+  follow: {
+    followCountry: "Seguir este país",
+    followingCountry: "A seguir",
+    followPlace: "Seguir este local",
+    followingPlace: "A seguir",
+    signInToFollow: "Entre para seguir",
+    yourFollows: "O que segue",
+  },
+  profile: {
+    title: "O meu perfil",
+    privateNote: "O seu perfil é privado: ninguém mais vê o que segue, e estas escolhas nunca são usadas para publicidade.",
+    memberSince: (date) => `Perfil criado em ${date}`,
+    signInTitle: "Siga os países e locais que lhe interessam",
+    signInText:
+      "Entre para ver os seus países e locais de relance, com o número de protestos das últimas 24 horas, e abrir o mapa com as suas definições.",
+    signInCta: "Entrar com o GitHub",
+    countries: "Países que segue",
+    places: "Locais que segue",
+    last24h: "em 24 h",
+    noCountries: "Ainda não segue nenhum país. No mapa, escolha um país e depois «Seguir este país».",
+    noPlaces: "Ainda não segue nenhum local. No mapa, abra um local e depois «Seguir este local».",
+    unfollow: "Deixar de seguir",
+    prefs: "Abertura do mapa",
+    prefsHint: "O mapa abre com estas definições. Uma ligação partilhada que indique um país ou um período tem prioridade.",
+    defaultCountry: "País mostrado",
+    visitorCountry: "O da minha ligação",
+    defaultPeriod: "Período",
+    save: "Guardar",
+    saved: "Definições guardadas",
+    data: "Os seus dados",
+    dataText: "Guardamos apenas o que segue e as suas definições, ligados ao seu identificador GitHub. Nada é partilhado nem vendido.",
+    delete: "Apagar os meus dados",
+    deleteConfirm: "Apagar o que segue e as suas definições? É definitivo.",
+    deleted: "O que seguia e as suas definições foram apagados.",
+  },
+  ads: {
+    label: "Anúncio",
+    visit: "Visitar o site",
+    houseTitle: "O seu anúncio aqui",
+    houseText: "Chegue a um público que acompanha a atualidade social, país a país. Anúncio escolhido pelo país mostrado, sem rastreio.",
+    houseSubject: "Anunciar no Cortège",
+    houseCta: "Escreva-nos",
+  },
+  seo: {
+    homeTitle: "Cortège: os protestos do mundo, ao vivo",
+    homeDescription:
+      "Mapa ao vivo das manifestações, greves, bloqueios e motins noticiados pela imprensa de todo o mundo, atualizado a cada 15 minutos.",
+    mapTitle: "Mapa de protestos ao vivo",
+    mapDescription:
+      "Onde se protesta agora? Mapa interativo de manifestações e greves no mundo, com a fiabilidade de cada notícia.",
+    countriesTitle: "Protestos por país",
+    countriesDescription: "Os países onde a imprensa noticia agora manifestações, greves e bloqueios, atualizado a cada 15 minutos.",
+    countriesIntro: "Os países onde a imprensa noticiou protestos nas últimas 24 horas, do mais ativo ao menos ativo.",
+    countryTitle: (c) => `${c}: protestos e greves hoje`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} protestos noticiados pela imprensa em 24 h. Locais, tipos de ação e fiabilidade, atualizado a cada 15 minutos.`,
+    countryIntro: (protests, places, time) =>
+      `Nas últimas 24 horas, a imprensa noticiou cerca de ${protests} em ${places}. Atualizado em ${time}.`,
+    countryNoData:
+      "A imprensa não noticiou protestos nas últimas 24 horas, ou os dados estão a ser calculados. O mapa ao vivo continua disponível.",
+    topPlaces: "Locais mais ativos",
+    byFamily: "Tipos de ação",
+    openMap: "Ver o mapa ao vivo",
+    otherCountries: "Outros países ativos",
+    allCountries: "Todos os países",
+    home: "Início",
+    reliabilityShort: (score) => `fiabilidade ${score}/100`,
+  },
   types: {
     "141": "Manifestação, concentração",
     "143": "Greve, boicote",
@@ -547,6 +827,75 @@ const de: Dictionary = {
     ELI: "Eliten", ENV: "Umweltschützer", HLH: "Gesundheit", HRI: "Menschenrechte", LAB: "Gewerkschaften, Beschäftigte",
     LEG: "Abgeordnete", MED: "Medien", REF: "Geflüchtete", MOD: "Gemäßigte", RAD: "Radikale",
     NGO: "NGOs", IGO: "Internationale Organisationen", MNC: "Multinationale Konzerne",
+  },
+  nav2: { profile: "Mein Profil" },
+  follow: {
+    followCountry: "Diesem Land folgen",
+    followingCountry: "Gefolgt",
+    followPlace: "Diesem Ort folgen",
+    followingPlace: "Gefolgt",
+    signInToFollow: "Zum Folgen anmelden",
+    yourFollows: "Sie folgen",
+  },
+  profile: {
+    title: "Mein Profil",
+    privateNote: "Ihr Profil ist privat: Niemand sonst sieht, wem Sie folgen, und diese Auswahl wird nie für Werbung genutzt.",
+    memberSince: (date) => `Profil erstellt am ${date}`,
+    signInTitle: "Folgen Sie den Ländern und Orten, die Ihnen wichtig sind",
+    signInText:
+      "Melden Sie sich an, um Ihre Länder und Orte auf einen Blick zu sehen, mit der Zahl der Proteste der letzten 24 Stunden, und die Karte mit Ihren Einstellungen zu öffnen.",
+    signInCta: "Mit GitHub anmelden",
+    countries: "Gefolgte Länder",
+    places: "Gefolgte Orte",
+    last24h: "in 24 h",
+    noCountries: "Sie folgen noch keinem Land. Wählen Sie auf der Karte ein Land und dann „Diesem Land folgen“.",
+    noPlaces: "Sie folgen noch keinem Ort. Öffnen Sie auf der Karte einen Ort und dann „Diesem Ort folgen“.",
+    unfollow: "Nicht mehr folgen",
+    prefs: "Öffnen der Karte",
+    prefsHint: "Die Karte öffnet sich mit diesen Einstellungen. Ein geteilter Link mit Land oder Zeitraum hat Vorrang.",
+    defaultCountry: "Angezeigtes Land",
+    visitorCountry: "Das meiner Verbindung",
+    defaultPeriod: "Zeitraum",
+    save: "Speichern",
+    saved: "Einstellungen gespeichert",
+    data: "Ihre Daten",
+    dataText: "Wir speichern nur, wem Sie folgen, und Ihre Einstellungen, verknüpft mit Ihrer GitHub-ID. Nichts wird weitergegeben oder verkauft.",
+    delete: "Meine Daten löschen",
+    deleteConfirm: "Gefolgte Länder, Orte und Einstellungen löschen? Das ist endgültig.",
+    deleted: "Gefolgte Länder, Orte und Einstellungen wurden gelöscht.",
+  },
+  ads: {
+    label: "Anzeige",
+    visit: "Website besuchen",
+    houseTitle: "Ihre Anzeige hier",
+    houseText: "Erreichen Sie Menschen, die soziale Nachrichten Land für Land verfolgen. Auswahl nach angezeigtem Land, ohne Tracking.",
+    houseSubject: "Werben auf Cortège",
+    houseCta: "Schreiben Sie uns",
+  },
+  seo: {
+    homeTitle: "Cortège: Proteste weltweit, live",
+    homeDescription:
+      "Live-Karte der Demonstrationen, Streiks, Blockaden und Ausschreitungen, über die die Presse weltweit berichtet, alle 15 Minuten aktualisiert.",
+    mapTitle: "Live-Karte der Proteste",
+    mapDescription:
+      "Wo wird gerade protestiert? Interaktive Karte der Demonstrationen und Streiks weltweit, mit der Verlässlichkeit jeder Meldung.",
+    countriesTitle: "Proteste nach Land",
+    countriesDescription: "Die Länder, in denen die Presse gerade über Demonstrationen, Streiks und Blockaden berichtet, alle 15 Minuten aktualisiert.",
+    countriesIntro: "Die Länder, in denen die Presse in den letzten 24 Stunden über Proteste berichtet hat, vom aktivsten zum am wenigsten aktiven.",
+    countryTitle: (c) => `${c}: Proteste und Streiks heute`,
+    countryDescription: (c, n) =>
+      `${c}: ${n} Proteste in 24 h laut Presse. Orte, Arten der Aktion und Verlässlichkeit, alle 15 Minuten aktualisiert.`,
+    countryIntro: (protests, places, time) =>
+      `In den letzten 24 Stunden berichtete die Presse über etwa ${protests} an ${places}. Aktualisiert am ${time}.`,
+    countryNoData:
+      "Die Presse hat in den letzten 24 Stunden über keine Proteste berichtet, oder die Daten werden noch berechnet. Die Live-Karte bleibt verfügbar.",
+    topPlaces: "Aktivste Orte",
+    byFamily: "Arten der Aktion",
+    openMap: "Live-Karte öffnen",
+    otherCountries: "Weitere aktive Länder",
+    allCountries: "Alle Länder",
+    home: "Startseite",
+    reliabilityShort: (score) => `Verlässlichkeit ${score}/100`,
   },
   types: {
     "141": "Demonstration, Kundgebung",
@@ -654,6 +1003,69 @@ const ar: Dictionary = {
     LEG: "البرلمانيون", MED: "الإعلام", REF: "اللاجئون", MOD: "المعتدلون", RAD: "المتشددون",
     NGO: "المنظمات غير الحكومية", IGO: "المنظمات الدولية", MNC: "الشركات متعددة الجنسيات",
   },
+  nav2: { profile: "ملفي" },
+  follow: {
+    followCountry: "متابعة هذا البلد",
+    followingCountry: "متابَع",
+    followPlace: "متابعة هذا المكان",
+    followingPlace: "متابَع",
+    signInToFollow: "سجّل الدخول للمتابعة",
+    yourFollows: "متابعاتك",
+  },
+  profile: {
+    title: "ملفي",
+    privateNote: "ملفك خاص: لا يرى أحد غيرك ما تتابعه، ولا تُستخدم هذه الاختيارات أبدًا للإعلانات.",
+    memberSince: (date) => `أُنشئ الملف في ${date}`,
+    signInTitle: "تابع البلدان والأماكن التي تهمك",
+    signInText: "سجّل الدخول لترى بلدانك وأماكنك بنظرة واحدة، مع عدد الاحتجاجات في آخر 24 ساعة، ولتفتح الخريطة بإعداداتك.",
+    signInCta: "تسجيل الدخول عبر GitHub",
+    countries: "البلدان المتابَعة",
+    places: "الأماكن المتابَعة",
+    last24h: "خلال 24 ساعة",
+    noCountries: "لا تتابع أي بلد بعد. على الخريطة، اختر بلدًا ثم «متابعة هذا البلد».",
+    noPlaces: "لا تتابع أي مكان بعد. على الخريطة، افتح مكانًا ثم «متابعة هذا المكان».",
+    unfollow: "إلغاء المتابعة",
+    prefs: "فتح الخريطة",
+    prefsHint: "تُفتح الخريطة بهذه الإعدادات. الرابط المشترك الذي يحدد بلدًا أو فترة له الأولوية.",
+    defaultCountry: "البلد المعروض",
+    visitorCountry: "بلد اتصالي",
+    defaultPeriod: "الفترة",
+    save: "حفظ",
+    saved: "تم حفظ الإعدادات",
+    data: "بياناتك",
+    dataText: "لا نحتفظ إلا بما تتابعه وبإعداداتك، مرتبطة بمعرّف GitHub الخاص بك. لا شيء يُشارك أو يُباع.",
+    delete: "حذف بياناتي",
+    deleteConfirm: "حذف متابعاتك وإعداداتك؟ لا يمكن التراجع عن ذلك.",
+    deleted: "تم حذف متابعاتك وإعداداتك.",
+  },
+  ads: {
+    label: "إعلان",
+    visit: "زيارة الموقع",
+    houseTitle: "إعلانك هنا",
+    houseText: "اصل إلى جمهور يتابع الأخبار الاجتماعية بلدًا بلدًا. يُختار الإعلان حسب البلد المعروض، دون تتبع.",
+    houseSubject: "الإعلان على Cortège",
+    houseCta: "راسلنا",
+  },
+  seo: {
+    homeTitle: "Cortège: الاحتجاجات في العالم، مباشرة",
+    homeDescription: "خريطة مباشرة للمظاهرات والإضرابات وعمليات الإغلاق وأعمال الشغب التي تنقلها الصحافة في العالم كله، تُحدَّث كل 15 دقيقة.",
+    mapTitle: "خريطة الاحتجاجات المباشرة",
+    mapDescription: "أين يحتج الناس الآن؟ خريطة تفاعلية للمظاهرات والإضرابات في العالم، مع موثوقية كل رصد.",
+    countriesTitle: "الاحتجاجات حسب البلد",
+    countriesDescription: "البلدان التي تنقل الصحافة منها الآن مظاهرات وإضرابات وعمليات إغلاق، تُحدَّث كل 15 دقيقة.",
+    countriesIntro: "البلدان التي رصدت فيها الصحافة احتجاجات خلال آخر 24 ساعة، من الأكثر نشاطًا إلى الأقل.",
+    countryTitle: (c) => `${c}: الاحتجاجات والإضرابات اليوم`,
+    countryDescription: (c, n) => `${c}: عدد الاحتجاجات التي رصدتها الصحافة خلال 24 ساعة: ${n}. الأماكن وأنواع التحرك والموثوقية، تُحدَّث كل 15 دقيقة.`,
+    countryIntro: (protests, places, time) => `خلال آخر 24 ساعة رصدت الصحافة نحو ${protests} في ${places}. آخر تحديث ${time}.`,
+    countryNoData: "لم ترصد الصحافة أي احتجاج خلال آخر 24 ساعة، أو أن البيانات قيد الحساب. الخريطة المباشرة متاحة دائمًا.",
+    topPlaces: "الأماكن الأكثر نشاطًا",
+    byFamily: "أنواع التحرك",
+    openMap: "عرض الخريطة المباشرة",
+    otherCountries: "بلدان نشطة أخرى",
+    allCountries: "كل البلدان",
+    home: "الرئيسية",
+    reliabilityShort: (score) => `الموثوقية ${score}/100`,
+  },
   types: {
     "141": "مظاهرة، تجمع",
     "143": "إضراب، مقاطعة",
@@ -698,4 +1110,37 @@ assign("ar", "SA AE EG IQ JO KW LB LY OM QA SY YE BH SD PS");
 export function localeForCountry(iso: string | null): Locale | null {
   if (!iso) return null;
   return COUNTRY_LOCALE[iso.toUpperCase()] ?? "en";
+}
+
+// --- Adresses localisées (référencement) -----------------------------------
+
+// Segment de l'adresse des pages pays, dans la langue de la page.
+export const COUNTRY_SEGMENT: Record<Locale, string> = {
+  fr: "pays",
+  en: "country",
+  es: "pais",
+  pt: "pais",
+  de: "land",
+  ar: "country",
+};
+
+// Chemin public d'une page : la langue en tête, pour que chaque version ait sa propre adresse.
+export function localePath(locale: Locale, path: string): string {
+  return `/${locale}${path === "/" ? "" : path}`;
+}
+
+// Identifiant lisible d'un pays dans l'adresse (« france », « allemagne »…).
+// L'arabe utilise les noms anglais, pour des adresses en caractères latins.
+export function countrySlug(locale: Locale, fips: string): string {
+  const name = countryName(locale === "ar" ? "en" : locale, fips, fips);
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function countryPath(locale: Locale, fips: string): string {
+  return localePath(locale, `/${COUNTRY_SEGMENT[locale]}/${countrySlug(locale, fips)}`);
 }

@@ -81,6 +81,10 @@ export type Reliability = {
 
 const slotKey = (stamp: string) => `gdelt:${CACHE_VERSION}:slot:${stamp}`;
 const aggregateKey = (hours: number, stamp: string) => `gdelt:${CACHE_VERSION}:agg:${hours}:${stamp}`;
+// Dernier agrégat complet, quel que soit le créneau : les pages indexables le lisent
+// sans jamais lancer de calcul pendant qu'un moteur de recherche attend.
+const lastAggregateKey = (hours: number) => `gdelt:${CACHE_VERSION}:agg:${hours}:last`;
+const LAST_AGGREGATE_TTL = 6 * 3600;
 const placesKey = (hours: number, stamp: string) => `gdelt:${CACHE_VERSION}:places:${hours}:${stamp}`;
 
 async function getSlot(stamp: string): Promise<ProtestEvent[]> {
@@ -296,7 +300,10 @@ async function build(hours: number, latest: Date): Promise<ManifestationsResult>
   // Le détail des lieux est toujours gardé (il sert au clic) ; un agrégat incomplet
   // n'est pas partagé, pour que la requête suivante réessaie les fichiers manquants.
   await cacheHashSet(placesKey(hours, stamp), Object.fromEntries(byPlace), AGGREGATE_TTL);
-  if (failed === 0) await cacheSet(aggregateKey(hours, stamp), result, AGGREGATE_TTL);
+  if (failed === 0) {
+    await cacheSet(aggregateKey(hours, stamp), result, AGGREGATE_TTL);
+    await cacheSet(lastAggregateKey(hours), result, LAST_AGGREGATE_TTL);
+  }
   return result;
 }
 
@@ -317,4 +324,9 @@ export async function getPlaceDetails(hours: number, key: string): Promise<Place
     events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, stamp), key);
   }
   return events?.length ? analyzePlace(key, events, hours, latest.toISOString()) : null;
+}
+
+// Agrégat déjà calculé (jusqu'à quelques heures), sans appel réseau ni calcul.
+export async function getCachedManifestations(hours: number): Promise<ManifestationsResult | null> {
+  return cacheGet<ManifestationsResult>(lastAggregateKey(hours));
 }
