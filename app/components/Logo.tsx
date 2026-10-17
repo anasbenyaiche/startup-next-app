@@ -16,7 +16,8 @@ export default function Logo() {
   return (
     <span className="flex items-center gap-1.5">
       <LogoMark className="h-8 w-8" />
-      <span className="display text-[1.7rem] leading-none pb-0.5">cortège</span>
+      {/* Sur les écrans très étroits, le symbole seul laisse la place à la navigation. */}
+      <span className="display text-[1.7rem] leading-none pb-0.5 hidden min-[430px]:inline">cortège</span>
     </span>
   );
 }

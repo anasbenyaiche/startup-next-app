@@ -101,3 +101,41 @@ export async function cacheSet(key: string, value: unknown, ttlSeconds: number):
 export async function cacheBackend(): Promise<"redis" | "memory"> {
   return (await readyRedis()) ? "redis" : "memory";
 }
+
+// Hash : un ensemble de champs JSON sous une même clé, lus un par un.
+// Sert à garder le détail de chaque lieu sans tout relire à chaque clic.
+const memoryHashes = new Map<string, { fields: Map<string, string>; expiresAt: number }>();
+const HSET_CHUNK = 500;
+
+export async function cacheHashSet(key: string, fields: Record<string, unknown>, ttlSeconds: number): Promise<void> {
+  const entries = Object.entries(fields).map(([f, v]) => [f, JSON.stringify(v)] as [string, string]);
+  memoryHashes.set(key, { fields: new Map(entries), expiresAt: Date.now() + ttlSeconds * 1000 });
+  for (const [k, h] of memoryHashes) if (h.expiresAt < Date.now()) memoryHashes.delete(k);
+
+  const redis = await readyRedis();
+  if (!redis) return;
+  try {
+    const pipeline = redis.pipeline().del(key);
+    for (let i = 0; i < entries.length; i += HSET_CHUNK) pipeline.hset(key, ...entries.slice(i, i + HSET_CHUNK).flat());
+    await pipeline.expire(key, ttlSeconds).exec();
+  } catch {
+    // La copie en mémoire suffit en cas d'échec.
+  }
+}
+
+export async function cacheHashGet<T>(key: string, field: string): Promise<T | null> {
+  const redis = await readyRedis();
+  let raw: string | null = null;
+  if (redis) {
+    try {
+      raw = await redis.hget(key, field);
+    } catch {
+      raw = null;
+    }
+  }
+  if (raw === null) {
+    const h = memoryHashes.get(key);
+    if (h && h.expiresAt >= Date.now()) raw = h.fields.get(field) ?? null;
+  }
+  return raw === null ? null : (JSON.parse(raw) as T);
+}

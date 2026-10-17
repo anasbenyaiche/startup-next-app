@@ -22,7 +22,7 @@ export default function LiveCountries({ locale, visitorFips }: { locale: Locale;
         const byCountry = new Map<string, CountryCount>();
         for (const p of data.places) {
           const c = byCountry.get(p.country) ?? { code: p.country, name: p.countryName, count: 0 };
-          for (const n of Object.values(p.byType)) c.count += n.count;
+          for (const n of Object.values(p.byType)) c.count += n.incidents;
           byCountry.set(p.country, c);
         }
         setAll([...byCountry.values()].sort((a, b) => b.count - a.count));
