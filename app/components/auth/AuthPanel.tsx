@@ -122,7 +122,7 @@ export default function AuthPanel({
             <Hidden locale={locale} retour={retour} />
             <button type="submit" className={secondary}>
               <GoogleIcon />
-              {t.google}
+              {view === "register" ? t.googleRegister : t.google}
             </button>
           </form>
           <p className="flex items-center gap-3 text-sm text-gris" aria-hidden="true">
