@@ -42,6 +42,23 @@ export async function storeDelete(key: string): Promise<void> {
   memory.delete(key);
 }
 
+// Clés commençant par un préfixe (administration : liste des comptes). SCAN plutôt que
+// KEYS, pour ne pas bloquer Redis sur une grosse base.
+export async function storeScan(prefix: string): Promise<string[]> {
+  const redis = await readyRedis();
+  if (redis) {
+    const keys: string[] = [];
+    let cursor = "0";
+    do {
+      const [next, batch] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 500);
+      keys.push(...batch);
+      cursor = next;
+    } while (cursor !== "0");
+    return keys;
+  }
+  return [...memory.keys()].filter((k) => k.startsWith(prefix));
+}
+
 // Compteurs anonymes (statistiques publicitaires) : un total par clé, rien de plus.
 export async function storeIncrement(key: string): Promise<void> {
   const redis = await readyRedis();

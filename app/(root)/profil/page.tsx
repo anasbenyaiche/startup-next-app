@@ -9,6 +9,7 @@ import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { getProfile } from "@/lib/profile";
+import { currentRole } from "@/lib/admin";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${getDictionary(await getLocale()).profile.title}, Cortège`, robots: { index: false } };
@@ -47,7 +48,7 @@ export default async function ProfilePage() {
     );
   }
 
-  const profile = await getProfile(user.id);
+  const [profile, role] = await Promise.all([getProfile(user.id), currentRole()]);
   const countries = allCountries(locale);
   const names: Record<string, string> = {};
   for (const code of [...profile.followedCountries, ...profile.followedPlaces.map((p) => p.country)]) {
@@ -68,6 +69,15 @@ export default async function ProfilePage() {
         </div>
       </header>
       <p className="text-encre/85 max-w-[60ch]">{t.privateNote}</p>
+      {/* Accès à l'administration pour l'équipe : sur mobile, le lien du menu est masqué faute de place. */}
+      {role && (
+        <Link
+          href={localePath(locale, "/startup/moderation")}
+          className="inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-4 py-2 font-semibold text-papier"
+        >
+          {getDictionary(locale).admin.nav} · {getDictionary(locale).admin.roles[role]}
+        </Link>
+      )}
 
       <FollowedLists
         locale={locale}

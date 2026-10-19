@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
+import { isModerator } from "@/lib/admin";
 import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
@@ -13,6 +14,8 @@ const buttonClass =
 
 const Navbar = async () => {
   const session = await auth();
+  // Lien d'administration : seulement pour l'équipe (rôle relu dans la base).
+  const staff = session?.user?.id ? await isModerator() : false;
   const locale = await getLocale();
   const t = getDictionary(locale).nav;
   return (
@@ -34,6 +37,11 @@ const Navbar = async () => {
               {ANNOUNCEMENTS_ENABLED && (
                 <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
                   {t.create}
+                </Link>
+              )}
+              {staff && (
+                <Link href={localePath(locale, "/startup/moderation")} className={`${linkClass} hidden md:inline`}>
+                  {getDictionary(locale).admin.nav}
                 </Link>
               )}
               <Link href={localePath(locale, "/profil")} className={linkClass}>

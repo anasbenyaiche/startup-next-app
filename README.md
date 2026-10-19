@@ -85,6 +85,22 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
 - Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
+## Administration (`/fr/startup/moderation`)
+
+Deux rôles, stockés sur le compte :
+
+| Rôle | Peut |
+|---|---|
+| Administrateur | tout ce que fait un modérateur, plus gérer les comptes : nommer ou retirer un rôle, bannir, débannir, vérifier une adresse, supprimer un compte |
+| Modérateur | retirer des alertes SOS et des signalements, saisir les couvre-feux, relire les annonces, afficher des exemples SOS |
+
+- Les adresses de `ADMIN_EMAILS` sont administratrices d'office (compte vérifié requis) et ne
+  peuvent pas être rétrogradées, bannies ni supprimées depuis l'interface. Personne ne peut agir
+  sur son propre compte.
+- Un compte banni ne peut plus se connecter (mot de passe ou Google), et sa session en cours est
+  coupée : le compte est relu à chaque requête. Le bannissement retire aussi le rôle.
+- Chaque action de l'équipe est inscrite au journal (300 dernières), visible dans l'onglet « Journal ».
+
 ## Couvre-feux (`/fr/couvre-feu`)
 
 Les couvre-feux par région, avec leurs horaires à l'heure locale de la région et un état

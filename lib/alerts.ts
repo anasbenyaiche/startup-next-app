@@ -170,6 +170,11 @@ export async function createAlert(userId: string, input: { kind: unknown; lat: u
   return toPublic(alert);
 }
 
+// Retrait par un modérateur (fausse alerte évidente, contenu abusif).
+export async function removeAlert(id: string): Promise<void> {
+  await remove(id);
+}
+
 // Seul l'auteur peut retirer son alerte (fausse manœuvre, situation réglée).
 export async function cancelAlert(userId: string, id: string): Promise<void> {
   const a = await load(id);

@@ -159,6 +159,11 @@ async function remove(id: string) {
   memory.votes.delete(id);
 }
 
+// Retrait par un modérateur.
+export async function removeReport(id: string): Promise<void> {
+  await remove(id);
+}
+
 export async function createReport(
   userId: string,
   input: {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import AnnouncementForm from "@/app/components/announcements/AnnouncementForm";
 import MyAnnouncements from "@/app/components/announcements/MyAnnouncements";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
 import { listMine } from "@/lib/announcements";
 import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
@@ -49,7 +49,7 @@ export default async function CreatePage() {
     );
   }
 
-  const [visitorIso, mine, admin] = await Promise.all([getVisitorCountry(), listMine(userId), isAdmin()]);
+  const [visitorIso, mine, admin] = await Promise.all([getVisitorCountry(), listMine(userId), isModerator()]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-14 grid gap-12 lg:grid-cols-[1fr_20rem]">

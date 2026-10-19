@@ -6,7 +6,7 @@ import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { pageMetadata } from "@/lib/seo";
 import { getProfile } from "@/lib/profile";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -26,7 +26,7 @@ export default async function ManifestationsPage() {
     getVisitorCountry(),
     auth(),
     currentAccount(),
-    isAdmin(),
+    isModerator(),
   ]);
   const profile = session?.user?.id ? await getProfile(session.user.id) : null;
   return (

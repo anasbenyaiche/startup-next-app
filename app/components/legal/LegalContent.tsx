@@ -308,6 +308,13 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
           La carte charge la bibliothèque Leaflet depuis unpkg.com et les fonds de carte depuis CARTO ou OpenStreetMap. Comme pour toute page web, ces services reçoivent votre adresse IP et des informations sur votre
           navigateur.
         </P>
+        <H2>Équipe de modération</H2>
+        <P>
+          Les administrateurs de Cortège peuvent voir l’adresse e-mail, les dates et l’état de votre compte (vérifié,
+          rôle, bannissement), pour lutter contre les abus. Ils ne voient pas votre mot de passe, et vos suivis restent
+          privés. Un compte banni ne peut plus se connecter ; vous pouvez contester une décision en écrivant à l’adresse
+          des mentions légales.
+        </P>
         <H2>Destinataires et sous-traitants</H2>
         <Ul>
           <li>Vercel Inc. (hébergement, États-Unis), dans le cadre du Data Privacy Framework UE–États-Unis.</li>
@@ -322,6 +329,10 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Durées de conservation</H2>
         <Ul>
           <li>Compte et profil : jusqu’à ce que vous les supprimiez depuis votre profil.</li>
+          <li>
+            Journal des actions de l’équipe (rôles, bannissements, suppressions) : les 300 dernières actions, avec
+            l’adresse e-mail du compte concerné.
+          </li>
           <li>Alertes SOS et empreinte du compte : 15 minutes.</li>
           <li>Signalements, empreinte du compte et votes : de une à six heures, puis effacement automatique.</li>
           <li>Manifestations annoncées : jusqu’à deux jours après la fin de la manifestation.</li>
@@ -450,6 +461,12 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
           The map loads the Leaflet library from unpkg.com and base maps from CARTO or OpenStreetMap. As with any web
           page, these services receive your IP address and browser information.
         </P>
+        <H2>Moderation team</H2>
+        <P>
+          Cortège administrators can see your account’s email address, dates and status (verified, role, ban) to fight
+          abuse. They cannot see your password, and what you follow stays private. A banned account can no longer sign
+          in; you can contest a decision by writing to the address in the legal notice.
+        </P>
         <H2>Recipients and processors</H2>
         <Ul>
           <li>Vercel Inc. (hosting, USA), under the EU–US Data Privacy Framework.</li>
@@ -464,6 +481,7 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Retention</H2>
         <Ul>
           <li>Account and profile: until you delete them from your profile.</li>
+          <li>Log of team actions (roles, bans, deletions): the last 300 actions, with the email address of the account concerned.</li>
           <li>SOS alerts and account fingerprint: 15 minutes.</li>
           <li>Reports, account fingerprint and votes: one to six hours, then deleted automatically.</li>
           <li>Announced protests: until two days after the protest ends.</li>
