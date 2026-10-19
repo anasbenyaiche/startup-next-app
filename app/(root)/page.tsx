@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { listAlerts } from "@/lib/alerts";
 import { isoToFips } from "@/lib/countries";
 import type { Metadata } from "next";
 import { COUNTRY_SEGMENT, countryName, countryPath, getDictionary, localePath } from "@/lib/i18n";
@@ -6,6 +7,7 @@ import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/seo";
 import Footer from "../components/Footer";
 import LiveCountries from "../components/LiveCountries";
+import SosHome from "../components/SosHome";
 import StaySafe from "../components/StaySafe";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,7 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [locale, visitorIso, data6h] = await Promise.all([getLocale(), getVisitorCountry(), getSeoData(6)]);
+  const [locale, visitorIso, data6h, activeAlerts] = await Promise.all([
+    getLocale(),
+    getVisitorCountry(),
+    getSeoData(6),
+    // Un Redis injoignable ne doit pas empêcher l'accueil de s'afficher.
+    listAlerts().then((a) => a.length, () => 0),
+  ]);
   const dict = getDictionary(locale);
   const t = dict.home;
   // Classement rendu côté serveur quand les données sont en cache : lisible par
@@ -94,6 +102,7 @@ export default async function Home() {
             </Link>
           </section>
         </div>
+        <SosHome locale={locale} activeCount={activeAlerts} />
         <StaySafe locale={locale} visitorIso={visitorIso} />
       </div>
       <Footer locale={locale} />

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import Link from "next/link";
 import { auth } from "@/auth";
 import AnnouncementForm from "@/app/components/announcements/AnnouncementForm";
@@ -25,6 +27,7 @@ function allCountries(locale: Locale) {
 const section = "border-t-[1.5px] border-encre pt-6";
 
 export default async function CreatePage() {
+  if (!ANNOUNCEMENTS_ENABLED) notFound();
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const t = dict.create;

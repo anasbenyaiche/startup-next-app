@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/profile";
 import type { Family } from "@/lib/protest-types";
 import type { Announcement } from "@/lib/announcements";
 import type { PublicReport } from "@/lib/reports";
+import type { SosAlert } from "@/lib/alerts";
 import AdSlot from "./AdSlot";
 import AnnouncementDetails, { ANNOUNCEMENT_ICON } from "./announcements/AnnouncementDetails";
 import FollowButton from "./FollowButton";
@@ -16,6 +17,8 @@ import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map
 import PlaceDetails from "./PlaceDetails";
 import { relativeTime } from "./relativeTime";
 import { REPORT_ICONS, ReportDetails, ReportForm } from "./Reports";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { SOS_ICONS, SosDetails, SosSheet } from "./Sos";
 import { runAction } from "./staleDeployment";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
@@ -23,6 +26,10 @@ const REFRESH_MS = 15 * 60 * 1000;
 // Les signalements des témoins changent à la minute.
 const REPORTS_REFRESH_MS = 60 * 1000;
 const ANNOUNCEMENTS_REFRESH_MS = 5 * 60 * 1000;
+// Les alertes SOS sont urgentes : relues toutes les 20 secondes, et retirées
+// de l'écran dès leur expiration (horloge locale vérifiée toutes les 5 secondes).
+const ALERTS_REFRESH_MS = 20 * 1000;
+const ALERTS_TICK_MS = 5 * 1000;
 const WORLD = "";
 const ALL_TYPES = FAMILY_ORDER.flatMap((f) => TYPES_BY_FAMILY[f]);
 
@@ -103,12 +110,15 @@ export default function ManifestationsMap({
   locale,
   defaultCountry,
   profile,
+  sos,
 }: {
   locale: Locale;
   // Pays du visiteur (code FIPS), ouvert par défaut s'il a des manifestations.
   defaultCountry: string | null;
   // Profil de l'utilisateur connecté (suivis et réglages), sinon null.
   profile: Profile | null;
+  // Alertes SOS : envoi réservé aux comptes vérifiés, exemples aux modérateurs ; pays ISO du visiteur.
+  sos: { canSend: boolean; admin: boolean; visitorIso: string | null };
 }) {
   const t = getDictionary(locale);
   const mapEl = useRef<HTMLDivElement>(null);
@@ -146,6 +156,15 @@ export default function ManifestationsMap({
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   // Manifestations annoncées par les utilisateurs (page « Créer »), après vérification de conformité.
   const announcementLayer = useRef<LLayerGroup | null>(null);
+  const sosLayer = useRef<LLayerGroup | null>(null);
+  const [alerts, setAlerts] = useState<SosAlert[]>([]);
+  const [now, setNow] = useState(() => Date.now());
+  const [sosOpen, setSosOpen] = useState(false);
+  const [sosPicking, setSosPicking] = useState(false);
+  const sosPickingRef = useRef(false);
+  const [sosPoint, setSosPoint] = useState<LatLng | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
+  const [sosNotice, setSosNotice] = useState<string | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showAnnouncements, setShowAnnouncements] = useState(true);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<string | null>(null);
@@ -183,8 +202,16 @@ export default function ManifestationsMap({
         layer.current = L.layerGroup().addTo(map.current);
         announcementLayer.current = L.layerGroup().addTo(map.current);
         reportLayer.current = L.layerGroup().addTo(map.current);
-        // En mode signalement, toucher la carte place le point (arrondi comme au serveur).
+        sosLayer.current = L.layerGroup().addTo(map.current);
+        // Toucher la carte place le point d'une alerte SOS, ou d'un signalement
+        // (arrondi comme au serveur), selon le mode en cours.
         map.current.on("click", ({ latlng }) => {
+          if (sosPickingRef.current) {
+            setSosPoint({ lat: latlng.lat, lng: latlng.lng });
+            setSosPicking(false);
+            setSosOpen(true);
+            return;
+          }
           if (!reportingRef.current) return;
           setDraft({ lat: Number(latlng.lat.toFixed(3)), lng: Number(latlng.lng.toFixed(3)) });
         });
@@ -238,6 +265,31 @@ export default function ManifestationsMap({
     };
   }, [hours]);
 
+  const loadAlerts = () =>
+    fetch("/api/alerts")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: { alerts: SosAlert[] } | null) => json && setAlerts(json.alerts))
+      .catch(() => undefined);
+
+  useEffect(() => {
+    loadAlerts();
+    const poll = setInterval(loadAlerts, ALERTS_REFRESH_MS);
+    const tick = setInterval(() => setNow(Date.now()), ALERTS_TICK_MS);
+    return () => {
+      clearInterval(poll);
+      clearInterval(tick);
+    };
+  }, []);
+
+  const liveAlerts = useMemo(() => alerts.filter((a) => Date.parse(a.expiresAt) > now), [alerts, now]);
+  const liveAlertIds = liveAlerts.map((a) => a.id).join(",");
+
+  useEffect(() => {
+    sosPickingRef.current = sosPicking;
+    map.current?.getContainer().classList.toggle("map-picking", sosPicking || reporting);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reporting a son propre effet
+  }, [sosPicking]);
+
   const loadReports = () =>
     fetch("/api/reports")
       .then((r) => (r.ok ? r.json() : null))
@@ -251,6 +303,7 @@ export default function ManifestationsMap({
   }, []);
 
   useEffect(() => {
+    if (!ANNOUNCEMENTS_ENABLED) return;
     const load = () =>
       fetch("/api/announcements")
         .then((r) => (r.ok ? r.json() : null))
@@ -342,6 +395,25 @@ export default function ManifestationsMap({
     }
   }, [announcements, showAnnouncements, selectedAnnouncement, mapReady, locale]);
 
+  // Alertes SOS, dessinées par-dessus tout le reste ; redessinées seulement quand la liste change.
+  useEffect(() => {
+    const L = window.L;
+    if (!mapReady || !L || !sosLayer.current) return;
+    sosLayer.current.clearLayers();
+    for (const a of liveAlerts) {
+      const icon = L.divIcon({
+        className: `sos-pin${a.demo ? " sos-demo" : ""}${a.id === selectedAlert ? " sos-pin-selected" : ""}`,
+        html: `<span>${SOS_ICONS[a.kind]}</span>`,
+        iconSize: [38, 38],
+      });
+      L.marker([a.lat, a.lng], { icon, zIndexOffset: 2000 })
+        .bindTooltip(`SOS · ${t.sos.kinds[a.kind]}${a.demo ? ` (${t.sos.demo})` : ""}`)
+        .on("click", () => openAlert(a.id))
+        .addTo(sosLayer.current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- liveAlertIds résume liveAlerts
+  }, [liveAlertIds, selectedAlert, mapReady, locale]);
+
   // Point en cours de placement pour un nouveau signalement.
   useEffect(() => {
     const L = window.L;
@@ -375,6 +447,39 @@ export default function ManifestationsMap({
   };
 
   const currentAnnouncement = announcements.find((a) => a.id === selectedAnnouncement) ?? null;
+
+  const openAlert = (id: string) => {
+    setReporting(false);
+    setSelectedReport(null);
+    setSelectedAnnouncement(null);
+    setSosNotice(null);
+    setSelectedAlert(id);
+    const a = alerts.find((x) => x.id === id);
+    if (a) map.current?.setView([a.lat, a.lng], Math.max(map.current.getZoom(), 14));
+  };
+
+  const openSos = () => {
+    setSosPoint(null);
+    setSosPicking(false);
+    setSosOpen(true);
+  };
+
+  const alertSent = (a: SosAlert) => {
+    setAlerts((prev) => [a, ...prev.filter((x) => x.id !== a.id)]);
+    setSelectedAlert(a.id);
+    map.current?.setView([a.lat, a.lng], Math.max(map.current.getZoom(), 15));
+  };
+
+  const alertUpdated = (a: SosAlert | null, message: string) => {
+    if (a) setAlerts((prev) => prev.map((x) => (x.id === a.id ? a : x)));
+    else {
+      setAlerts((prev) => prev.filter((x) => x.id !== selectedAlert));
+      setSelectedAlert(null);
+    }
+    setSosNotice(message);
+  };
+
+  const currentAlert = liveAlerts.find((a) => a.id === selectedAlert) ?? null;
 
   const signIn = () => startFollow(() => signInToFollow(window.location.pathname + window.location.search));
 
@@ -503,7 +608,18 @@ export default function ManifestationsMap({
   return (
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
       <aside className="md:w-[23rem] w-full md:h-full max-h-[52vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5">
-        {reporting ? (
+        {currentAlert ? (
+          <SosDetails
+            alert={currentAlert}
+            locale={locale}
+            now={now}
+            canSend={sos.canSend}
+            visitorIso={sos.visitorIso}
+            onBack={() => setSelectedAlert(null)}
+            onSignIn={signIn}
+            onUpdated={alertUpdated}
+          />
+        ) : reporting ? (
           <ReportForm
             locale={locale}
             point={draft}
@@ -565,6 +681,33 @@ export default function ManifestationsMap({
           />
         ) : (
           <>
+            {sosNotice && (
+              <p className="rounded-[3px] bg-papier-fonce px-3 py-2 text-sm" role="status">
+                {sosNotice}
+              </p>
+            )}
+            {liveAlerts.length > 0 && (
+              <section aria-labelledby="sos-actives" className="rounded-[4px] border-[2px] border-[#c0262d] bg-[#c0262d]/10 p-3">
+                <h2 id="sos-actives" className="flex items-center gap-2 font-bold text-[#c0262d]">
+                  <span className="live-dot" aria-hidden="true" />
+                  {liveAlerts.length.toLocaleString(locale)} {plural(locale, liveAlerts.length, t.sos.active)}
+                </h2>
+                <ol className="mt-1.5">
+                  {liveAlerts.slice(0, 8).map((a) => (
+                    <li key={a.id}>
+                      <button onClick={() => openAlert(a.id)} className={listButton}>
+                        <span aria-hidden="true">{SOS_ICONS[a.kind]}</span>
+                        <span className="flex-1 truncate font-semibold">
+                          {t.sos.kinds[a.kind]}
+                          {a.demo && <span className="ms-1.5 text-xs font-normal text-gris">({t.sos.demo})</span>}
+                        </span>
+                        <span className="text-xs text-gris">{relativeTime(locale, a.createdAt, now)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
             {reportNotice && (
               <p className="rounded-[3px] bg-papier-fonce px-3 py-2 text-sm" role="status">
                 {reportNotice}
@@ -695,24 +838,28 @@ export default function ManifestationsMap({
                   ({reports.length.toLocaleString(locale)} {plural(locale, reports.length, t.reports.active)})
                 </span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showAnnouncements}
-                  onChange={(e) => setShowAnnouncements(e.target.checked)}
-                  className="accent-[rgb(var(--encre))]"
-                />
-                {ANNOUNCEMENT_ICON} {t.announcements.layer}
-                <span className="text-gris tabular-nums">
-                  ({announcements.length.toLocaleString(locale)} {plural(locale, announcements.length, t.announcements.upcoming)})
-                </span>
-              </label>
-              <a
-                href={localePath(locale, "/startup/create")}
-                className="inline-block font-semibold text-bleu hover:underline underline-offset-4"
-              >
-                + {t.announcements.create}
-              </a>
+              {ANNOUNCEMENTS_ENABLED && (
+                <>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showAnnouncements}
+                      onChange={(e) => setShowAnnouncements(e.target.checked)}
+                      className="accent-[rgb(var(--encre))]"
+                    />
+                    {ANNOUNCEMENT_ICON} {t.announcements.layer}
+                    <span className="text-gris tabular-nums">
+                      ({announcements.length.toLocaleString(locale)} {plural(locale, announcements.length, t.announcements.upcoming)})
+                    </span>
+                  </label>
+                  <a
+                    href={localePath(locale, "/startup/create")}
+                    className="inline-block font-semibold text-bleu hover:underline underline-offset-4"
+                  >
+                    + {t.announcements.create}
+                  </a>
+                </>
+              )}
               <p className="flex items-center gap-2 text-gris pt-1">
                 <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-dashed border-gris" aria-hidden="true" />
                 <span className="inline-block first-letter:uppercase">{t.map.approx}</span>
@@ -819,9 +966,49 @@ export default function ManifestationsMap({
           </>
         )}
       </aside>
-      <div className="relative flex-1 min-h-[48vh] z-0">
+      <div className="relative flex-1 min-h-[48vh]">
         {/* Leaflet ne gère pas le sens droite-à-gauche : la carte reste en LTR, et le bouton à droite (le zoom est à gauche). */}
-        <div ref={mapEl} dir="ltr" className="absolute inset-0" />
+        {/* z-0 contient les calques de Leaflet ; les boutons posés sur la carte restent au-dessus. */}
+        <div ref={mapEl} dir="ltr" className="absolute inset-0 z-0" />
+        {sosPicking ? (
+          <div className="absolute inset-x-3 top-3 z-[1000] flex items-center justify-between gap-3 rounded-[4px] border-[2px] border-[#c0262d] bg-papier px-3 py-2 font-semibold shadow-[3px_3px_0_rgb(var(--encre))]">
+            <span>📍 {t.sos.pickHint}</span>
+            <button onClick={() => setSosPicking(false)} className="text-sm text-bleu">
+              {t.sos.close}
+            </button>
+          </div>
+        ) : (
+          // Au-dessus du bandeau cookies (z 1000) : en urgence, rien ne doit masquer ce bouton.
+          <button
+            onClick={openSos}
+            aria-label={t.sos.open}
+            className="sos-button absolute bottom-8 left-3 z-[1100] flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white bg-[#c0262d] text-xl font-black tracking-wide text-white shadow-[0_0_0_2px_rgb(var(--encre)),4px_4px_0_2px_rgb(var(--encre))]"
+          >
+            {t.sos.button}
+          </button>
+        )}
+        {sosOpen && (
+          <SosSheet
+            locale={locale}
+            canSend={sos.canSend}
+            admin={sos.admin}
+            visitorIso={sos.visitorIso}
+            pickedPoint={sosPoint}
+            mapCenter={() => map.current?.getCenter() ?? null}
+            onClose={() => setSosOpen(false)}
+            onPickOnMap={() => {
+              setSosOpen(false);
+              setSosPicking(true);
+            }}
+            onSignIn={signIn}
+            onSent={alertSent}
+            onCancelled={(id) => {
+              setAlerts((prev) => prev.filter((x) => x.id !== id));
+              setSelectedAlert(null);
+            }}
+            onDemo={(demo) => setAlerts((prev) => [...demo, ...prev])}
+          />
+        )}
         {!reporting && (
           <button
             onClick={startReport}

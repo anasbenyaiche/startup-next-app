@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import ComplianceReportView from "@/app/components/announcements/ComplianceReportView";
 import ModerationActions from "@/app/components/announcements/ModerationActions";
 import LocalTime from "@/app/components/LocalTime";
@@ -13,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Annonces en relecture (vérification « à relire » ou plusieurs signalements d'abus).
 export default async function ModerationPage() {
+  if (!ANNOUNCEMENTS_ENABLED) notFound();
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const t = dict.moderation;

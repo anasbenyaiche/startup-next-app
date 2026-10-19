@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+import { auth, currentAccount } from "@/auth";
 import ManifestationsMap from "@/app/components/ManifestationsMap";
 import { isoToFips } from "@/lib/countries";
 import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { pageMetadata } from "@/lib/seo";
 import { getProfile } from "@/lib/profile";
+import { isAdmin } from "@/lib/admin";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -20,13 +21,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ManifestationsPage() {
-  const [locale, visitorIso, session] = await Promise.all([getLocale(), getVisitorCountry(), auth()]);
+  const [locale, visitorIso, session, account, admin] = await Promise.all([
+    getLocale(),
+    getVisitorCountry(),
+    auth(),
+    currentAccount(),
+    isAdmin(),
+  ]);
   const profile = session?.user?.id ? await getProfile(session.user.id) : null;
   return (
     <ManifestationsMap
       locale={locale}
       defaultCountry={visitorIso ? isoToFips(visitorIso) : null}
       profile={profile}
+      // Alertes SOS : réservées aux comptes vérifiés ; exemples réservés aux modérateurs.
+      sos={{ canSend: !!account?.verifiedAt, admin, visitorIso }}
     />
   );
 }

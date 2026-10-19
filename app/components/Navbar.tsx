@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -27,9 +28,11 @@ const Navbar = async () => {
           </Link>
           {session?.user?.id ? (
             <>
-              <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
-                {t.create}
-              </Link>
+              {ANNOUNCEMENTS_ENABLED && (
+                <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
+                  {t.create}
+                </Link>
+              )}
               <Link href={localePath(locale, "/profil")} className={linkClass}>
                 {getDictionary(locale).nav2.profile}
               </Link>
