@@ -200,6 +200,20 @@ const fr = {
     home: "Accueil",
     reliabilityShort: (score: number) => `fiabilité ${score}/100`,
   },
+  legal: {
+    notice: "Mentions légales",
+    privacy: "Confidentialité",
+    cookies: "Cookies",
+    updated: (date: string) => `Mise à jour : ${date}`,
+    onlyFrEn: "",
+    bannerText:
+      "Cortège n'utilise que des cookies nécessaires : votre langue et, si vous vous connectez, votre session. Aucun cookie de mesure d'audience ni de publicité.",
+    bannerMore: "En savoir plus",
+    bannerOk: "J'ai compris",
+    followConsent:
+      "Vos suivis peuvent révéler des opinions politiques. Acceptez-vous qu'ils soient enregistrés dans votre profil privé ? Ils ne sont jamais publiés ni utilisés pour la publicité, et vous pouvez les supprimer à tout moment.",
+    exportData: "Télécharger mes données",
+  },
   types: {
     "141": "Manifestation, rassemblement",
     "143": "Grève, boycott",
@@ -377,6 +391,20 @@ const en: Dictionary = {
     home: "Home",
     reliabilityShort: (score) => `reliability ${score}/100`,
   },
+  legal: {
+    notice: "Legal notice",
+    privacy: "Privacy",
+    cookies: "Cookies",
+    updated: (date) => `Updated: ${date}`,
+    onlyFrEn: "",
+    bannerText:
+      "Cortège only uses necessary cookies: your language and, if you sign in, your session. No analytics or advertising cookies.",
+    bannerMore: "Learn more",
+    bannerOk: "Got it",
+    followConsent:
+      "What you follow can reveal political opinions. Do you agree to store it in your private profile? It is never published or used for advertising, and you can delete it at any time.",
+    exportData: "Download my data",
+  },
   types: {
     "141": "Demonstration, rally",
     "143": "Strike, boycott",
@@ -551,6 +579,20 @@ const es: Dictionary = {
     allCountries: "Todos los países",
     home: "Inicio",
     reliabilityShort: (score) => `fiabilidad ${score}/100`,
+  },
+  legal: {
+    notice: "Aviso legal",
+    privacy: "Privacidad",
+    cookies: "Cookies",
+    updated: (date) => `Actualizado: ${date}`,
+    onlyFrEn: "Esta página solo está disponible en inglés y en francés.",
+    bannerText:
+      "Cortège solo usa cookies necesarias: tu idioma y, si inicias sesión, tu sesión. Ninguna cookie de analítica ni de publicidad.",
+    bannerMore: "Más información",
+    bannerOk: "Entendido",
+    followConsent:
+      "Lo que sigues puede revelar opiniones políticas. ¿Aceptas que se guarde en tu perfil privado? Nunca se publica ni se usa para publicidad, y puedes borrarlo en cualquier momento.",
+    exportData: "Descargar mis datos",
   },
   types: {
     "141": "Manifestación, concentración",
@@ -727,6 +769,20 @@ const pt: Dictionary = {
     home: "Início",
     reliabilityShort: (score) => `fiabilidade ${score}/100`,
   },
+  legal: {
+    notice: "Informação legal",
+    privacy: "Privacidade",
+    cookies: "Cookies",
+    updated: (date) => `Atualizado: ${date}`,
+    onlyFrEn: "Esta página só está disponível em inglês e em francês.",
+    bannerText:
+      "O Cortège só usa cookies necessários: o seu idioma e, se entrar, a sua sessão. Nenhum cookie de análise nem de publicidade.",
+    bannerMore: "Saber mais",
+    bannerOk: "Entendi",
+    followConsent:
+      "O que segue pode revelar opiniões políticas. Aceita que seja guardado no seu perfil privado? Nunca é publicado nem usado para publicidade, e pode apagá-lo a qualquer momento.",
+    exportData: "Descarregar os meus dados",
+  },
   types: {
     "141": "Manifestação, concentração",
     "143": "Greve, boicote",
@@ -902,6 +958,20 @@ const de: Dictionary = {
     home: "Startseite",
     reliabilityShort: (score) => `Verlässlichkeit ${score}/100`,
   },
+  legal: {
+    notice: "Impressum",
+    privacy: "Datenschutz",
+    cookies: "Cookies",
+    updated: (date) => `Stand: ${date}`,
+    onlyFrEn: "Diese Seite gibt es nur auf Englisch und Französisch.",
+    bannerText:
+      "Cortège verwendet nur notwendige Cookies: Ihre Sprache und, wenn Sie sich anmelden, Ihre Sitzung. Keine Analyse- oder Werbe-Cookies.",
+    bannerMore: "Mehr erfahren",
+    bannerOk: "Verstanden",
+    followConsent:
+      "Wem Sie folgen, kann politische Meinungen verraten. Sind Sie einverstanden, dass dies in Ihrem privaten Profil gespeichert wird? Es wird nie veröffentlicht oder für Werbung genutzt, und Sie können es jederzeit löschen.",
+    exportData: "Meine Daten herunterladen",
+  },
   types: {
     "141": "Demonstration, Kundgebung",
     "143": "Streik, Boykott",
@@ -1071,6 +1141,19 @@ const ar: Dictionary = {
     allCountries: "كل البلدان",
     home: "الرئيسية",
     reliabilityShort: (score) => `الموثوقية ${score}/100`,
+  },
+  legal: {
+    notice: "الإشعار القانوني",
+    privacy: "الخصوصية",
+    cookies: "ملفات تعريف الارتباط",
+    updated: (date) => `آخر تحديث: ${date}`,
+    onlyFrEn: "هذه الصفحة متاحة بالإنجليزية والفرنسية فقط.",
+    bannerText: "لا يستخدم Cortège إلا ملفات تعريف الارتباط الضرورية: لغتك، وجلستك إن سجّلت الدخول. لا ملفات لقياس الجمهور ولا للإعلانات.",
+    bannerMore: "اعرف المزيد",
+    bannerOk: "فهمت",
+    followConsent:
+      "قد تكشف متابعاتك عن آراء سياسية. هل توافق على حفظها في ملفك الخاص؟ لا تُنشر أبدًا ولا تُستخدم للإعلانات، ويمكنك حذفها في أي وقت.",
+    exportData: "تنزيل بياناتي",
   },
   types: {
     "141": "مظاهرة، تجمع",
