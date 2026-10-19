@@ -85,7 +85,25 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
 - Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
+## Alertes SOS
+
+Le bouton rouge **SOS** de la carte ouvre une fenêtre d'urgence : la position est lue dès
+l'ouverture, puis un seul geste choisit le type (🔥 feu, 🚨 casseurs / pillage, 🚑 blessé).
+
+- Réservé aux comptes connectés dont l'adresse est vérifiée ; le compte n'est jamais publié.
+- Visible par tous, en clignotant, pendant **15 minutes**, puis effacé (Redis : clé qui expire
+  seule + index géographique `GEOADD`/`GEOSEARCH`, nettoyé des alertes expirées).
+- `/api/alerts` liste les alertes actives ; `/api/alerts?lat=…&lng=…&radius=2` donne celles à
+  moins de 2 km, les plus proches d'abord.
+- 3 alertes par compte et par quart d'heure ; 3 signalements « fausse alerte » la retirent ;
+  l'auteur peut annuler la sienne.
+- Les modérateurs (`ADMIN_EMAILS`) ont un bouton « Afficher des exemples (15 min) » dans la
+  fenêtre SOS : trois alertes marquées « Exemple », qui disparaissent d'elles-mêmes.
+
 ## Annoncer une manifestation (`/fr/startup/create`)
+
+En préparation : masqué tant que `NEXT_PUBLIC_FEATURE_ANNOUNCEMENTS` ne vaut pas `1`.
+
 
 Les utilisateurs connectés annoncent une manifestation à venir (titre, dates, point de
 rendez-vous placé sur une carte, organisateur, lien officiel, déclaration aux autorités).

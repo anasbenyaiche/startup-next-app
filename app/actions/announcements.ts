@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { isAdmin } from "@/lib/admin";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import {
   AnnouncementError,
   deleteAnnouncement,
@@ -32,6 +33,7 @@ export async function publish(
   consent: boolean,
 ): Promise<AnnouncementResult<{ announcement: Announcement | null; report: ComplianceReport }>> {
   // L'annonce est publique (sans le compte de l'auteur) : accord explicite à chaque fois.
+  if (!ANNOUNCEMENTS_ENABLED) return { ok: false, error: "forbidden" };
   if (consent !== true) return { ok: false, error: "consent" };
   const result = await run((id) => publishAnnouncement(id, input));
   if (result.ok && result.value.announcement) revalidatePath("/startup/create");

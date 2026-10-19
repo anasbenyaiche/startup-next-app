@@ -16,6 +16,7 @@ export interface LMap {
   getContainer(): HTMLElement;
   fitBounds(bounds: [number, number][], options?: { maxZoom?: number; padding?: [number, number] }): LMap;
   getZoom(): number;
+  getCenter(): LatLng;
   remove(): void;
 }
 export interface LLayerGroup extends LLayer {

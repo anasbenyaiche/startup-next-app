@@ -233,6 +233,23 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             service que vous demandez (article 6.1.b).
           </li>
         </Ul>
+        <H2>Alertes SOS</H2>
+        <Ul>
+          <li>
+            Une alerte SOS contient son type (feu, casseurs ou pillage, blessé), une position précise à environ 10 m et son
+            heure. Elle est publique et anonyme : votre compte n’est jamais affiché. Seuls les comptes à l’adresse vérifiée
+            peuvent en envoyer.
+          </li>
+          <li>
+            Votre position est lue dans le navigateur, seulement si vous l’autorisez, et n’est envoyée qu’avec l’alerte.
+            Une empreinte chiffrée de votre compte est gardée le temps de l’alerte, pour limiter les envois et permettre
+            l’annulation.
+          </li>
+          <li>
+            Chaque alerte est effacée automatiquement au bout de 15 minutes, ou plus tôt si elle est annulée ou signalée
+            comme fausse.
+          </li>
+        </Ul>
         <H2>Signalements des témoins</H2>
         <Ul>
           <li>
@@ -305,6 +322,7 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Durées de conservation</H2>
         <Ul>
           <li>Compte et profil : jusqu’à ce que vous les supprimiez depuis votre profil.</li>
+          <li>Alertes SOS et empreinte du compte : 15 minutes.</li>
           <li>Signalements, empreinte du compte et votes : de une à six heures, puis effacement automatique.</li>
           <li>Manifestations annoncées : jusqu’à deux jours après la fin de la manifestation.</li>
           <li>Cookie de connexion : 30 jours, ou jusqu’à la déconnexion.</li>
@@ -362,6 +380,19 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             only stored with your explicit consent, asked on your first follow. You can withdraw it at any time by
             deleting your data. Map settings rely on providing the service you ask for (article 6.1.b).
           </li>
+        </Ul>
+        <H2>SOS alerts</H2>
+        <Ul>
+          <li>
+            An SOS alert contains its type (fire, rioters or looting, injured), a position accurate to about 10 m and its
+            time. It is public and anonymous: your account is never shown. Only accounts with a verified email address can
+            send one.
+          </li>
+          <li>
+            Your location is read in the browser, only if you allow it, and is only sent with the alert. A hashed
+            fingerprint of your account is kept for the alert’s lifetime, to limit sending and allow cancelling.
+          </li>
+          <li>Each alert is deleted automatically after 15 minutes, or sooner if it is cancelled or reported as false.</li>
         </Ul>
         <H2>Witness reports</H2>
         <Ul>
@@ -433,6 +464,7 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Retention</H2>
         <Ul>
           <li>Account and profile: until you delete them from your profile.</li>
+          <li>SOS alerts and account fingerprint: 15 minutes.</li>
           <li>Reports, account fingerprint and votes: one to six hours, then deleted automatically.</li>
           <li>Announced protests: until two days after the protest ends.</li>
           <li>Sign-in cookie: 30 days, or until you sign out.</li>
