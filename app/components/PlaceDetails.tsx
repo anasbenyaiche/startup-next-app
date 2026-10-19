@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ArticlePreview } from "@/lib/article-preview";
+import type { ArticlePreview } from "@/lib/news/article-preview";
 import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
-import type { ActorStat, PlaceDetails as Details } from "@/lib/manifestations";
+import type { ActorStat, PlaceDetails as Details } from "@/lib/news/manifestations";
 import { FAMILY_COLORS, TYPE_FAMILY } from "./map-colors";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 import VideoCarousel from "./VideoCarousel";

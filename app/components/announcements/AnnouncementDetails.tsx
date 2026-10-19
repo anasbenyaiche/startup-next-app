@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { flag } from "@/app/actions/announcements";
-import type { Announcement } from "@/lib/announcements";
+import type { Announcement } from "@/lib/community/announcements";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import { runAction } from "../staleDeployment";
 

@@ -12,13 +12,13 @@ import {
   normalizeEmail,
   replaceUnverifiedPassword,
   setPassword,
-  underLimit,
   validPassword,
-} from "@/lib/accounts";
+} from "@/lib/users/accounts";
+import { underLimit } from "@/lib/core/rate-limit";
 import { DEFAULT_LOCALE, isLocale, localePath, type Locale } from "@/lib/i18n";
-import { sendAccountMail } from "@/lib/mail";
-import { safeReturnPath } from "@/lib/return-path";
-import { siteOrigin } from "@/lib/site";
+import { sendAccountMail } from "@/lib/core/mail";
+import { safeReturnPath } from "@/lib/core/return-path";
+import { siteOrigin } from "@/lib/core/site";
 
 // Actions des formulaires de connexion. Elles renvoient un code (traduit par le
 // formulaire) plutôt qu'un texte. Inscription et mot de passe oublié répondent

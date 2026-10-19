@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { toggleFollowCountry, toggleFollowPlace } from "@/app/actions/profile";
 import { getDictionary, localePath, type Locale } from "@/lib/i18n";
-import type { ManifestationsResult } from "@/lib/manifestations";
-import type { FollowedPlace } from "@/lib/profile";
+import type { ManifestationsResult } from "@/lib/news/manifestations";
+import type { FollowedPlace } from "@/lib/users/profile";
 import { Skeleton } from "../Skeleton";
 import { runAction } from "../staleDeployment";
 

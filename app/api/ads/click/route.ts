@@ -1,5 +1,5 @@
-import { adStatKey, findSponsor } from "@/lib/sponsors";
-import { storeIncrement } from "@/lib/store";
+import { adStatKey, findSponsor } from "@/lib/content/sponsors";
+import { storeIncrement } from "@/lib/core/store";
 
 // Compte le clic puis redirige vers l'annonceur. Seuls les annonceurs déclarés
 // dans lib/sponsors.ts sont acceptés : la route ne redirige pas vers n'importe où.

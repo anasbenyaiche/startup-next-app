@@ -1,5 +1,5 @@
 import { getDictionary, type Locale } from "@/lib/i18n";
-import type { ComplianceIssue, ComplianceReport, IssueCode } from "@/lib/compliance";
+import type { ComplianceIssue, ComplianceReport, IssueCode } from "@/lib/community/compliance";
 
 // Rapport de la vérification de conformité : une ligne par règle, cochée ou non,
 // avec ce qu'il faut corriger. Affiché après chaque publication et en modération.

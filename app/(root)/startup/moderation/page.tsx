@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { localePath } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 
 // Ancienne adresse de l'administration : renvoie vers /startup/moderate.
 export default async function OldModerationPage() {

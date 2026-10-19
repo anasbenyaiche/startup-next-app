@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CURFEWS_ENABLED } from "@/lib/features";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { CurfewForm, DeleteCurfew } from "@/app/components/curfews/CurfewAdmin";
 import Footer from "@/app/components/Footer";
-import { isModerator } from "@/lib/admin";
-import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
-import { curfewStatus, listCurfews, type Curfew, type CurfewStatus } from "@/lib/curfews";
+import { isModerator } from "@/lib/users/admin";
+import { FIPS_TO_ISO, isoToFips } from "@/lib/geo/countries";
+import { curfewStatus, listCurfews, type Curfew, type CurfewStatus } from "@/lib/community/curfews";
 import { countryName, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
-import { getLocale, getVisitorCountry } from "@/lib/locale";
-import { pageMetadata } from "@/lib/seo";
+import { getLocale, getVisitorCountry } from "@/lib/i18n/request";
+import { pageMetadata } from "@/lib/news/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();

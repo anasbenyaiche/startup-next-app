@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { HeroPlace } from "@/lib/hero";
+import type { HeroPlace } from "@/lib/news/hero";
 
 // Scène 3D de l'accueil : la Terre de nuit, continents en points lumineux, une colonne
 // de lumière rose par lieu de manifestation et un faisceau rouge par alerte SOS.

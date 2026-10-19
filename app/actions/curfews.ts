@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { isModerator } from "@/lib/admin";
-import { CURFEWS_ENABLED } from "@/lib/features";
-import { addCurfew, CurfewError, deleteCurfew } from "@/lib/curfews";
+import { isModerator } from "@/lib/users/admin";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
+import { addCurfew, CurfewError, deleteCurfew } from "@/lib/community/curfews";
 
 // Saisie des couvre-feux : réservée aux modérateurs et administrateurs (lib/admin.ts).
 export type CurfewResult = { ok: true } | { ok: false; error: "forbidden" | "invalid"; field?: string };

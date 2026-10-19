@@ -1,4 +1,4 @@
-import { consumeToken, getAccountByEmail, markVerified } from "@/lib/accounts";
+import { consumeToken, getAccountByEmail, markVerified } from "@/lib/users/accounts";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n";
 
 // Lien de vérification envoyé par e-mail : active le compte puis renvoie vers la

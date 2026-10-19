@@ -6,14 +6,14 @@ import ComplianceReportView from "@/app/components/announcements/ComplianceRepor
 import ModerationActions from "@/app/components/announcements/ModerationActions";
 import LocalTime from "@/app/components/LocalTime";
 import { withNode } from "@/app/components/withNode";
-import { listAccounts, type Account } from "@/lib/accounts";
-import { auditLog, isEnvAdmin, roleOf } from "@/lib/admin";
-import { listAlerts } from "@/lib/alerts";
-import { listForModeration } from "@/lib/announcements";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { listAccounts, type Account } from "@/lib/users/accounts";
+import { auditLog, isEnvAdmin, roleOf } from "@/lib/users/admin";
+import { listAlerts } from "@/lib/community/alerts";
+import { listForModeration } from "@/lib/community/announcements";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/core/features";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
-import { listReports } from "@/lib/reports";
+import { getLocale } from "@/lib/i18n/request";
+import { listReports } from "@/lib/community/reports";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).admin.title, robots: { index: false, follow: false } };

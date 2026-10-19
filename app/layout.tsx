@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Noto_Sans_Arabic } from "next/font/google";
 import { dir, getDictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
-import { SITE_URL } from "@/lib/seo";
+import { getLocale } from "@/lib/i18n/request";
+import { SITE_URL } from "@/lib/news/seo";
 import CookieNotice from "./components/CookieNotice";
 import "./globals.css";
 

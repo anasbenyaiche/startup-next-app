@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FIPS_TO_ISO } from "@/lib/countries";
+import { FIPS_TO_ISO } from "@/lib/geo/countries";
 import { COUNTRY_SEGMENT, countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
-import type { ManifestationsResult } from "@/lib/manifestations";
+import type { ManifestationsResult } from "@/lib/news/manifestations";
 import LocalTime from "./LocalTime";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 import { withNode } from "./withNode";

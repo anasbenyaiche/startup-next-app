@@ -1,6 +1,6 @@
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "@/app/components/Skeleton";
 import { getDictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 
 // Affiché par Next pendant la navigation vers la carte : la mise en page
 // (panneau et carte) est déjà en place quand le vrai contenu arrive.

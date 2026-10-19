@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "verify": "yarn lint && yarn typecheck && yarn test"
   },
   "packageManager": "yarn@1.22.22",
   "overrides": {
@@ -20,6 +23,7 @@
     "nodemailer": "^6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "server-only": "0.0.1",
     "three": "^0.186.0"
   },
   "devDependencies": {
@@ -33,6 +37,7 @@
     "eslint-config-next": "15.5.28",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   }
 }

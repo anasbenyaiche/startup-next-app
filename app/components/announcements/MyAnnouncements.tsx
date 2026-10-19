@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeMine } from "@/app/actions/announcements";
-import type { Announcement } from "@/lib/announcements";
+import type { Announcement } from "@/lib/community/announcements";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import LocalTime from "../LocalTime";
 import { runAction } from "../staleDeployment";

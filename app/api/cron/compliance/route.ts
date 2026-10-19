@@ -1,4 +1,4 @@
-import { recheckAll } from "@/lib/announcements";
+import { recheckAll } from "@/lib/community/announcements";
 
 // Nouvelle vérification de conformité de toutes les annonces, une fois par jour
 // (vercel.json). Vercel envoie « Authorization: Bearer <CRON_SECRET> ».
