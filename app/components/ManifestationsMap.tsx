@@ -10,6 +10,7 @@ import AdSlot from "./AdSlot";
 import FollowButton from "./FollowButton";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map-colors";
 import PlaceDetails from "./PlaceDetails";
+import { runAction } from "./staleDeployment";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 const LEAFLET_VERSION = "1.9.4";
@@ -354,7 +355,8 @@ export default function ManifestationsMap({
       consent = true;
     }
     startFollow(async () => {
-      const updated = await action(consent);
+      const updated = await runAction(() => action(consent));
+      if (!updated) return;
       setFollowedCountries(updated.followedCountries);
       setFollowedPlaces(updated.followedPlaces);
       setFollowsConsentAt(updated.followsConsentAt);
