@@ -28,6 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: "Cortège", template: "%s | Cortège" },
     description: t.meta.description,
     formatDetection: { telephone: false },
+    // Relie le site au compte AdSense (vérification de propriété demandée par Google).
+    other: { "google-adsense-account": "ca-pub-4562660686818427" },
   };
 }
 
