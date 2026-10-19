@@ -28,6 +28,9 @@ class UnverifiedEmail extends CredentialsSignin {
 class TooManyAttempts extends CredentialsSignin {
   code = "too_many";
 }
+class Banned extends CredentialsSignin {
+  code = "banned";
+}
 
 const FAILURE_WINDOW = 15 * 60;
 
@@ -61,6 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
         if (!(await verifyPassword(password, account.passwordHash))) return null;
+        if (account.bannedAt) throw new Banned();
 
         if (!account.verifiedAt) {
           // Renvoie le lien, au plus 3 fois par heure pour ne pas servir à inonder une boîte.
@@ -81,8 +85,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     // Google doit avoir vérifié l'adresse, sinon n'importe qui pourrait se
     // rattacher au compte d'une adresse qui n'est pas la sienne.
-    signIn({ account, profile }) {
-      if (account?.provider === "google") return profile?.email_verified === true && !!normalizeEmail(profile.email);
+    async signIn({ account, profile }) {
+      if (account?.provider === "google") {
+        const email = normalizeEmail(profile?.email);
+        if (profile?.email_verified !== true || !email) return false;
+        // Compte banni par un administrateur : la connexion Google est refusée aussi.
+        return !(await getAccountByEmail(email))?.bannedAt;
+      }
       return true;
     },
     async jwt({ token, user, account, profile }) {
@@ -96,9 +105,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     // Sans identifiant de compte (ancienne session GitHub), la session ne donne accès à rien.
-    session({ session, token }) {
-      if (typeof token.uid === "string") session.user.id = token.uid;
-      else session.user.id = "";
+    // Le compte est relu à chaque fois : un compte supprimé ou banni perd l'accès
+    // tout de suite, même si son cookie de session est encore valable.
+    async session({ session, token }) {
+      const account = typeof token.uid === "string" ? await getAccountById(token.uid) : null;
+      session.user.id = account && !account.bannedAt ? account.id : "";
       return session;
     },
   },

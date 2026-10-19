@@ -1,14 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
+import { CURFEWS_ENABLED } from "@/lib/features";
 import { addCurfew, CurfewError, deleteCurfew } from "@/lib/curfews";
 
-// Saisie des couvre-feux : réservée aux modérateurs (ADMIN_EMAILS).
+// Saisie des couvre-feux : réservée aux modérateurs et administrateurs (lib/admin.ts).
 export type CurfewResult = { ok: true } | { ok: false; error: "forbidden" | "invalid"; field?: string };
 
 export async function createCurfew(input: Record<string, unknown>): Promise<CurfewResult> {
-  if (!(await isAdmin())) return { ok: false, error: "forbidden" };
+  if (!CURFEWS_ENABLED || !(await isModerator())) return { ok: false, error: "forbidden" };
   try {
     await addCurfew(input);
   } catch (err) {
@@ -20,7 +21,7 @@ export async function createCurfew(input: Record<string, unknown>): Promise<Curf
 }
 
 export async function removeCurfew(id: string): Promise<CurfewResult> {
-  if (!(await isAdmin())) return { ok: false, error: "forbidden" };
+  if (!(await isModerator())) return { ok: false, error: "forbidden" };
   await deleteCurfew(String(id));
   revalidatePath("/couvre-feu");
   return { ok: true };

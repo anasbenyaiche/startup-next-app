@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CURFEWS_ENABLED } from "@/lib/features";
 import { CurfewForm, DeleteCurfew } from "@/app/components/curfews/CurfewAdmin";
 import Footer from "@/app/components/Footer";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
 import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
 import { curfewStatus, listCurfews, type Curfew, type CurfewStatus } from "@/lib/curfews";
 import { countryName, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
@@ -54,7 +56,8 @@ function StatusBadge({ status, locale }: { status: CurfewStatus; locale: Locale 
 }
 
 export default async function CurfewPage({ searchParams }: { searchParams: Promise<{ pays?: string }> }) {
-  const [locale, admin, visitorIso, params] = await Promise.all([getLocale(), isAdmin(), getVisitorCountry(), searchParams]);
+  if (!CURFEWS_ENABLED) notFound();
+  const [locale, admin, visitorIso, params] = await Promise.all([getLocale(), isModerator(), getVisitorCountry(), searchParams]);
   const dict = getDictionary(locale);
   const t = dict.curfew;
   const now = new Date();

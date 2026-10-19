@@ -1,7 +1,7 @@
 "use server";
 
 import { currentAccount } from "@/auth";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
 import { AlertError, cancelAlert, createAlert, flagAlert, seedDemoAlerts, type SosAlert } from "@/lib/alerts";
 
 // Seuls les « reporters » envoient une alerte : un compte connecté dont l'adresse
@@ -33,6 +33,6 @@ export async function reportFalseAlert(alertId: string): Promise<AlertResult<Sos
 }
 
 export async function showDemoAlerts(lat: number, lng: number): Promise<AlertResult<SosAlert[]>> {
-  if (!(await isAdmin())) return { ok: false, error: "forbidden" };
+  if (!(await isModerator())) return { ok: false, error: "forbidden" };
   return run(() => seedDemoAlerts(lat, lng));
 }

@@ -29,6 +29,7 @@ export type AuthCode =
   | "invalid"
   | "unverified"
   | "tooMany"
+  | "banned"
   | "badEmail"
   | "badPassword"
   | "badLink"
@@ -65,6 +66,7 @@ export async function signInWithPassword(_prev: AuthState, form: FormData): Prom
       const code = (err as AuthError & { code?: string }).code;
       if (code === "unverified") return { code: "unverified" };
       if (code === "too_many") return { code: "tooMany" };
+      if (code === "banned") return { code: "banned" };
       if (err.type === "CredentialsSignin") return { code: "invalid" };
       console.error("[auth] connexion par mot de passe :", err);
       return { code: "generic" };

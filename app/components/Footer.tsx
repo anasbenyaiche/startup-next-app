@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CURFEWS_ENABLED } from "@/lib/features";
 import { COUNTRY_SEGMENT, LOCALES, LOCALE_NAMES, getDictionary, localePath, type Locale } from "@/lib/i18n";
 
 // Pied de page : liens vers les pages principales et vers chaque langue, utiles
@@ -19,9 +20,11 @@ export default function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, `/${COUNTRY_SEGMENT[locale]}`)} className={link}>
             {t.seo.allCountries}
           </Link>
-          <Link href={localePath(locale, "/couvre-feu")} className={link}>
-            {t.curfew.nav}
-          </Link>
+          {CURFEWS_ENABLED && (
+            <Link href={localePath(locale, "/couvre-feu")} className={link}>
+              {t.curfew.nav}
+            </Link>
+          )}
           <Link href={localePath(locale, "/legal/mentions")} className={link}>
             {t.legal.notice}
           </Link>

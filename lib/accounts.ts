@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { readyRedis } from "./cache";
-import { storeDelete, storeGet, storeSet } from "./store";
+import { storeDelete, storeGet, storeScan, storeSet } from "./store";
 
 // Comptes des utilisateurs, rattachés à leur adresse e-mail : la connexion par
 // mot de passe et la connexion Google d'une même adresse mènent au même compte,
@@ -18,6 +18,11 @@ export type Account = {
   verifiedAt: string | null;
   providers: ("password" | "google")[];
   createdAt: string;
+  // Rôle donné par un administrateur (les adresses de ADMIN_EMAILS sont admin d'office).
+  role?: "admin" | "moderator" | null;
+  // Compte banni : plus de connexion ni d'action, la session en cours est coupée.
+  bannedAt?: string | null;
+  banReason?: string | null;
 };
 
 export const PASSWORD_MIN = 10;
@@ -139,6 +144,18 @@ export async function setPassword(account: Account, password: string): Promise<A
     providers,
     verifiedAt: account.verifiedAt ?? new Date().toISOString(),
   });
+}
+
+// Changements faits par un administrateur (rôle, bannissement, vérification manuelle).
+export async function updateAccount(account: Account, patch: Partial<Pick<Account, "role" | "bannedAt" | "banReason" | "verifiedAt">>): Promise<Account> {
+  return saveAccount({ ...account, ...patch });
+}
+
+// Tous les comptes, les plus récents d'abord (administration).
+export async function listAccounts(): Promise<Account[]> {
+  const keys = await storeScan("account:email:");
+  const accounts = await Promise.all(keys.map((k) => storeGet<Account>(k)));
+  return accounts.filter((a): a is Account => !!a).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function deleteAccount(account: Account): Promise<void> {

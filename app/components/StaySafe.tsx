@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { emergencyNumbers } from "@/lib/emergency";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { ANNOUNCEMENTS_ENABLED, CURFEWS_ENABLED } from "@/lib/features";
 import Tilt from "./Tilt";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
 import { isoToFips } from "@/lib/countries";
@@ -96,12 +96,14 @@ export default function StaySafe({ locale, visitorIso }: { locale: Locale; visit
               >
                 {t.ctaMap}
               </Link>
-              <Link
-                href={localePath(locale, "/couvre-feu")}
-                className="rounded-[3px] border-[1.5px] border-papier px-4 py-2.5 font-semibold hover:bg-papier hover:text-encre"
-              >
-                {dict.curfew.nav}
-              </Link>
+              {CURFEWS_ENABLED && (
+                <Link
+                  href={localePath(locale, "/couvre-feu")}
+                  className="rounded-[3px] border-[1.5px] border-papier px-4 py-2.5 font-semibold hover:bg-papier hover:text-encre"
+                >
+                  {dict.curfew.nav}
+                </Link>
+              )}
               {ANNOUNCEMENTS_ENABLED && (
                 <Link
                   href={localePath(locale, "/startup/create")}

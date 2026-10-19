@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { isAdmin } from "@/lib/admin";
+import { isModerator } from "@/lib/admin";
 import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
 import {
   AnnouncementError,
@@ -51,7 +51,7 @@ export async function flag(announcementId: string): Promise<AnnouncementResult<A
 }
 
 export async function moderate(announcementId: string, decision: "approve" | "reject"): Promise<AnnouncementResult<null>> {
-  if (!(await isAdmin())) return { ok: false, error: "forbidden" };
+  if (!(await isModerator())) return { ok: false, error: "forbidden" };
   if (decision !== "approve" && decision !== "reject") return { ok: false, error: "invalid" };
   const result = await run(() => moderateAnnouncement(String(announcementId), decision).then(() => null));
   revalidatePath("/startup/moderation");
