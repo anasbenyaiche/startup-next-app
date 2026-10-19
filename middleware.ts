@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextResponse, type NextRequest } from "next/server";
 import { COUNTRY_SEGMENT, DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, localeForCountry, type Locale } from "@/lib/i18n";
 
 // Adresses localisées : chaque langue a sa propre adresse (/fr/…, /en/…), pour que
@@ -19,7 +18,7 @@ function isPassthrough(pathname: string) {
   );
 }
 
-function detectLocale(req: Request & { cookies: { get(name: string): { value: string } | undefined } }): Locale {
+function detectLocale(req: NextRequest): Locale {
   const cookie = req.cookies.get(LOCALE_COOKIE)?.value;
   if (isLocale(cookie)) return cookie;
   for (const name of GEO_HEADERS) {
@@ -35,7 +34,7 @@ function detectLocale(req: Request & { cookies: { get(name: string): { value: st
   return DEFAULT_LOCALE;
 }
 
-export const middleware = auth((req) => {
+export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   if (isPassthrough(pathname)) return NextResponse.next();
 
@@ -60,7 +59,7 @@ export const middleware = auth((req) => {
     res.cookies.set(LOCALE_COOKIE, first, { path: "/", maxAge: 365 * 24 * 3600, sameSite: "lax" });
   }
   return res;
-});
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image).*)"],

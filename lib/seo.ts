@@ -4,12 +4,9 @@ import { FIPS_TO_ISO, isoToFips } from "./countries";
 import { LOCALES, countryName, countryPath, countrySlug, localePath, type Locale } from "./i18n";
 import { getCachedManifestations, getManifestations, type ManifestationsResult } from "./manifestations";
 
-// Adresse publique du site : à définir en production (NEXT_PUBLIC_SITE_URL), sinon
-// l'adresse de production fournie par Vercel, sinon le serveur local.
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
-).replace(/\/$/, "");
+import { SITE_URL } from "./site";
+
+export { SITE_URL };
 
 const OG_LOCALE: Record<Locale, string> = { fr: "fr_FR", en: "en_US", es: "es_ES", pt: "pt_PT", de: "de_DE", ar: "ar_AR" };
 

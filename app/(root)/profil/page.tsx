@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/auth";
-import { signInToFollow } from "@/app/actions/profile";
 import DeleteMyData from "@/app/components/profile/DeleteMyData";
 import FollowedLists from "@/app/components/profile/FollowedLists";
 import PreferencesForm from "@/app/components/profile/PreferencesForm";
@@ -37,19 +36,12 @@ export default async function ProfilePage() {
       <div className="mx-auto max-w-xl px-4 sm:px-6 py-16">
         <h1 className="display text-[clamp(2.4rem,7vw,3.6rem)]">{t.signInTitle}</h1>
         <p className="mt-4 text-lg leading-relaxed text-encre/85">{t.signInText}</p>
-        <form
-          action={async () => {
-            "use server";
-            await signInToFollow(localePath(locale, "/profil"));
-          }}
+        <Link
+          href={`${localePath(locale, "/connexion")}?retour=${encodeURIComponent(localePath(locale, "/profil"))}`}
+          className="mt-8 inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-5 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_rgb(var(--rose))] hover:bg-bleu hover:border-bleu"
         >
-          <button
-            type="submit"
-            className="mt-8 rounded-[3px] border-[1.5px] border-encre bg-encre px-5 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_rgb(var(--rose))] hover:bg-bleu hover:border-bleu"
-          >
-            {t.signInCta}
-          </button>
-        </form>
+          {t.signInCta}
+        </Link>
         <p className="mt-8 text-sm text-gris">{t.privateNote}</p>
       </div>
     );
@@ -69,6 +61,7 @@ export default async function ProfilePage() {
         )}
         <div>
           <h1 className="display text-[clamp(2.2rem,6vw,3.2rem)]">{user.name ?? t.title}</h1>
+          {user.email && <p className="text-encre/80">{user.email}</p>}
           <p className="text-sm text-gris">
             {t.memberSince(new Date(profile.createdAt).toLocaleDateString(locale, { dateStyle: "long" }))}
           </p>

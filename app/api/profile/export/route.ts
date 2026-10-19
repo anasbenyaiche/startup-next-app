@@ -1,5 +1,12 @@
-import { auth } from "@/auth";
+import { auth, currentAccount } from "@/auth";
 import { getProfile } from "@/lib/profile";
+
+async function accountExport() {
+  const account = await currentAccount();
+  if (!account) return null;
+  const { id, email, verifiedAt, providers, createdAt } = account;
+  return { id, email, verifiedAt, providers, createdAt, hasPassword: !!account.passwordHash };
+}
 
 // Droit à la portabilité (article 20 du RGPD) : toutes les données gardées sur la
 // personne connectée, dans un fichier JSON à télécharger.
@@ -10,8 +17,9 @@ export async function GET() {
 
   const data = {
     exportedAt: new Date().toISOString(),
-    // Gardé dans le cookie de session chiffré, sur l'appareil de la personne.
-    account: { provider: "github", id, name: session.user?.name ?? null, email: session.user?.email ?? null },
+    // Gardé dans la base Redis du site (l'empreinte du mot de passe n'est pas exportée :
+    // elle ne permet pas de retrouver le mot de passe et ne sert qu'à le vérifier).
+    account: await accountExport(),
     // Gardé dans la base Redis du site.
     profile: await getProfile(id),
   };

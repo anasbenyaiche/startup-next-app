@@ -1,4 +1,4 @@
-import { auth, signIn, signOut } from "@/auth";
+import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
 import { getDictionary, localePath } from "@/lib/i18n";
@@ -25,7 +25,7 @@ const Navbar = async () => {
           <Link href={localePath(locale, "/manifestations")} className={linkClass}>
             {t.map}
           </Link>
-          {session && session.user ? (
+          {session?.user?.id ? (
             <>
               <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
                 {t.create}
@@ -45,16 +45,9 @@ const Navbar = async () => {
               </form>
             </>
           ) : (
-            <form
-              action={async () => {
-                "use server";
-                await signIn("github", { redirectTo: localePath(locale, "/profil") });
-              }}
-            >
-              <button type="submit" className={buttonClass}>
-                {t.signIn}
-              </button>
-            </form>
+            <Link href={localePath(locale, "/connexion")} className={buttonClass}>
+              {t.signIn}
+            </Link>
           )}
         </div>
       </nav>

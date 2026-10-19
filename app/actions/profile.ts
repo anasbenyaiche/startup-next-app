@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth, signIn } from "@/auth";
+import { auth, currentAccount, signOut } from "@/auth";
+import { goToSignIn } from "@/app/actions/account";
+import { deleteAccount } from "@/lib/accounts";
 import { deleteProfile, getProfile, isCountryCode, saveProfile, type Profile } from "@/lib/profile";
 
 // Actions serveur du profil. L'utilisateur est toujours relu depuis la session :
@@ -14,9 +16,9 @@ async function requireUserId(): Promise<string> {
   return id;
 }
 
+// Envoie vers la page de connexion, qui ramène ensuite à la même vue.
 export async function signInToFollow(redirectTo: string) {
-  // N'accepte qu'un chemin local, pour ne pas servir de redirection ouverte.
-  await signIn("github", { redirectTo: redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/" });
+  await goToSignIn(redirectTo);
 }
 
 // Un nouveau suivi n'est enregistré qu'avec le consentement explicite de la personne
@@ -62,8 +64,13 @@ export async function savePreferences(prefs: Pick<Profile, "defaultHours" | "def
   return saved;
 }
 
+// Supprime le profil et le compte (adresse e-mail, empreinte du mot de passe),
+// puis ferme la session.
 export async function deleteMyData() {
   const userId = await requireUserId();
   await deleteProfile(userId);
+  const account = await currentAccount();
+  if (account) await deleteAccount(account);
+  await signOut({ redirect: false });
   revalidatePath("/profil");
 }
