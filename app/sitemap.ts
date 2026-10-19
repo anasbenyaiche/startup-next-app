@@ -23,6 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...entry((l) => localePath(l, "/"), updated, 1),
     ...entry((l) => localePath(l, "/manifestations"), updated, 0.9),
+    ...entry((l) => localePath(l, "/couvre-feu"), updated, 0.7),
     ...entry((l) => localePath(l, `/${COUNTRY_SEGMENT[l]}`), updated, 0.8),
     ...LEGAL_PAGES.flatMap((page) => entry((l) => localePath(l, `/legal/${page}`), new Date(LEGAL_UPDATED), 0.2)),
     // Seuls les pays avec des manifestations récentes : les autres pages sont trop pauvres.

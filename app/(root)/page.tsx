@@ -6,6 +6,7 @@ import { COUNTRY_SEGMENT, countryName, countryPath, getDictionary, localePath } 
 import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/seo";
 import Footer from "../components/Footer";
+import Globe3D from "../components/Globe3D";
 import LiveCountries from "../components/LiveCountries";
 import SosHome from "../components/SosHome";
 import StaySafe from "../components/StaySafe";
@@ -38,6 +39,15 @@ export default async function Home() {
           href: countryPath(locale, c.fips),
         })),
       }
+    : null;
+
+  // Lieux des 6 dernières heures pour le globe, réduits au strict nécessaire.
+  const globePoints = data6h
+    ? data6h.places.map((p) => ({
+        lat: p.lat,
+        lng: p.lng,
+        w: Object.values(p.byType).reduce((n, s) => n + s.mentions, 0),
+      }))
     : null;
 
   return (
@@ -85,7 +95,10 @@ export default async function Home() {
             >
               {t.cta}
             </Link>
-            <p className="mt-10 text-sm text-gris max-w-[46ch] leading-relaxed">{t.sourceNote}</p>
+            <div className="mt-10">
+              <Globe3D locale={locale} initialPoints={globePoints} />
+            </div>
+            <p className="mt-8 text-sm text-gris max-w-[46ch] leading-relaxed">{t.sourceNote}</p>
           </section>
 
           <section aria-labelledby="en-direct">
