@@ -97,9 +97,16 @@ calculé à chaque visite : « en vigueur jusqu'à… », « ce soir à partir d
 
 ## Accueil en 3D
 
-Le globe de l'accueil (`app/components/Globe3D.tsx`, Three.js chargé à la demande) montre
-les lieux de manifestation des 6 dernières heures et les alertes SOS actives. Il tourne seul,
-se fait tourner au doigt, s'arrête hors de l'écran et reste fixe si les animations sont réduites.
+Le haut de l'accueil est une scène Three.js (`app/components/hero/`), chargée à la demande :
+la Terre de nuit, continents en points, une colonne de lumière rose par lieu de manifestation
+(24 dernières heures) et un faisceau rouge par alerte SOS. Le défilement pilote la caméra en
+trois actes : le monde, le pays du visiteur (ou le plus actif), puis une alerte SOS. Survoler
+une colonne affiche le lieu, cliquer l'ouvre sur la carte, glisser fait tourner le globe.
+
+- Continents : `public/geo/land-dots.bin` (5 170 points, 20 Ko), calculé une fois à partir de
+  Natural Earth (domaine public) via `world-atlas`.
+- L'animation s'arrête hors de l'écran ; la scène reste fixe si les animations sont réduites ;
+  sans WebGL, les textes restent sur le fond bleu nuit.
 
 ## Alertes SOS
 

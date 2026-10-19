@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { listAlerts } from "@/lib/alerts";
+import { heroFocus, heroPlaces } from "@/lib/hero";
 import { isoToFips } from "@/lib/countries";
 import type { Metadata } from "next";
 import { COUNTRY_SEGMENT, countryName, countryPath, getDictionary, localePath } from "@/lib/i18n";
 import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/seo";
 import Footer from "../components/Footer";
-import Globe3D from "../components/Globe3D";
+import Hero3D from "../components/hero/Hero3D";
 import LiveCountries from "../components/LiveCountries";
 import SosHome from "../components/SosHome";
 import StaySafe from "../components/StaySafe";
@@ -18,10 +19,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [locale, visitorIso, data6h, activeAlerts] = await Promise.all([
+  const [locale, visitorIso, data6h, data24h, activeAlerts] = await Promise.all([
     getLocale(),
     getVisitorCountry(),
     getSeoData(6),
+    // La scène 3D montre les 24 dernières heures : assez de colonnes même un jour calme.
+    getSeoData(24),
     // Un Redis injoignable ne doit pas empêcher l'accueil de s'afficher.
     listAlerts().then((a) => a.length, () => 0),
   ]);
@@ -41,18 +44,13 @@ export default async function Home() {
       }
     : null;
 
-  // Lieux des 6 dernières heures pour le globe, réduits au strict nécessaire.
-  const globePoints = data6h
-    ? data6h.places.map((p) => ({
-        lat: p.lat,
-        lng: p.lng,
-        w: Object.values(p.byType).reduce((n, s) => n + s.mentions, 0),
-      }))
-    : null;
+  const visitorFips = visitorIso ? isoToFips(visitorIso) : null;
+  const focus = data24h ? heroFocus(data24h, visitorFips) : null;
 
   return (
     <>
-      <div className="overflow-x-hidden">
+      {/* clip et non hidden : hidden ferait de ce bloc un conteneur de défilement et casserait l'écran collant du hero. */}
+      <div className="overflow-x-clip">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={jsonLd({
@@ -77,16 +75,16 @@ export default async function Home() {
             ],
           })}
         />
-        {/* La banderole : tendue d'un bord à l'autre, légèrement de travers. */}
-        <section aria-labelledby="titre" className="pt-14 sm:pt-20 pb-10">
-          <div className="-mx-4 -rotate-2 bg-rose border-y-[3px] border-encre px-8 py-6 sm:py-8">
-            <h1 id="titre" className="display text-center text-balance text-encre text-[clamp(2.6rem,9vw,8rem)]">
-              {t.banner}
-            </h1>
-          </div>
-        </section>
+        {/* Scène 3D : la banderole, puis le pays du visiteur, puis le SOS, au fil du défilement. */}
+        <Hero3D
+          locale={locale}
+          initialPlaces={data24h ? heroPlaces(data24h) : null}
+          initialFocus={focus}
+          focusName={focus ? countryName(locale, focus.fips, focus.fips) : null}
+          visitorFips={visitorFips}
+        />
 
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 pt-16 grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
           <section>
             <p className="text-xl leading-relaxed max-w-[34ch]">{t.intro}</p>
             <Link
@@ -95,10 +93,7 @@ export default async function Home() {
             >
               {t.cta}
             </Link>
-            <div className="mt-10">
-              <Globe3D locale={locale} initialPoints={globePoints} />
-            </div>
-            <p className="mt-8 text-sm text-gris max-w-[46ch] leading-relaxed">{t.sourceNote}</p>
+            <p className="mt-10 text-sm text-gris max-w-[46ch] leading-relaxed">{t.sourceNote}</p>
           </section>
 
           <section aria-labelledby="en-direct">
@@ -106,7 +101,7 @@ export default async function Home() {
               <span className="live-dot" aria-hidden="true" />
               {t.liveTitle}
             </h2>
-            <LiveCountries locale={locale} visitorFips={visitorIso ? isoToFips(visitorIso) : null} initial={initial} />
+            <LiveCountries locale={locale} visitorFips={visitorFips} initial={initial} />
             <Link
               href={localePath(locale, `/${COUNTRY_SEGMENT[locale]}`)}
               className="mt-4 inline-block font-semibold text-bleu hover:underline underline-offset-4"
