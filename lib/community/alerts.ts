@@ -1,6 +1,10 @@
+import "server-only";
 import { randomUUID } from "crypto";
-import { readyRedis } from "./cache";
-import { authorHash, distanceKm } from "./reports";
+import { readyRedis } from "@/lib/core/cache";
+import { CodedError } from "@/lib/core/errors";
+import { authorHash } from "@/lib/core/identity";
+import { underLimit } from "@/lib/core/rate-limit";
+import { distanceKm } from "@/lib/geo/distance";
 
 // Alertes SOS : feu, casseurs ou pillage, personne blessée. Envoyées en deux gestes
 // depuis la carte, visibles par tous pendant 15 minutes, puis effacées.
@@ -35,24 +39,18 @@ export type SosAlert = {
 
 type Stored = SosAlert & { author: string };
 
-export class AlertError extends Error {
-  constructor(public code: "invalid" | "rateLimited" | "notFound" | "forbidden" | "own") {
-    super(code);
-  }
-}
+export class AlertError extends CodedError<"invalid" | "rateLimited" | "notFound" | "forbidden" | "own"> {}
 
 const KEY = {
   geo: "sos:v1:geo",
   expiry: "sos:v1:expiry",
   item: (id: string) => `sos:v1:item:${id}`,
   flags: (id: string) => `sos:v1:flags:${id}`,
-  rate: (hash: string) => `sos:v1:rate:${hash}`,
 };
 
 const memory = {
   items: new Map<string, Stored>(),
   flags: new Map<string, Set<string>>(),
-  rate: new Map<string, { count: number; resetAt: number }>(),
 };
 
 const round = (v: number) => Number(v.toFixed(COORD_DECIMALS));
@@ -119,22 +117,6 @@ async function remove(id: string) {
   memory.flags.delete(id);
 }
 
-async function rateLimit(hash: string) {
-  const redis = await readyRedis();
-  if (redis) {
-    const count = await redis.incr(KEY.rate(hash));
-    if (count === 1) await redis.pexpire(KEY.rate(hash), ALERT_TTL_MS);
-    if (count > RATE_LIMIT) throw new AlertError("rateLimited");
-    return;
-  }
-  const now = Date.now();
-  const entry = memory.rate.get(hash);
-  const current = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + ALERT_TTL_MS };
-  current.count++;
-  memory.rate.set(hash, current);
-  if (current.count > RATE_LIMIT) throw new AlertError("rateLimited");
-}
-
 function validPoint(lat: unknown, lng: unknown): lat is number {
   return (
     typeof lat === "number" &&
@@ -164,7 +146,7 @@ function build(kind: AlertKind, lat: number, lng: number, author: string, demo: 
 export async function createAlert(userId: string, input: { kind: unknown; lat: unknown; lng: unknown }): Promise<SosAlert> {
   if (!ALERT_KINDS.includes(input.kind as AlertKind) || !validPoint(input.lat, input.lng)) throw new AlertError("invalid");
   const author = authorHash(userId);
-  await rateLimit(author);
+  if (!(await underLimit(`sos:${author}`, RATE_LIMIT, ALERT_TTL_MS / 1000))) throw new AlertError("rateLimited");
   const alert = build(input.kind as AlertKind, input.lat, input.lng as number, author, false);
   await save(alert);
   return toPublic(alert);

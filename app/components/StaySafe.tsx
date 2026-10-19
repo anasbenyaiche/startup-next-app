@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { emergencyNumbers } from "@/lib/emergency";
-import { ANNOUNCEMENTS_ENABLED, CURFEWS_ENABLED } from "@/lib/features";
+import { emergencyNumbers } from "@/lib/geo/emergency";
+import { ANNOUNCEMENTS_ENABLED, CURFEWS_ENABLED } from "@/lib/core/features";
 import Tilt from "./Tilt";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
-import { isoToFips } from "@/lib/countries";
+import { isoToFips } from "@/lib/geo/countries";
 
 // « Stay safe » : conseils avant, pendant et après une manifestation, et numéros
 // d'urgence du pays du visiteur. Bandeau encre, comme un panneau tenu dans le cortège.

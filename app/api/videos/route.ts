@@ -1,6 +1,6 @@
-import { parseHours, parsePlaceKey } from "@/lib/api-params";
-import { getPlaceDetails } from "@/lib/manifestations";
-import { getPlaceVideos } from "@/lib/videos";
+import { parseHours, parsePlaceKey } from "@/lib/news/api-params";
+import { getPlaceDetails } from "@/lib/news/manifestations";
+import { getPlaceVideos } from "@/lib/news/videos";
 
 // Vidéos d'un lieu de la carte. Le nom et la position viennent du détail du lieu
 // (déjà en cache) : on ne lance pas de recherche sur un texte arbitraire.

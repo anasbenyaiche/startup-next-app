@@ -1,3 +1,4 @@
+import "server-only";
 import Redis from "ioredis";
 
 // Cache clé/valeur JSON : Redis si REDIS_URL est défini (partagé entre toutes

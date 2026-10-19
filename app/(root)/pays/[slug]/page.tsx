@@ -6,7 +6,7 @@ import { withNode } from "@/app/components/withNode";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPE_FAMILY } from "@/app/components/map-colors";
 import { COUNTRY_SEGMENT, countrySlug, getDictionary, plural } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 import {
   SITE_URL,
   countryName,
@@ -17,7 +17,7 @@ import {
   jsonLd,
   localePath,
   pageMetadata,
-} from "@/lib/seo";
+} from "@/lib/news/seo";
 
 type Props = { params: Promise<{ slug: string }> };
 

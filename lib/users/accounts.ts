@@ -1,7 +1,8 @@
+import "server-only";
 import { createHash, randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
-import { readyRedis } from "./cache";
-import { storeDelete, storeGet, storeScan, storeSet } from "./store";
+import { readyRedis } from "@/lib/core/cache";
+import { storeDelete, storeGet, storeScan, storeSet } from "@/lib/core/store";
 
 // Comptes des utilisateurs, rattachés à leur adresse e-mail : la connexion par
 // mot de passe et la connexion Google d'une même adresse mènent au même compte,
@@ -192,31 +193,4 @@ export async function consumeToken(kind: TokenKind, token: unknown): Promise<str
   const entry = memoryTokens.get(key);
   memoryTokens.delete(key);
   return entry && entry.expiresAt > Date.now() ? entry.email : null;
-}
-
-// --- Limites (essais de mot de passe, e-mails envoyés) ------------------------
-
-const memoryCounters = new Map<string, { n: number; expiresAt: number }>();
-
-// Compte une tentative et renvoie vrai tant que la limite n'est pas dépassée.
-export async function underLimit(key: string, max: number, windowSeconds: number): Promise<boolean> {
-  const fullKey = `auth:limit:${key}`;
-  const redis = await readyRedis();
-  if (redis) {
-    const n = await redis.incr(fullKey);
-    if (n === 1) await redis.expire(fullKey, windowSeconds);
-    return n <= max;
-  }
-  const now = Date.now();
-  const entry = memoryCounters.get(fullKey);
-  const next = entry && entry.expiresAt > now ? { ...entry, n: entry.n + 1 } : { n: 1, expiresAt: now + windowSeconds * 1000 };
-  memoryCounters.set(fullKey, next);
-  return next.n <= max;
-}
-
-export async function resetLimit(key: string): Promise<void> {
-  const fullKey = `auth:limit:${key}`;
-  memoryCounters.delete(fullKey);
-  const redis = await readyRedis();
-  if (redis) await redis.del(fullKey);
 }

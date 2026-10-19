@@ -1,5 +1,6 @@
+import "server-only";
 import nodemailer from "nodemailer";
-import { getDictionary, type Locale } from "./i18n";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 // Envoi des e-mails de compte (vérification, mot de passe oublié) par SMTP,
 // par exemple la boîte @cortege.me du pack IONOS. Sans configuration SMTP

@@ -1,5 +1,9 @@
-import { createHmac, randomUUID } from "crypto";
-import { readyRedis } from "./cache";
+import "server-only";
+import { randomUUID } from "crypto";
+import { readyRedis } from "@/lib/core/cache";
+import { CodedError } from "@/lib/core/errors";
+import { authorHash } from "@/lib/core/identity";
+import { underLimit } from "@/lib/core/rate-limit";
 
 // Signalements publiés par les utilisateurs, au point près, comme un témoin sur place.
 // Ils sont éphémères : chacun disparaît après une durée qui dépend de son type.
@@ -60,32 +64,19 @@ type StoredReport = PublicReport & { author: string };
 
 export type Vote = "confirm" | "flag";
 
-export class ReportError extends Error {
-  constructor(public code: "invalid" | "invalidVideo" | "rateLimited" | "notFound" | "own") {
-    super(code);
-  }
-}
+export class ReportError extends CodedError<"invalid" | "invalidVideo" | "rateLimited" | "notFound" | "own"> {}
 
 const KEY = {
   index: "reports:v1:index",
   item: (id: string) => `reports:v1:item:${id}`,
   votes: (id: string) => `reports:v1:votes:${id}`,
-  rate: (author: string) => `reports:v1:rate:${author}`,
 };
 
 // Sans Redis (développement local), tout reste en mémoire du processus.
 const memory = {
   items: new Map<string, StoredReport>(),
   votes: new Map<string, Map<string, Vote>>(),
-  rate: new Map<string, { count: number; resetAt: number }>(),
 };
-
-export function authorHash(userId: string): string {
-  return createHmac("sha256", process.env.AUTH_SECRET ?? "cortege")
-    .update(`report:${userId}`)
-    .digest("hex")
-    .slice(0, 24);
-}
 
 const round = (v: number) => Number(v.toFixed(COORD_DECIMALS));
 
@@ -108,22 +99,6 @@ export function normalizeVideoUrl(value: unknown): string | null {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- l'empreinte de l'auteur ne sort jamais du serveur
 const toPublic = ({ author, ...r }: StoredReport): PublicReport => r;
-
-async function rateLimit(author: string) {
-  const redis = await readyRedis();
-  if (redis) {
-    const count = await redis.incr(KEY.rate(author));
-    if (count === 1) await redis.expire(KEY.rate(author), 3600);
-    if (count > RATE_LIMIT_PER_HOUR) throw new ReportError("rateLimited");
-    return;
-  }
-  const now = Date.now();
-  const entry = memory.rate.get(author);
-  const current = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + 3600_000 };
-  current.count++;
-  memory.rate.set(author, current);
-  if (current.count > RATE_LIMIT_PER_HOUR) throw new ReportError("rateLimited");
-}
 
 async function save(report: StoredReport) {
   const redis = await readyRedis();
@@ -186,7 +161,7 @@ export async function createReport(
   const videoUrl = normalizeVideoUrl(input.videoUrl);
 
   const author = authorHash(userId);
-  await rateLimit(author);
+  if (!(await underLimit(`report:${author}`, RATE_LIMIT_PER_HOUR, 3600))) throw new ReportError("rateLimited");
   const now = Date.now();
   const report: StoredReport = {
     id: randomUUID(),
@@ -271,11 +246,3 @@ export async function listReports(): Promise<PublicReport[]> {
     .map(toPublic);
 }
 
-// Distance en kilomètres (formule de haversine).
-export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const rad = Math.PI / 180;
-  const dLat = (b.lat - a.lat) * rad;
-  const dLng = (b.lng - a.lng) * rad;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(h));
-}

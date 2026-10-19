@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import AuthPanel, { type AuthView } from "@/app/components/auth/AuthPanel";
 import { getDictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
-import { safeReturnPath } from "@/lib/return-path";
+import { getLocale } from "@/lib/i18n/request";
+import { safeReturnPath } from "@/lib/core/return-path";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).auth.title, robots: { index: false } };

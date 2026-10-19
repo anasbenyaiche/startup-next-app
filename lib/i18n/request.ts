@@ -1,5 +1,6 @@
+import "server-only";
 import { cookies, headers } from "next/headers";
-import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES, isLocale, localeForCountry, type Locale } from "./i18n";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALES, isLocale, localeForCountry, type Locale } from "@/lib/i18n";
 
 // En-têtes de géolocalisation posés par les hébergeurs et CDN courants.
 const GEO_HEADERS = ["x-vercel-ip-country", "cf-ipcountry", "cloudfront-viewer-country", "x-country-code"];

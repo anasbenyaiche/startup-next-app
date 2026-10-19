@@ -1,9 +1,9 @@
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
-import { CURFEWS_ENABLED } from "@/lib/features";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { getDictionary, localePath } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Logo from "./Logo";
 

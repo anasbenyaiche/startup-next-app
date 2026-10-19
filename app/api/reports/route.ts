@@ -1,4 +1,4 @@
-import { listReports } from "@/lib/reports";
+import { listReports } from "@/lib/community/reports";
 
 // Signalements actifs des utilisateurs. Très court cache partagé : la carte les
 // redemande toutes les minutes et ils doivent rester frais.

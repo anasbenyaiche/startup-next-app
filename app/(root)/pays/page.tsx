@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/app/components/Footer";
 import { COUNTRY_SEGMENT, getDictionary, plural } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 import {
   SITE_URL,
   countryName,
@@ -12,7 +12,7 @@ import {
   jsonLd,
   localePath,
   pageMetadata,
-} from "@/lib/seo";
+} from "@/lib/news/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();

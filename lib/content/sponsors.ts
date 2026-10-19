@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n";
+import type { Locale } from "@/lib/i18n";
 
 // Annonceurs directs : l'espace est vendu par vous, sans régie ni pistage.
 // Le ciblage est contextuel : il dépend du pays affiché sur la carte, jamais

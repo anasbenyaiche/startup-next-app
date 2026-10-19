@@ -1,4 +1,4 @@
-import type { ManifestationsResult } from "./manifestations";
+import type { ManifestationsResult } from "@/lib/news/manifestations";
 
 // Données de la scène 3D de l'accueil, préparées côté serveur quand les données sont
 // en cache (sinon dans le navigateur) : lieux allégés et pays mis en avant.

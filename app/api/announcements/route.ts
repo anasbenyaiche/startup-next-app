@@ -1,5 +1,5 @@
-import { listPublished } from "@/lib/announcements";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { listPublished } from "@/lib/community/announcements";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/core/features";
 
 // Manifestations annoncées et publiées, pour la carte.
 export async function GET() {

@@ -1,5 +1,5 @@
-import { adStatKey, findSponsor } from "@/lib/sponsors";
-import { storeIncrement } from "@/lib/store";
+import { adStatKey, findSponsor } from "@/lib/content/sponsors";
+import { storeIncrement } from "@/lib/core/store";
 
 // Compte un affichage (envoyé quand l'annonce devient visible). Rien n'est
 // enregistré sur la personne : seulement un total par annonce et par mois.

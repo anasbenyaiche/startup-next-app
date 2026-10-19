@@ -1,5 +1,7 @@
-import { cacheGet, cacheSet } from "./cache";
-import { distanceKm, listReports } from "./reports";
+import "server-only";
+import { cacheGet, cacheSet } from "@/lib/core/cache";
+import { listReports } from "@/lib/community/reports";
+import { distanceKm } from "@/lib/geo/distance";
 
 // Vidéos et lives d'un lieu, réunis depuis plusieurs sources :
 // - YouTube (API officielle, lives compris), si YOUTUBE_API_KEY est défini ;

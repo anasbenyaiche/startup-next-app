@@ -1,8 +1,8 @@
-import { CURFEWS_ENABLED } from "@/lib/features";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import type { MetadataRoute } from "next";
 import { COUNTRY_SEGMENT, LOCALES, localePath, type Locale } from "@/lib/i18n";
-import { LEGAL_PAGES, LEGAL_UPDATED } from "@/lib/legal";
-import { SITE_URL, countryPath, countryStats, getSeoData } from "@/lib/seo";
+import { LEGAL_PAGES, LEGAL_UPDATED } from "@/lib/content/legal";
+import { SITE_URL, countryPath, countryStats, getSeoData } from "@/lib/news/seo";
 
 // Recalculé à chaque demande : la liste des pays actifs change au fil de la journée.
 export const dynamic = "force-dynamic";

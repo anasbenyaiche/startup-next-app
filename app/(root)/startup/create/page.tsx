@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/core/features";
 import Link from "next/link";
 import { auth } from "@/auth";
 import AnnouncementForm from "@/app/components/announcements/AnnouncementForm";
 import MyAnnouncements from "@/app/components/announcements/MyAnnouncements";
-import { isAdmin } from "@/lib/admin";
-import { listMine } from "@/lib/announcements";
-import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
+import { isAdmin } from "@/lib/users/admin";
+import { listMine } from "@/lib/community/announcements";
+import { FIPS_TO_ISO, isoToFips } from "@/lib/geo/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
-import { getLocale, getVisitorCountry } from "@/lib/locale";
+import { getLocale, getVisitorCountry } from "@/lib/i18n/request";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: getDictionary(await getLocale()).create.title, robots: { index: false } };

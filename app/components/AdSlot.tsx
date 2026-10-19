@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect, useRef } from "react";
 import { getDictionary, type Locale } from "@/lib/i18n";
-import { pickSponsor, sponsorText } from "@/lib/sponsors";
+import { pickSponsor, sponsorText } from "@/lib/content/sponsors";
 
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 const ADSENSE_SLOT = process.env.NEXT_PUBLIC_ADSENSE_SLOT;

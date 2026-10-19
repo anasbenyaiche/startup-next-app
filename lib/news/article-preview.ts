@@ -1,7 +1,8 @@
+import "server-only";
 import { createHash } from "crypto";
 import { lookup } from "dns/promises";
 import { isIP } from "net";
-import { cacheGet, cacheSet } from "./cache";
+import { cacheGet, cacheSet } from "@/lib/core/cache";
 
 // Titre et résumé d'un article de presse, lus dans ses balises <title>, Open Graph
 // et meta. Les URL viennent de GDELT, donc de l'extérieur : on refuse tout ce qui

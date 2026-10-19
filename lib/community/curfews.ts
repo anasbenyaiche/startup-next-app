@@ -1,6 +1,7 @@
+import "server-only";
 import { randomUUID } from "crypto";
-import { isCountryCode } from "./profile";
-import { storeGet, storeSet } from "./store";
+import { isCountryCode } from "@/lib/users/profile";
+import { storeGet, storeSet } from "@/lib/core/store";
 
 // Couvre-feux par région, saisis par les modérateurs à partir des arrêtés officiels
 // (préfecture, mairie, gouvernement) : chaque entrée cite sa source. Leur état

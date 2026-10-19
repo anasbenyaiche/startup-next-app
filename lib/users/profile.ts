@@ -1,6 +1,7 @@
-import { FIPS_TO_ISO } from "./countries";
-import { PERIODS, parsePlaceKey } from "./api-params";
-import { storeDelete, storeGet, storeSet } from "./store";
+import "server-only";
+import { FIPS_TO_ISO } from "@/lib/geo/countries";
+import { PERIODS, parsePlaceKey } from "@/lib/news/api-params";
+import { storeDelete, storeGet, storeSet } from "@/lib/core/store";
 
 // Profil privé d'un utilisateur connecté : ce qu'il suit et comment il aime
 // ouvrir la carte. Ces choix peuvent révéler des opinions politiques (données

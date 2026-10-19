@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CURFEWS_ENABLED } from "@/lib/features";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { COUNTRY_SEGMENT, LOCALES, LOCALE_NAMES, getDictionary, localePath, type Locale } from "@/lib/i18n";
 
 // Pied de page : liens vers les pages principales et vers chaque langue, utiles

@@ -1,5 +1,5 @@
-import { parseHours } from "@/lib/api-params";
-import { getManifestations } from "@/lib/manifestations";
+import { parseHours } from "@/lib/news/api-params";
+import { getManifestations } from "@/lib/news/manifestations";
 
 // Le premier calcul d'une période télécharge jusqu'à 576 fichiers GDELT. Chaque fichier
 // est mis en cache dès qu'il est lu : avec Redis, si la fonction est coupée, la requête suivante reprend.

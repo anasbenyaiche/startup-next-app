@@ -1,3 +1,4 @@
+import "server-only";
 import { headers } from "next/headers";
 
 // Adresse publique du site : à définir en production (NEXT_PUBLIC_SITE_URL), sinon

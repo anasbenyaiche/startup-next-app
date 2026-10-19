@@ -1,10 +1,11 @@
+import "server-only";
 import type { Metadata } from "next";
 import { after } from "next/server";
-import { FIPS_TO_ISO, isoToFips } from "./countries";
-import { LOCALES, countryName, countryPath, countrySlug, localePath, type Locale } from "./i18n";
-import { getCachedManifestations, getManifestations, type ManifestationsResult } from "./manifestations";
+import { FIPS_TO_ISO, isoToFips } from "@/lib/geo/countries";
+import { LOCALES, countryName, countryPath, countrySlug, localePath, type Locale } from "@/lib/i18n";
+import { getCachedManifestations, getManifestations, type ManifestationsResult } from "@/lib/news/manifestations";
 
-import { SITE_URL } from "./site";
+import { SITE_URL } from "@/lib/core/site";
 
 export { SITE_URL };
 

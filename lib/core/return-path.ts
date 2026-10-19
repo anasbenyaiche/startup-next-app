@@ -1,4 +1,4 @@
-import { localePath, type Locale } from "./i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 
 // Chemin où revenir après la connexion. N'accepte qu'un chemin local, pour que
 // le site ne serve pas de redirection ouverte vers un autre domaine.

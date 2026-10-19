@@ -1,5 +1,6 @@
+import "server-only";
 import { inflateRawSync } from "zlib";
-import { TYPE_FAMILY } from "./protest-types";
+import { TYPE_FAMILY } from "@/lib/news/protest-types";
 
 // Collecte GDELT 2.0. Toutes les 15 minutes, GDELT publie deux fichiers utiles :
 // - l'export des événements (une ligne par événement, codé CAMEO, géolocalisé) ;
@@ -8,7 +9,7 @@ import { TYPE_FAMILY } from "./protest-types";
 // GDELT_BASE_URL permet de pointer vers un miroir (ou un serveur de test).
 export const GDELT_BASE = process.env.GDELT_BASE_URL ?? "http://data.gdeltproject.org/gdeltv2";
 
-export { PROTEST_TYPES, TYPE_FAMILY, type Family } from "./protest-types";
+export { PROTEST_TYPES, TYPE_FAMILY, type Family } from "@/lib/news/protest-types";
 
 // Précision de la position : ville (types GDELT 3 et 4) ou centre d'une région
 // (types 2 et 5). Les positions « pays entier » (type 1) sont écartées.

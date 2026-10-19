@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { HOST, type LegalInfo, type LegalPage } from "@/lib/legal";
+import { HOST, type LegalInfo, type LegalPage } from "@/lib/content/legal";
 
 // Textes des pages légales, en français et en anglais. Ils décrivent ce que le
 // code fait réellement (cookies, données gardées, services tiers) : à mettre à

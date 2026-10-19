@@ -1,8 +1,11 @@
+import "server-only";
 import { randomUUID } from "crypto";
-import { readyRedis } from "./cache";
-import { checkAnnouncement, LIMITS, type AnnouncementInput, type ComplianceReport } from "./compliance";
-import { isCountryCode } from "./profile";
-import { authorHash } from "./reports";
+import { readyRedis } from "@/lib/core/cache";
+import { checkAnnouncement, LIMITS, type AnnouncementInput, type ComplianceReport } from "@/lib/community/compliance";
+import { isCountryCode } from "@/lib/users/profile";
+import { CodedError } from "@/lib/core/errors";
+import { authorHash } from "@/lib/core/identity";
+import { underLimit } from "@/lib/core/rate-limit";
 
 // Manifestations annoncées par les utilisateurs (page « Créer »). Chaque publication
 // passe la vérification de conformité (lib/compliance.ts) : publiée, mise en
@@ -28,11 +31,7 @@ export type Announcement = Omit<AnnouncementInput, "organizer" | "sourceUrl"> & 
 
 type Stored = Announcement & { author: string };
 
-export class AnnouncementError extends Error {
-  constructor(public code: "invalid" | "rateLimited" | "notFound" | "forbidden" | "own") {
-    super(code);
-  }
-}
+export class AnnouncementError extends CodedError<"invalid" | "rateLimited" | "notFound" | "forbidden" | "own"> {}
 
 // Au-delà, l'annonce repasse en relecture.
 export const FLAG_LIMIT = 3;
@@ -45,13 +44,11 @@ const KEY = {
   item: (id: string) => `ann:v1:item:${id}`,
   author: (hash: string) => `ann:v1:author:${hash}`,
   flags: (id: string) => `ann:v1:flags:${id}`,
-  rate: (hash: string) => `ann:v1:rate:${hash}`,
 };
 
 const memory = {
   items: new Map<string, Stored>(),
   flags: new Map<string, Set<string>>(),
-  rate: new Map<string, { count: number; resetAt: number }>(),
 };
 
 const endOf = (a: Pick<Announcement, "startsAt" | "endsAt">) => Date.parse(a.endsAt ?? a.startsAt);
@@ -141,22 +138,6 @@ async function byAuthor(hash: string): Promise<Stored[]> {
   return [...memory.items.values()].filter((s) => s.author === hash);
 }
 
-async function rateLimit(hash: string) {
-  const redis = await readyRedis();
-  if (redis) {
-    const count = await redis.incr(KEY.rate(hash));
-    if (count === 1) await redis.expire(KEY.rate(hash), 86_400);
-    if (count > PER_DAY) throw new AnnouncementError("rateLimited");
-    return;
-  }
-  const now = Date.now();
-  const entry = memory.rate.get(hash);
-  const current = entry && entry.resetAt > now ? entry : { count: 0, resetAt: now + 86_400_000 };
-  current.count++;
-  memory.rate.set(hash, current);
-  if (current.count > PER_DAY) throw new AnnouncementError("rateLimited");
-}
-
 // Publication : la vérification de conformité tourne juste après la saisie.
 // Une annonce refusée n'est pas enregistrée ; l'auteur reçoit le rapport pour corriger.
 export async function publishAnnouncement(
@@ -169,7 +150,7 @@ export async function publishAnnouncement(
   const report = checkAnnouncement(input, { sameAuthor: mine.map((m) => ({ title: m.title, startsAt: m.startsAt })) });
   if (report.status === "blocked") return { announcement: null, report };
 
-  await rateLimit(author);
+  if (!(await underLimit(`announcement:${author}`, PER_DAY, 86_400))) throw new AnnouncementError("rateLimited");
   const now = new Date().toISOString();
   const stored: Stored = {
     ...input,

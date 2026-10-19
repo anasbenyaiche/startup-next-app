@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { listAlerts } from "@/lib/alerts";
-import { heroCountries, heroPlaces } from "@/lib/hero";
-import { isoToFips } from "@/lib/countries";
+import { listAlerts } from "@/lib/community/alerts";
+import { heroCountries, heroPlaces } from "@/lib/news/hero";
+import { isoToFips } from "@/lib/geo/countries";
 import type { Metadata } from "next";
 import { COUNTRY_SEGMENT, countryName, countryPath, getDictionary, localePath } from "@/lib/i18n";
-import { getLocale, getVisitorCountry } from "@/lib/locale";
-import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/seo";
+import { getLocale, getVisitorCountry } from "@/lib/i18n/request";
+import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/news/seo";
 import Footer from "../components/Footer";
 import Hero3D from "../components/hero/Hero3D";
 import LiveCountries from "../components/LiveCountries";

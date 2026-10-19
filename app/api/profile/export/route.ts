@@ -1,5 +1,5 @@
 import { auth, currentAccount } from "@/auth";
-import { getProfile } from "@/lib/profile";
+import { getProfile } from "@/lib/users/profile";
 
 async function accountExport() {
   const account = await currentAccount();

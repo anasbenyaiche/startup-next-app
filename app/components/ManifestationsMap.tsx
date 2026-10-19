@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { signInToFollow, toggleFollowCountry, toggleFollowPlace } from "@/app/actions/profile";
 import { countryName, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
-import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestations";
-import type { Profile } from "@/lib/profile";
-import type { Family } from "@/lib/protest-types";
-import type { Announcement } from "@/lib/announcements";
-import type { PublicReport } from "@/lib/reports";
-import type { SosAlert } from "@/lib/alerts";
+import type { ManifestationPlace, ManifestationsResult } from "@/lib/news/manifestations";
+import type { Profile } from "@/lib/users/profile";
+import type { Family } from "@/lib/news/protest-types";
+import type { Announcement } from "@/lib/community/announcements";
+import type { PublicReport } from "@/lib/community/reports";
+import type { SosAlert } from "@/lib/community/alerts";
 import AdSlot from "./AdSlot";
 import AnnouncementDetails, { ANNOUNCEMENT_ICON } from "./announcements/AnnouncementDetails";
 import FollowButton from "./FollowButton";
@@ -17,10 +17,11 @@ import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map
 import PlaceDetails from "./PlaceDetails";
 import { relativeTime } from "./relativeTime";
 import { REPORT_ICONS, ReportDetails, ReportForm } from "./Reports";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/core/features";
 import { SOS_ICONS, SosDetails, SosSheet } from "./Sos";
 import { runAction } from "./staleDeployment";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
+import { usePolling } from "./hooks/usePolling";
 
 const REFRESH_MS = 15 * 60 * 1000;
 // Les signalements des témoins changent à la minute.
@@ -265,20 +266,11 @@ export default function ManifestationsMap({
     };
   }, [hours]);
 
-  const loadAlerts = () =>
-    fetch("/api/alerts")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: { alerts: SosAlert[] } | null) => json && setAlerts(json.alerts))
-      .catch(() => undefined);
+  usePolling<{ alerts: SosAlert[] }>("/api/alerts", ALERTS_REFRESH_MS, (json) => setAlerts(json.alerts));
 
   useEffect(() => {
-    loadAlerts();
-    const poll = setInterval(loadAlerts, ALERTS_REFRESH_MS);
     const tick = setInterval(() => setNow(Date.now()), ALERTS_TICK_MS);
-    return () => {
-      clearInterval(poll);
-      clearInterval(tick);
-    };
+    return () => clearInterval(tick);
   }, []);
 
   const liveAlerts = useMemo(() => alerts.filter((a) => Date.parse(a.expiresAt) > now), [alerts, now]);
@@ -290,29 +282,13 @@ export default function ManifestationsMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reporting a son propre effet
   }, [sosPicking]);
 
-  const loadReports = () =>
-    fetch("/api/reports")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: { reports: PublicReport[] } | null) => json && setReports(json.reports))
-      .catch(() => undefined);
+  usePolling<{ reports: PublicReport[] }>("/api/reports", REPORTS_REFRESH_MS, (json) => setReports(json.reports));
 
-  useEffect(() => {
-    loadReports();
-    const timer = setInterval(loadReports, REPORTS_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!ANNOUNCEMENTS_ENABLED) return;
-    const load = () =>
-      fetch("/api/announcements")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((json: { announcements: Announcement[] } | null) => json && setAnnouncements(json.announcements))
-        .catch(() => undefined);
-    load();
-    const timer = setInterval(load, ANNOUNCEMENTS_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, []);
+  usePolling<{ announcements: Announcement[] }>(
+    ANNOUNCEMENTS_ENABLED ? "/api/announcements" : null,
+    ANNOUNCEMENTS_REFRESH_MS,
+    (json) => setAnnouncements(json.announcements),
+  );
 
   const allPlaces = useMemo(() => applyFilters(data?.places ?? [], filters), [data, filters]);
   const countries = useMemo(() => groupByCountry(allPlaces, locale), [allPlaces, locale]);

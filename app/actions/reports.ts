@@ -1,28 +1,17 @@
 "use server";
 
 import { auth } from "@/auth";
-import { createReport, ReportError, voteReport, type PublicReport, type Vote } from "@/lib/reports";
+import { createReport, voteReport, type PublicReport, type ReportError, type Vote } from "@/lib/community/reports";
+import { runForUser, type ActionResult } from "@/lib/core/action";
 
 // Publier ou voter demande d'être connecté (contre le spam), mais le compte n'est
 // jamais publié avec le signalement. Les erreurs attendues sont renvoyées comme
 // des codes, pour que le navigateur affiche un message traduit.
 
-export type ReportResult<T> = { ok: true; value: T } | { ok: false; error: ReportError["code"] | "signIn" | "consent" };
+export type ReportResult<T> = ActionResult<T, ReportError["code"] | "signIn" | "consent">;
 
-async function userId(): Promise<string | null> {
-  return (await auth())?.user?.id ?? null;
-}
-
-async function run<T>(fn: (id: string) => Promise<T>): Promise<ReportResult<T>> {
-  const id = await userId();
-  if (!id) return { ok: false, error: "signIn" };
-  try {
-    return { ok: true, value: await fn(id) };
-  } catch (err) {
-    if (err instanceof ReportError) return { ok: false, error: err.code };
-    throw err;
-  }
-}
+const run = async <T>(fn: (id: string) => Promise<T>): Promise<ReportResult<T>> =>
+  runForUser<T, ReportError["code"]>((await auth())?.user?.id, fn);
 
 export async function publishReport(
   input: {

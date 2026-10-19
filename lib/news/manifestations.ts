@@ -1,7 +1,8 @@
-import { cacheGet, cacheHashGet, cacheHashSet, cacheSet } from "./cache";
-import { downloadSlot, latestSlot, slotStamp, type GeoPrecision, type ProtestEvent } from "./gdelt";
+import "server-only";
+import { cacheGet, cacheHashGet, cacheHashSet, cacheSet } from "@/lib/core/cache";
+import { downloadSlot, latestSlot, slotStamp, type GeoPrecision, type ProtestEvent } from "@/lib/news/gdelt";
 
-export { TYPE_FAMILY, type Family, type GeoPrecision } from "./gdelt";
+export { TYPE_FAMILY, type Family, type GeoPrecision } from "@/lib/news/gdelt";
 
 const SLOT_MS = 15 * 60 * 1000;
 const FETCH_CONCURRENCY = 12;

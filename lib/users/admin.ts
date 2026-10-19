@@ -1,6 +1,7 @@
+import "server-only";
 import { currentAccount } from "@/auth";
-import type { Account } from "./accounts";
-import { storeGet, storeSet } from "./store";
+import type { Account } from "@/lib/users/accounts";
+import { storeGet, storeSet } from "@/lib/core/store";
 
 // Rôles de l'équipe :
 // - administrateur : gère les comptes (rôles, bannissements, suppressions) et modère ;

@@ -1,4 +1,5 @@
-import { readyRedis } from "./cache";
+import "server-only";
+import { readyRedis } from "@/lib/core/cache";
 
 // Stockage durable (sans expiration) pour les données des utilisateurs.
 // Contrairement au cache, une perte serait visible : Redis est donc nécessaire
