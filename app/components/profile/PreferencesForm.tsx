@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { savePreferences } from "@/app/actions/profile";
 import { getDictionary, type Locale } from "@/lib/i18n";
+import { runAction } from "../staleDeployment";
 import type { Profile } from "@/lib/profile";
 
 type Prefs = Pick<Profile, "defaultHours" | "defaultCountry" | "cityOnly" | "multiSource">;
@@ -38,8 +39,7 @@ export default function PreferencesForm({
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
-          await savePreferences(prefs);
-          setSaved(true);
+          if (await runAction(() => savePreferences(prefs))) setSaved(true);
         });
       }}
     >

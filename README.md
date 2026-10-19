@@ -22,6 +22,7 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 | `GDELT_BASE_URL` | non | Miroir des fichiers GDELT, utile pour les tests. |
 | `NEXT_PUBLIC_SITE_URL` | conseillé | Adresse publique (ex. `https://cortege.app`) pour les adresses canoniques, le sitemap et les aperçus. |
 | `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | pour les profils | Application OAuth GitHub ; URL de retour `<site>/api/auth/callback/github`. |
+| `LEGAL_PUBLISHER`, `LEGAL_STATUS`, `LEGAL_ADDRESS`, `LEGAL_EMAIL`, `LEGAL_DIRECTOR` | oui, avant la mise en ligne | Éditeur, statut, adresse, contact et directeur de la publication, affichés dans les mentions légales et la politique de confidentialité. |
 | `NEXT_PUBLIC_ADS_CONTACT` | non | Adresse de l'encart « Votre annonce ici ». |
 | `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_ADSENSE_SLOT` | non | Bloc Google AdSense, utilisé quand aucun annonceur direct n'est actif. |
 
@@ -71,3 +72,18 @@ reprend là où la précédente s'est arrêtée.
 
 Après la mise en ligne : déclarer le site et le sitemap dans Google Search Console et
 Bing Webmaster Tools.
+
+## Pages légales et cookies
+
+- `/fr/legal/mentions`, `/fr/legal/confidentialite`, `/fr/legal/cookies` (textes en français et en
+  anglais ; les autres langues affichent l'anglais avec une note). Les textes sont dans
+  `app/components/legal/LegalContent.tsx` : à mettre à jour si les cookies, les données gardées
+  ou les services tiers changent.
+- Le site n'utilise que des cookies nécessaires (langue, connexion) : pas de consentement à
+  recueillir, un simple bandeau d'information s'affiche une fois.
+- Le premier suivi d'un pays ou d'un lieu demande un consentement explicite (les suivis peuvent
+  révéler des opinions politiques) ; le serveur refuse un suivi sans lui.
+- Depuis son profil, chacun peut télécharger ses données (`/api/profile/export`) et les supprimer.
+
+Ces textes sont une base de travail : faites-les relire par un juriste avant une exploitation
+commerciale.

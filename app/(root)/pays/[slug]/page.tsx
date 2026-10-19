@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/app/components/Footer";
+import LocalTime from "@/app/components/LocalTime";
+import { withNode } from "@/app/components/withNode";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPE_FAMILY } from "@/app/components/map-colors";
 import { COUNTRY_SEGMENT, countrySlug, getDictionary, plural } from "@/lib/i18n";
@@ -72,7 +74,6 @@ export default async function CountryPage(props: Props) {
   const mapHref = localePath(locale, `/manifestations?pays=${fips}`);
   const hubHref = localePath(locale, `/${COUNTRY_SEGMENT[locale]}`);
   const n = (v: number) => v.toLocaleString(locale);
-  const time = data ? new Date(data.updatedAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "";
 
   return (
     <>
@@ -131,10 +132,14 @@ export default async function CountryPage(props: Props) {
           <h1 className="display text-[clamp(2.4rem,7vw,4rem)]">{t.countryTitle(name)}</h1>
           <p className="text-lg leading-relaxed text-encre/85 max-w-[60ch]">
             {stat
-            ? t.countryIntro(
-                `${n(stat.incidents)} ${plural(locale, stat.incidents, dict.map.protests)}`,
-                `${n(stat.places)} ${plural(locale, stat.places, dict.map.places)}`,
-                time,
+            ? withNode(
+                (time) =>
+                  t.countryIntro(
+                    `${n(stat.incidents)} ${plural(locale, stat.incidents, dict.map.protests)}`,
+                    `${n(stat.places)} ${plural(locale, stat.places, dict.map.places)}`,
+                    time,
+                  ),
+                <LocalTime iso={data!.updatedAt} locale={locale} options={{ dateStyle: "medium", timeStyle: "short" }} />,
               )
             : t.countryNoData}
           </p>

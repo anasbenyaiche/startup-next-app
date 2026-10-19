@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Noto_Sans_Arabic } from "next/font/google";
 import { dir, getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import { SITE_URL } from "@/lib/seo";
+import CookieNotice from "./components/CookieNotice";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -38,7 +39,10 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} dir={dir(locale)}>
-      <body className={`${bricolage.variable} ${arabic.variable} antialiased`}>{children}</body>
+      <body className={`${bricolage.variable} ${arabic.variable} antialiased`}>
+        {children}
+        <CookieNotice locale={locale} />
+      </body>
     </html>
   );
 }

@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { FIPS_TO_ISO } from "@/lib/countries";
 import { COUNTRY_SEGMENT, countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
 import type { ManifestationsResult } from "@/lib/manifestations";
+import LocalTime from "./LocalTime";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
+import { withNode } from "./withNode";
 
 type CountryCount = { code: string; name: string; count: number; href?: string };
 
@@ -131,7 +133,7 @@ export default function LiveCountries({
 
       {updatedAt && (
         <p className="mt-3 text-sm text-gris">
-          {t.updatedAt(new Date(updatedAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))}
+          {withNode(t.updatedAt, <LocalTime iso={updatedAt} locale={locale} />)}
         </p>
       )}
     </>
