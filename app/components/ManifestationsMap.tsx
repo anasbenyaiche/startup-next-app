@@ -6,10 +6,13 @@ import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
 import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestations";
 import type { Profile } from "@/lib/profile";
 import type { Family } from "@/lib/protest-types";
+import type { PublicReport } from "@/lib/reports";
 import AdSlot from "./AdSlot";
 import FollowButton from "./FollowButton";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map-colors";
 import PlaceDetails from "./PlaceDetails";
+import { relativeTime } from "./relativeTime";
+import { REPORT_ICONS, ReportDetails, ReportForm } from "./Reports";
 import { runAction } from "./staleDeployment";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
@@ -18,6 +21,8 @@ const LEAFLET_VERSION = "1.9.4";
 // de carte CARTO affiche « API KEY REQUIRED » : on se rabat alors sur OpenStreetMap.
 const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY;
 const REFRESH_MS = 15 * 60 * 1000;
+// Les signalements des témoins changent à la minute.
+const REPORTS_REFRESH_MS = 60 * 1000;
 const WORLD = "";
 const ALL_TYPES = FAMILY_ORDER.flatMap((f) => TYPES_BY_FAMILY[f]);
 
@@ -32,8 +37,11 @@ type Filters = { types: Set<string>; cityOnly: boolean; multiSource: boolean };
 interface LLayer {
   addTo(target: LMap | LLayerGroup): this;
 }
+type LatLng = { lat: number; lng: number };
 interface LMap {
   setView(center: [number, number], zoom: number): LMap;
+  on(event: "click", handler: (e: { latlng: LatLng }) => void): LMap;
+  getContainer(): HTMLElement;
   fitBounds(bounds: [number, number][], options?: { maxZoom?: number; padding?: [number, number] }): LMap;
   getZoom(): number;
   remove(): void;
@@ -49,6 +57,12 @@ type MarkerStyle = {
   weight: number;
   dashArray?: string;
 };
+interface LMarker extends LLayer {
+  bindTooltip(text: string): LMarker;
+  on(event: "click", handler: () => void): LMarker;
+  remove(): void;
+}
+type LIcon = object;
 interface LCircleMarker extends LLayer {
   bindTooltip(text: string): LCircleMarker;
   on(event: "click", handler: () => void): LCircleMarker;
@@ -60,6 +74,8 @@ interface LStatic {
   tileLayer(url: string, options: { maxZoom: number; attribution: string }): LLayer;
   layerGroup(): LLayerGroup;
   circleMarker(latlng: [number, number], options: MarkerStyle): LCircleMarker;
+  marker(latlng: [number, number], options: { icon: LIcon; keyboard?: boolean; zIndexOffset?: number }): LMarker;
+  divIcon(options: { className: string; html: string; iconSize: [number, number] }): LIcon;
 }
 
 declare global {
@@ -163,6 +179,8 @@ export default function ManifestationsMap({
   const map = useRef<LMap | null>(null);
   const layer = useRef<LLayerGroup | null>(null);
   const markers = useRef(new Map<string, { marker: LCircleMarker; place: Place }>());
+  const reportLayer = useRef<LLayerGroup | null>(null);
+  const draftMarker = useRef<LMarker | null>(null);
 
   const [mapReady, setMapReady] = useState(false);
   const [hours, setHours] = useState(profile?.defaultHours ?? 24);
@@ -180,6 +198,16 @@ export default function ManifestationsMap({
   const [followPending, startFollow] = useTransition();
   const [country, setCountry] = useState(WORLD);
   const [selected, setSelected] = useState<string | null>(null);
+  // Signalements des témoins : liste active, calque affiché ou non, et formulaire en cours.
+  const [reports, setReports] = useState<PublicReport[]>([]);
+  const [showReports, setShowReports] = useState(true);
+  const [reporting, setReporting] = useState(false);
+  const reportingRef = useRef(false);
+  const [draft, setDraft] = useState<LatLng | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locateFailed, setLocateFailed] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
   // Pays à ouvrir dès que carte et données sont prêtes : celui de l'URL (?pays=FR),
   // sinon celui du visiteur. Ce dernier n'est appliqué que s'il a des manifestations.
   const requestedCountry = useRef<{ code: string; explicit: boolean } | null>(null);
@@ -227,6 +255,12 @@ export default function ManifestationsMap({
           }).addTo(map.current);
         }
         layer.current = L.layerGroup().addTo(map.current);
+        reportLayer.current = L.layerGroup().addTo(map.current);
+        // En mode signalement, toucher la carte place le point (arrondi comme au serveur).
+        map.current.on("click", ({ latlng }) => {
+          if (!reportingRef.current) return;
+          setDraft({ lat: Number(latlng.lat.toFixed(3)), lng: Number(latlng.lng.toFixed(3)) });
+        });
         setMapReady(true);
       })
       .catch((e: Error) => setError(e.message));
@@ -277,6 +311,18 @@ export default function ManifestationsMap({
     };
   }, [hours]);
 
+  const loadReports = () =>
+    fetch("/api/reports")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: { reports: PublicReport[] } | null) => json && setReports(json.reports))
+      .catch(() => undefined);
+
+  useEffect(() => {
+    loadReports();
+    const timer = setInterval(loadReports, REPORTS_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, []);
+
   const allPlaces = useMemo(() => applyFilters(data?.places ?? [], filters), [data, filters]);
   const countries = useMemo(() => groupByCountry(allPlaces, locale), [allPlaces, locale]);
   const current = countries.find((c) => c.code === country);
@@ -301,7 +347,7 @@ export default function ManifestationsMap({
       const label = `${p.location} (${p.incidents})${p.precision === "region" ? `, ${t.map.approx}` : ""}`;
       const m = L.circleMarker([p.lat, p.lng], markerStyle(p, false))
         .bindTooltip(label)
-        .on("click", () => selectPlace(p.key));
+        .on("click", () => !reportingRef.current && selectPlace(p.key));
       m.addTo(layer.current);
       markers.current.set(p.key, { marker: m, place: p });
     }
@@ -318,6 +364,105 @@ export default function ManifestationsMap({
       entry.marker.setStyle(markerStyle(entry.place, false));
     };
   }, [selected, places]);
+
+  useEffect(() => {
+    const L = window.L;
+    if (!mapReady || !L || !reportLayer.current) return;
+    reportLayer.current.clearLayers();
+    if (!showReports) return;
+    for (const r of reports) {
+      const icon = L.divIcon({
+        className: `report-pin${r.id === selectedReport ? " report-pin-selected" : ""}`,
+        html: `<span>${REPORT_ICONS[r.kind]}</span>`,
+        iconSize: [30, 30],
+      });
+      L.marker([r.lat, r.lng], { icon, zIndexOffset: 500 })
+        .bindTooltip(`${t.reports.kinds[r.kind]} · ${relativeTime(locale, r.createdAt)}`)
+        .on("click", () => openReport(r.id))
+        .addTo(reportLayer.current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- t et openReport ne changent qu'avec locale
+  }, [reports, showReports, selectedReport, mapReady, locale]);
+
+  // Point en cours de placement pour un nouveau signalement.
+  useEffect(() => {
+    const L = window.L;
+    if (!mapReady || !L || !map.current) return;
+    draftMarker.current?.remove();
+    draftMarker.current = null;
+    if (!reporting || !draft) return;
+    draftMarker.current = L.marker([draft.lat, draft.lng], {
+      icon: L.divIcon({ className: "report-pin report-pin-draft", html: "<span>📍</span>", iconSize: [34, 34] }),
+      keyboard: false,
+      zIndexOffset: 1000,
+    }).addTo(map.current);
+  }, [draft, reporting, mapReady]);
+
+  useEffect(() => {
+    reportingRef.current = reporting;
+    map.current?.getContainer().classList.toggle("map-picking", reporting);
+  }, [reporting]);
+
+  const openReport = (id: string) => {
+    setReporting(false);
+    setReportNotice(null);
+    setSelectedReport(id);
+  };
+
+  const signIn = () => startFollow(() => signInToFollow(window.location.pathname + window.location.search));
+
+  const startReport = () => {
+    if (!profile) return signIn();
+    setReportNotice(null);
+    setSelectedReport(null);
+    setDraft(null);
+    setLocateFailed(false);
+    setReporting(true);
+  };
+
+  const stopReport = () => {
+    setReporting(false);
+    setDraft(null);
+  };
+
+  const locate = () => {
+    if (!navigator.geolocation) return setLocateFailed(true);
+    setLocating(true);
+    setLocateFailed(false);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(false);
+        const point = { lat: Number(coords.latitude.toFixed(3)), lng: Number(coords.longitude.toFixed(3)) };
+        setDraft(point);
+        map.current?.setView([point.lat, point.lng], Math.max(map.current.getZoom(), 15));
+      },
+      () => {
+        setLocating(false);
+        setLocateFailed(true);
+      },
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+    );
+  };
+
+  const published = (report: PublicReport) => {
+    setReports((prev) => [report, ...prev.filter((r) => r.id !== report.id)]);
+    setReporting(false);
+    setDraft(null);
+    setShowReports(true);
+    setSelectedReport(report.id);
+    setReportNotice(t.reports.published);
+  };
+
+  const reportUpdated = (report: PublicReport | null, message: string) => {
+    if (report) setReports((prev) => prev.map((r) => (r.id === report.id ? report : r)));
+    else {
+      setReports((prev) => prev.filter((r) => r.id !== selectedReport));
+      setSelectedReport(null);
+    }
+    setReportNotice(message);
+  };
+
+  const currentReport = reports.find((r) => r.id === selectedReport) ?? null;
 
   const selectCountry = (code: string) => {
     setCountry(code);
@@ -391,7 +536,30 @@ export default function ManifestationsMap({
   return (
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
       <aside className="md:w-[23rem] w-full md:h-full max-h-[52vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5">
-        {selected ? (
+        {reporting ? (
+          <ReportForm
+            locale={locale}
+            point={draft}
+            locating={locating}
+            locateFailed={locateFailed}
+            onLocate={locate}
+            onCancel={stopReport}
+            onPublished={published}
+          />
+        ) : currentReport ? (
+          <ReportDetails
+            report={currentReport}
+            locale={locale}
+            signedIn={!!profile}
+            notice={reportNotice}
+            onBack={() => {
+              setSelectedReport(null);
+              setReportNotice(null);
+            }}
+            onSignIn={signIn}
+            onUpdated={reportUpdated}
+          />
+        ) : selected ? (
           <PlaceDetails
             placeKey={selected}
             hours={hours}
@@ -415,6 +583,11 @@ export default function ManifestationsMap({
           />
         ) : (
           <>
+            {reportNotice && (
+              <p className="rounded-[3px] bg-papier-fonce px-3 py-2 text-sm" role="status">
+                {reportNotice}
+              </p>
+            )}
             <div>
               <div className="flex items-start justify-between gap-3">
                 <h1 className="display text-[2.6rem]">{country === WORLD ? t.map.world : (current?.name ?? country)}</h1>
@@ -528,6 +701,18 @@ export default function ManifestationsMap({
                 />
                 {t.filters.multiSource}
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showReports}
+                  onChange={(e) => setShowReports(e.target.checked)}
+                  className="accent-[rgb(var(--encre))]"
+                />
+                {t.reports.layer}
+                <span className="text-gris tabular-nums">
+                  ({reports.length.toLocaleString(locale)} {plural(locale, reports.length, t.reports.active)})
+                </span>
+              </label>
               <p className="flex items-center gap-2 text-gris pt-1">
                 <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-dashed border-gris" aria-hidden="true" />
                 <span className="inline-block first-letter:uppercase">{t.map.approx}</span>
@@ -634,8 +819,19 @@ export default function ManifestationsMap({
           </>
         )}
       </aside>
-      {/* Leaflet ne gère pas le sens droite-à-gauche : la carte reste en LTR. */}
-      <div ref={mapEl} dir="ltr" className="flex-1 min-h-[48vh] z-0" />
+      <div className="relative flex-1 min-h-[48vh] z-0">
+        {/* Leaflet ne gère pas le sens droite-à-gauche : la carte reste en LTR, et le bouton à droite (le zoom est à gauche). */}
+        <div ref={mapEl} dir="ltr" className="absolute inset-0" />
+        {!reporting && (
+          <button
+            onClick={startReport}
+            disabled={followPending}
+            className="absolute top-3 right-3 z-[1000] rounded-[3px] border-[1.5px] border-encre bg-rose px-3 py-2 font-bold text-encre shadow-[3px_3px_0_rgb(var(--encre))] disabled:opacity-60"
+          >
+            {profile ? `+ ${t.reports.report}` : t.reports.signInToReport}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
