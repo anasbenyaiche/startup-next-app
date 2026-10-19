@@ -70,9 +70,9 @@ export default async function ProfilePage() {
       </header>
       <p className="text-encre/85 max-w-[60ch]">{t.privateNote}</p>
       {/* Accès à l'administration pour l'équipe : sur mobile, le lien du menu est masqué faute de place. */}
-      {role && (
+      {role === "admin" && (
         <Link
-          href={localePath(locale, "/startup/moderation")}
+          href={localePath(locale, "/startup/moderate")}
           className="inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-4 py-2 font-semibold text-papier"
         >
           {getDictionary(locale).admin.nav} · {getDictionary(locale).admin.roles[role]}
