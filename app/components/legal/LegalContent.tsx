@@ -233,6 +233,33 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             service que vous demandez (article 6.1.b).
           </li>
         </Ul>
+        <H2>Signalements des témoins</H2>
+        <Ul>
+          <li>
+            Un signalement publié contient seulement son type, une position arrondie à environ 100 m, la taille de la foule
+            et un lien vidéo s’ils sont indiqués, et son heure. Il est public et anonyme : votre compte n’est jamais affiché.
+          </li>
+          <li>
+            Être présent à une manifestation peut révéler une opinion politique (article 9 du RGPD) : chaque publication
+            demande votre accord explicite. Nous gardons, le temps de vie du signalement, une empreinte chiffrée de votre
+            compte, pour limiter le nombre de signalements et empêcher les votes en double.
+          </li>
+          <li>
+            Un signalement disparaît automatiquement au bout d’une à trois heures (jusqu’à six avec des confirmations), avec
+            l’empreinte et les votes. Il est retiré plus tôt s’il reçoit plusieurs signalements d’abus.
+          </li>
+          <li>
+            « Utiliser ma position » lit votre position dans le navigateur, seulement si vous l’autorisez. Elle n’est envoyée
+            que si vous publiez, et arrondie.
+          </li>
+        </Ul>
+        <H2>Vidéos</H2>
+        <P>
+          Les vidéos proposées sont trouvées par nos serveurs (YouTube, recherche web, Mastodon) et ne sont pas hébergées
+          par Cortège. Tant que vous ne lancez pas une vidéo, votre navigateur ne charge que sa vignette. Lancer une vidéo
+          charge le lecteur de la plateforme (YouTube en mode sans cookie, TikTok, ou le serveur Mastodon d’origine), qui
+          reçoit alors votre adresse IP et peut déposer ses propres cookies, selon sa propre politique.
+        </P>
         <H2>Publicité</H2>
         <Ul>
           <li>
@@ -253,13 +280,18 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Destinataires et sous-traitants</H2>
         <Ul>
           <li>Vercel Inc. (hébergement, États-Unis), dans le cadre du Data Privacy Framework UE–États-Unis.</li>
-          <li>Le fournisseur de la base Redis qui stocke les comptes et les profils.</li>
+          <li>Le fournisseur de la base Redis qui stocke les comptes, les profils et les signalements.</li>
+          <li>
+            Google (YouTube Data API), Brave (recherche web) et le serveur Mastodon interrogé, qui reçoivent le nom du lieu
+            recherché, jamais de donnée sur vous.
+          </li>
           <li>Google (authentification), si vous vous connectez avec Google.</li>
           <li>IONOS (envoi des e-mails de compte).</li>
         </Ul>
         <H2>Durées de conservation</H2>
         <Ul>
           <li>Compte et profil : jusqu’à ce que vous les supprimiez depuis votre profil.</li>
+          <li>Signalements, empreinte du compte et votes : de une à six heures, puis effacement automatique.</li>
           <li>Cookie de connexion : 30 jours, ou jusqu’à la déconnexion.</li>
           <li>Statistiques publicitaires : totaux mensuels, sans donnée personnelle.</li>
           <li>Journaux techniques : selon la durée de conservation de l’hébergeur.</li>
@@ -316,6 +348,33 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             deleting your data. Map settings rely on providing the service you ask for (article 6.1.b).
           </li>
         </Ul>
+        <H2>Witness reports</H2>
+        <Ul>
+          <li>
+            A published report only contains its type, a position rounded to about 100 m, the crowd size and a video link
+            if given, and its time. It is public and anonymous: your account is never shown.
+          </li>
+          <li>
+            Being at a protest can reveal a political opinion (GDPR article 9): each report asks for your explicit
+            consent. For the report’s lifetime we keep a hashed fingerprint of your account, to limit the number of reports
+            and prevent double votes.
+          </li>
+          <li>
+            A report disappears automatically after one to three hours (up to six with confirmations), together with the
+            fingerprint and votes. It is removed sooner if it gets several abuse reports.
+          </li>
+          <li>
+            “Use my location” reads your location in the browser, only if you allow it. It is only sent if you post, and
+            rounded.
+          </li>
+        </Ul>
+        <H2>Videos</H2>
+        <P>
+          Suggested videos are found by our servers (YouTube, web search, Mastodon) and are not hosted by Cortège. Until
+          you play a video, your browser only loads its thumbnail. Playing a video loads the platform’s player (YouTube in
+          no-cookie mode, TikTok, or the original Mastodon server), which then receives your IP address and may set its
+          own cookies under its own policy.
+        </P>
         <H2>Advertising</H2>
         <Ul>
           <li>
@@ -335,13 +394,18 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <H2>Recipients and processors</H2>
         <Ul>
           <li>Vercel Inc. (hosting, USA), under the EU–US Data Privacy Framework.</li>
-          <li>The provider of the Redis database that stores accounts and profiles.</li>
+          <li>The provider of the Redis database that stores accounts, profiles and reports.</li>
+          <li>
+            Google (YouTube Data API), Brave (web search) and the Mastodon server queried, which receive the name of the
+            place searched, never data about you.
+          </li>
           <li>Google (authentication), if you sign in with Google.</li>
           <li>IONOS (sending account emails).</li>
         </Ul>
         <H2>Retention</H2>
         <Ul>
           <li>Account and profile: until you delete them from your profile.</li>
+          <li>Reports, account fingerprint and votes: one to six hours, then deleted automatically.</li>
           <li>Sign-in cookie: 30 days, or until you sign out.</li>
           <li>Advertising statistics: monthly totals, with no personal data.</li>
           <li>Technical logs: according to the host’s retention period.</li>
@@ -382,6 +446,10 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         La bibliothèque de carte (unpkg.com) et les fonds de carte (CARTO, OpenStreetMap) sont chargés par votre
         navigateur. À notre connaissance, ils ne déposent pas de cookie, mais reçoivent votre adresse IP.
       </P>
+      <P>
+        Les vidéos ne sont chargées que si vous cliquez pour les lancer : ce clic vaut accord pour charger le lecteur de la
+        plateforme (YouTube, TikTok, Mastodon), qui peut déposer ses propres cookies. Sans clic, aucun lecteur n’est chargé.
+      </P>
       <H2>Gérer les cookies</H2>
       <P>
         Vous pouvez supprimer ou bloquer les cookies dans les réglages de votre navigateur. Le site restera utilisable : vous
@@ -410,6 +478,10 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
       <P>
         The map library (unpkg.com) and base maps (CARTO, OpenStreetMap) are loaded by your browser. To our knowledge they
         set no cookies, but they receive your IP address.
+      </P>
+      <P>
+        Videos only load when you click to play them: that click is your agreement to load the platform’s player
+        (YouTube, TikTok, Mastodon), which may set its own cookies. Without a click, no player is loaded.
       </P>
       <H2>Managing cookies</H2>
       <P>

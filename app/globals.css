@@ -90,3 +90,29 @@ body {
 .tuiles-grises .leaflet-tile-pane {
   filter: grayscale(1) brightness(1.08) contrast(0.85);
 }
+
+/* Signalements des témoins : un émoji dans une pastille, au-dessus des cercles de presse. */
+.report-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1.5px solid rgb(var(--encre));
+  background: rgb(var(--papier));
+  box-shadow: 2px 2px 0 rgb(var(--encre) / 0.6);
+  font-size: 16px;
+  line-height: 1;
+}
+.report-pin-selected {
+  background: rgb(var(--rose));
+  border-width: 2.5px;
+}
+.report-pin-draft {
+  border-style: dashed;
+  background: rgb(var(--papier) / 0.9);
+  font-size: 20px;
+}
+.map-picking,
+.map-picking .leaflet-interactive {
+  cursor: crosshair !important;
+}

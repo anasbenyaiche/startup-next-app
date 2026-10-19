@@ -21,12 +21,13 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 | `REDIS_URL` ou `KV_URL` | conseillé en production | Cache partagé des données GDELT. Sans Redis, chaque instance garde son cache en mémoire. |
 | `GDELT_BASE_URL` | non | Miroir des fichiers GDELT, utile pour les tests. |
 | `NEXT_PUBLIC_SITE_URL` | conseillé | Adresse publique (ex. `https://cortege.app`) pour les adresses canoniques, le sitemap et les aperçus. |
-| `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` | pour les profils | Application OAuth GitHub ; URL de retour `<site>/api/auth/callback/github`. |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | non | Connexion Google (bouton masqué sans elles). ID client OAuth « Application Web » ; URI de redirection `<site>/api/auth/callback/google`. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` | oui en production | E-mails de compte (vérification, mot de passe oublié). IONOS : `smtp.ionos.fr`, port 465. En local sans SMTP, les liens s'affichent dans la console. |
 | `LEGAL_PUBLISHER`, `LEGAL_STATUS`, `LEGAL_ADDRESS`, `LEGAL_EMAIL`, `LEGAL_DIRECTOR` | oui, avant la mise en ligne | Éditeur, statut, adresse, contact et directeur de la publication, affichés dans les mentions légales et la politique de confidentialité. |
 | `NEXT_PUBLIC_ADS_CONTACT` | non | Adresse de l'encart « Votre annonce ici ». |
 | `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_ADSENSE_SLOT` | non | Bloc Google AdSense, utilisé quand aucun annonceur direct n'est actif. |
 
-Les profils (suivis, réglages) sont stockés dans Redis : en production, Redis est
+Les comptes et les profils (suivis, réglages) sont stockés dans Redis : en production, Redis est
 nécessaire pour qu'ils survivent aux redémarrages.
 
 ## Publicité
@@ -72,6 +73,31 @@ reprend là où la précédente s'est arrêtée.
 
 Après la mise en ligne : déclarer le site et le sitemap dans Google Search Console et
 Bing Webmaster Tools.
+
+## Signalements des témoins
+
+Les utilisateurs connectés peuvent signaler un point précis de la carte (cortège, rassemblement,
+gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien vidéo facultatifs.
+
+- Position arrondie à environ 100 m ; le compte de l'auteur n'est jamais publié.
+- Chaque signalement expire seul (1 à 3 h selon le type) ; chaque confirmation le prolonge de
+  30 min, jusqu'au double de sa durée. Trois signalements d'abus le retirent.
+- 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
+- Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
+
+## Vidéos et lives
+
+Le panneau d'un lieu se termine par un carrousel de vidéos (`lib/videos.ts`), les lives d'abord :
+
+| Source | Variable | Remarque |
+|---|---|---|
+| YouTube (vidéos et lives) | `YOUTUBE_API_KEY` | 100 unités de quota par recherche, résultats gardés 10 min par lieu |
+| TikTok | `BRAVE_SEARCH_API_KEY` | TikTok n'ouvre pas sa recherche : les liens sont trouvés par Brave Search |
+| Mastodon | `MASTODON_INSTANCE`, `MASTODON_TOKEN` | hashtags publics, filtrés sur le nom du lieu |
+| Signalements | aucune | liens vidéo joints aux signalements à moins de 20 km |
+
+Sans clé, la source est ignorée. Les vidéos ne sont jamais hébergées : le lecteur de la
+plateforme ne se charge que lorsqu'on clique sur la vignette.
 
 ## Pages légales et cookies
 
