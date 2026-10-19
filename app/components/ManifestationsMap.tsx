@@ -13,6 +13,9 @@ import PlaceDetails from "./PlaceDetails";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 const LEAFLET_VERSION = "1.9.4";
+// Clé CARTO Basemaps (gratuite, obligatoire depuis septembre 2026) : sans elle,
+// les tuiles affichent « API KEY REQUIRED ».
+const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY;
 const REFRESH_MS = 15 * 60 * 1000;
 const WORLD = "";
 const ALL_TYPES = FAMILY_ORDER.flatMap((f) => TYPES_BY_FAMILY[f]);
@@ -206,7 +209,7 @@ export default function ManifestationsMap({
         if (cancelled || !mapEl.current || map.current) return;
         map.current = L.map(mapEl.current, { preferCanvas: true, worldCopyJump: true }).setView([25, 10], 2);
         // Fond de carte gris clair (CARTO Positron) : les points de couleur ressortent.
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${CARTO_KEY ? `?key=${CARTO_KEY}` : ""}`, {
           maxZoom: 18,
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>, <a href="https://www.gdeltproject.org/">GDELT</a>',
