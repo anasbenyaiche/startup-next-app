@@ -30,19 +30,30 @@ export default function LiveCountries({
 
   useEffect(() => {
     if (initial) return;
-    fetch("/api/manifestations?hours=6")
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: ManifestationsResult) => {
-        const byCountry = new Map<string, CountryCount>();
-        for (const p of data.places) {
-          const c = byCountry.get(p.country) ?? { code: p.country, name: p.countryName, count: 0 };
-          for (const n of Object.values(p.byType)) c.count += n.incidents;
-          byCountry.set(p.country, c);
-        }
-        setAll([...byCountry.values()].sort((a, b) => b.count - a.count));
-        setUpdatedAt(data.updatedAt);
-      })
-      .catch(() => setError(true));
+    let cancelled = false;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const load = () =>
+      fetch("/api/manifestations?hours=6")
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data: ManifestationsResult) => {
+          if (cancelled) return;
+          // Période encore incomplète : affichage de ce qui est lu, puis on complète.
+          if (data.partial) retry = setTimeout(load, 1000);
+          const byCountry = new Map<string, CountryCount>();
+          for (const p of data.places) {
+            const c = byCountry.get(p.country) ?? { code: p.country, name: p.countryName, count: 0 };
+            for (const n of Object.values(p.byType)) c.count += n.incidents;
+            byCountry.set(p.country, c);
+          }
+          setAll([...byCountry.values()].sort((a, b) => b.count - a.count));
+          setUpdatedAt(data.updatedAt);
+        })
+        .catch(() => !cancelled && setError(true));
+    load();
+    return () => {
+      cancelled = true;
+      clearTimeout(retry);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- chargement unique si le serveur n'a rien fourni
   }, []);
 
