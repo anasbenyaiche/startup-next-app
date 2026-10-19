@@ -85,7 +85,9 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
 - Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
-## Administration (`/fr/startup/moderation`)
+## Administration (`/fr/startup/moderate`)
+
+Page réservée aux administrateurs (l'ancienne adresse `/startup/moderation` y renvoie).
 
 Deux rôles, stockés sur le compte :
 
@@ -159,7 +161,7 @@ rendez-vous placé sur une carte, organisateur, lien officiel, déclaration aux 
 
 - La vérification est relancée chaque jour sur toutes les annonces (`/api/cron/compliance`,
   planifiée dans `vercel.json`, protégée par `CRON_SECRET`).
-- Modération : `/fr/startup/moderation`, réservée aux adresses de `ADMIN_EMAILS` (comptes vérifiés).
+- Modération : `/fr/startup/moderate`, réservée aux adresses de `ADMIN_EMAILS` (comptes vérifiés).
   Trois signalements d'abus renvoient une annonce en relecture.
 - 5 annonces par compte et par jour ; effacement automatique deux jours après la manifestation.
 

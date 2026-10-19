@@ -5,7 +5,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import AnnouncementForm from "@/app/components/announcements/AnnouncementForm";
 import MyAnnouncements from "@/app/components/announcements/MyAnnouncements";
-import { isModerator } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import { listMine } from "@/lib/announcements";
 import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
@@ -49,7 +49,7 @@ export default async function CreatePage() {
     );
   }
 
-  const [visitorIso, mine, admin] = await Promise.all([getVisitorCountry(), listMine(userId), isModerator()]);
+  const [visitorIso, mine, admin] = await Promise.all([getVisitorCountry(), listMine(userId), isAdmin()]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-14 grid gap-12 lg:grid-cols-[1fr_20rem]">
@@ -83,7 +83,7 @@ export default async function CreatePage() {
           <p className="mt-1">{dict.announcements.disclaimer}</p>
         </section>
         {admin && (
-          <Link href={localePath(locale, "/startup/moderation")} className="inline-block font-semibold text-bleu hover:underline underline-offset-4">
+          <Link href={localePath(locale, "/startup/moderate")} className="inline-block font-semibold text-bleu hover:underline underline-offset-4">
             {dict.moderation.title} →
           </Link>
         )}

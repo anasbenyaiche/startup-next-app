@@ -54,6 +54,6 @@ export async function moderate(announcementId: string, decision: "approve" | "re
   if (!(await isModerator())) return { ok: false, error: "forbidden" };
   if (decision !== "approve" && decision !== "reject") return { ok: false, error: "invalid" };
   const result = await run(() => moderateAnnouncement(String(announcementId), decision).then(() => null));
-  revalidatePath("/startup/moderation");
+  revalidatePath("/startup/moderate");
   return result;
 }

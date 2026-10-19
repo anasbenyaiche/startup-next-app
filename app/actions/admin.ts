@@ -13,13 +13,12 @@ import { removeReport } from "@/lib/reports";
 
 export type AdminResult = { ok: true } | { ok: false; error: "forbidden" | "self" | "protected" | "notFound" | "invalid" };
 
-const PAGE = "/startup/moderation";
+const PAGE = "/startup/moderate";
 
-async function staff(required: "admin" | "moderator"): Promise<Account | null> {
+// Toutes les actions de cette page sont réservées aux administrateurs.
+async function staff(): Promise<Account | null> {
   const me = await currentAccount();
-  const role = roleOf(me);
-  if (!me || !role) return null;
-  return required === "moderator" || role === "admin" ? me : null;
+  return me && roleOf(me) === "admin" ? me : null;
 }
 
 // Garde-fous communs aux actions sur un compte : pas sur soi-même, pas sur un
@@ -36,7 +35,7 @@ async function target(me: Account, id: unknown): Promise<Account | AdminResult> 
 const isResult = (x: Account | AdminResult): x is AdminResult => "ok" in x;
 
 export async function setUserRole(id: string, role: "admin" | "moderator" | null): Promise<AdminResult> {
-  const me = await staff("admin");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   if (role !== null && role !== "admin" && role !== "moderator") return { ok: false, error: "invalid" };
   const account = await target(me, id);
@@ -48,7 +47,7 @@ export async function setUserRole(id: string, role: "admin" | "moderator" | null
 }
 
 export async function banUser(id: string, reason: string): Promise<AdminResult> {
-  const me = await staff("admin");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   const account = await target(me, id);
   if (isResult(account)) return account;
@@ -61,7 +60,7 @@ export async function banUser(id: string, reason: string): Promise<AdminResult> 
 }
 
 export async function unbanUser(id: string): Promise<AdminResult> {
-  const me = await staff("admin");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   const account = await target(me, id);
   if (isResult(account)) return account;
@@ -72,7 +71,7 @@ export async function unbanUser(id: string): Promise<AdminResult> {
 }
 
 export async function verifyUserEmail(id: string): Promise<AdminResult> {
-  const me = await staff("admin");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   const account = await target(me, id);
   if (isResult(account)) return account;
@@ -84,7 +83,7 @@ export async function verifyUserEmail(id: string): Promise<AdminResult> {
 
 // Suppression définitive : compte et profil (suivis, réglages), comme « Supprimer mes données ».
 export async function deleteUser(id: string): Promise<AdminResult> {
-  const me = await staff("admin");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   const account = await target(me, id);
   if (isResult(account)) return account;
@@ -96,7 +95,7 @@ export async function deleteUser(id: string): Promise<AdminResult> {
 }
 
 export async function removeSosAlert(id: string): Promise<AdminResult> {
-  const me = await staff("moderator");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   await removeAlert(String(id));
   await logAction(me, "remove:sos", String(id));
@@ -105,7 +104,7 @@ export async function removeSosAlert(id: string): Promise<AdminResult> {
 }
 
 export async function removeWitnessReport(id: string): Promise<AdminResult> {
-  const me = await staff("moderator");
+  const me = await staff();
   if (!me) return { ok: false, error: "forbidden" };
   await removeReport(String(id));
   await logAction(me, "remove:report", String(id));
