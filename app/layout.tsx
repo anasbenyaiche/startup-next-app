@@ -28,6 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: "Cortège", template: "%s | Cortège" },
     description: t.meta.description,
     formatDetection: { telephone: false },
+    // Relie le site au compte AdSense (vérification de propriété demandée par Google).
+    other: { "google-adsense-account": "ca-pub-4562660686818427" },
   };
 }
 
@@ -39,6 +41,16 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} dir={dir(locale)}>
+      <head>
+        {/* Script AdSense sur toutes les pages : demandé par Google pour examiner le site.
+            Le consentement des visiteurs européens passe par le message « Confidentialité
+            et messages » d'AdSense, servi par ce même script. */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4562660686818427"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className={`${bricolage.variable} ${arabic.variable} antialiased`}>
         {children}
         <CookieNotice locale={locale} />
