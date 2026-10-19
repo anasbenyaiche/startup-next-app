@@ -172,6 +172,7 @@ export default function ManifestationsMap({
   });
   const [followedCountries, setFollowedCountries] = useState(profile?.followedCountries ?? []);
   const [followedPlaces, setFollowedPlaces] = useState(profile?.followedPlaces ?? []);
+  const [followsConsentAt, setFollowsConsentAt] = useState(profile?.followsConsentAt ?? null);
   const [followPending, startFollow] = useTransition();
   const [country, setCountry] = useState(WORLD);
   const [selected, setSelected] = useState<string | null>(null);
@@ -340,13 +341,25 @@ export default function ManifestationsMap({
     });
 
   // Suivre demande d'être connecté : sinon, connexion puis retour sur la même vue.
-  const follow = (action: () => Promise<Profile>) =>
+  // Le premier suivi demande un consentement explicite (les suivis peuvent révéler
+  // des opinions politiques) ; le serveur refuse d'enregistrer un suivi sans lui.
+  const follow = (action: (consent: boolean) => Promise<Profile>, adding: boolean) => {
+    if (!profile) {
+      startFollow(() => signInToFollow(window.location.pathname + window.location.search));
+      return;
+    }
+    let consent = false;
+    if (adding && !followsConsentAt) {
+      if (!window.confirm(t.legal.followConsent)) return;
+      consent = true;
+    }
     startFollow(async () => {
-      if (!profile) return signInToFollow(window.location.pathname + window.location.search);
-      const updated = await action();
+      const updated = await action(consent);
       setFollowedCountries(updated.followedCountries);
       setFollowedPlaces(updated.followedPlaces);
+      setFollowsConsentAt(updated.followsConsentAt);
     });
+  };
 
   const followedCountryRows = countries.filter((c) => followedCountries.includes(c.code));
 
@@ -376,7 +389,11 @@ export default function ManifestationsMap({
                 signedIn={!!profile}
                 labels={{ on: t.follow.followingPlace, off: t.follow.followPlace, signIn: t.follow.signInToFollow }}
                 onClick={() =>
-                  follow(() => toggleFollowPlace({ key: selected, label: details.location, country: details.country }))
+                  follow(
+                    (consent) =>
+                      toggleFollowPlace({ key: selected, label: details.location, country: details.country }, consent),
+                    !followedPlaces.some((p) => p.key === selected),
+                  )
                 }
               />
             )}
@@ -392,7 +409,9 @@ export default function ManifestationsMap({
                     pending={followPending}
                     signedIn={!!profile}
                     labels={{ on: t.follow.followingCountry, off: t.follow.followCountry, signIn: t.follow.signInToFollow }}
-                    onClick={() => follow(() => toggleFollowCountry(country))}
+                    onClick={() =>
+                      follow((consent) => toggleFollowCountry(country, consent), !followedCountries.includes(country))
+                    }
                   />
                 )}
               </div>

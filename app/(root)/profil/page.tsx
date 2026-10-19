@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { auth } from "@/auth";
 import { signInToFollow } from "@/app/actions/profile";
 import DeleteMyData from "@/app/components/profile/DeleteMyData";
@@ -104,8 +105,23 @@ export default async function ProfilePage() {
         <h2 id="data" className="text-xl font-bold">
           {t.data}
         </h2>
-        <p className="mt-1 text-encre/85 max-w-[60ch]">{t.dataText}</p>
-        <DeleteMyData locale={locale} />
+        <p className="mt-1 text-encre/85 max-w-[60ch]">
+          {t.dataText}{" "}
+          <Link href={localePath(locale, "/legal/confidentialite")} className="text-bleu underline underline-offset-4">
+            {getDictionary(locale).legal.privacy}
+          </Link>
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          {/* Lien simple : le navigateur télécharge le fichier renvoyé par la route. */}
+          <a
+            href="/api/profile/export"
+            download
+            className="rounded-[3px] border-[1.5px] border-encre px-4 py-2 font-semibold hover:bg-encre hover:text-papier"
+          >
+            {getDictionary(locale).legal.exportData}
+          </a>
+          <DeleteMyData locale={locale} />
+        </div>
       </section>
     </div>
   );

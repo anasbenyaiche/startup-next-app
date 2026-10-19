@@ -19,25 +19,36 @@ export async function signInToFollow(redirectTo: string) {
   await signIn("github", { redirectTo: redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/" });
 }
 
-export async function toggleFollowCountry(country: string): Promise<Profile> {
+// Un nouveau suivi n'est enregistré qu'avec le consentement explicite de la personne
+// (les suivis peuvent révéler des opinions politiques). Retirer un suivi n'en demande pas.
+function withConsent(profile: Profile, adding: boolean, consent: boolean): Profile {
+  if (!adding || profile.followsConsentAt) return profile;
+  if (!consent) throw new Error("Consentement requis pour enregistrer un suivi");
+  return { ...profile, followsConsentAt: new Date().toISOString() };
+}
+
+export async function toggleFollowCountry(country: string, consent = false): Promise<Profile> {
   const userId = await requireUserId();
   if (!isCountryCode(country)) throw new Error("Pays inconnu");
   const profile = await getProfile(userId);
-  const followed = profile.followedCountries.includes(country)
-    ? profile.followedCountries.filter((c) => c !== country)
-    : [...profile.followedCountries, country];
-  const saved = await saveProfile(userId, { ...profile, followedCountries: followed });
+  const adding = !profile.followedCountries.includes(country);
+  const followed = adding
+    ? [...profile.followedCountries, country]
+    : profile.followedCountries.filter((c) => c !== country);
+  const saved = await saveProfile(userId, { ...withConsent(profile, adding, consent), followedCountries: followed });
   revalidatePath("/profil");
   return saved;
 }
 
-export async function toggleFollowPlace(place: { key: string; label: string; country: string }): Promise<Profile> {
+export async function toggleFollowPlace(
+  place: { key: string; label: string; country: string },
+  consent = false,
+): Promise<Profile> {
   const userId = await requireUserId();
   const profile = await getProfile(userId);
-  const followed = profile.followedPlaces.some((p) => p.key === place.key)
-    ? profile.followedPlaces.filter((p) => p.key !== place.key)
-    : [...profile.followedPlaces, place];
-  const saved = await saveProfile(userId, { ...profile, followedPlaces: followed });
+  const adding = !profile.followedPlaces.some((p) => p.key === place.key);
+  const followed = adding ? [...profile.followedPlaces, place] : profile.followedPlaces.filter((p) => p.key !== place.key);
+  const saved = await saveProfile(userId, { ...withConsent(profile, adding, consent), followedPlaces: followed });
   revalidatePath("/profil");
   return saved;
 }

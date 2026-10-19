@@ -15,6 +15,9 @@ export type Profile = {
   defaultCountry: string | null;
   cityOnly: boolean;
   multiSource: boolean;
+  // Date du consentement explicite à l'enregistrement des suivis (article 9 du RGPD),
+  // demandé au premier suivi ; null tant qu'il n'a pas été donné.
+  followsConsentAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -32,6 +35,7 @@ export function emptyProfile(): Profile {
     defaultCountry: null,
     cityOnly: false,
     multiSource: false,
+    followsConsentAt: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -58,6 +62,7 @@ export async function saveProfile(userId: string, profile: Profile): Promise<Pro
     defaultCountry: isCountryCode(profile.defaultCountry) ? profile.defaultCountry : null,
     cityOnly: Boolean(profile.cityOnly),
     multiSource: Boolean(profile.multiSource),
+    followsConsentAt: typeof profile.followsConsentAt === "string" ? profile.followsConsentAt : null,
     createdAt: profile.createdAt,
     updatedAt: new Date().toISOString(),
   };

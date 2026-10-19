@@ -19,6 +19,15 @@ export default function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, `/${COUNTRY_SEGMENT[locale]}`)} className={link}>
             {t.seo.allCountries}
           </Link>
+          <Link href={localePath(locale, "/legal/mentions")} className={link}>
+            {t.legal.notice}
+          </Link>
+          <Link href={localePath(locale, "/legal/confidentialite")} className={link}>
+            {t.legal.privacy}
+          </Link>
+          <Link href={localePath(locale, "/legal/cookies")} className={link}>
+            {t.legal.cookies}
+          </Link>
         </nav>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t.nav.language}>
           {LOCALES.map((l) => (
