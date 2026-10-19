@@ -227,18 +227,28 @@ export default function ManifestationsMap({
     // Changer de période vide la carte : garder l'ancienne période affichée
     // pendant le calcul laisserait croire qu'elle correspond au nouveau choix.
     setData(null);
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
     const load = async () => {
+      clearTimeout(retry);
       setLoading(true);
       try {
         const res = await fetch(`/api/manifestations?hours=${hours}`);
-        const json = await res.json();
+        // Une fonction coupée par l'hébergeur renvoie une page HTML, pas du JSON.
+        const json = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
         if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
-        if (!cancelled) {
-          setData(json);
-          setError(null);
-        }
+        if (cancelled) return;
+        failures = 0;
+        setData(json);
+        setError(null);
+        // Période encore incomplète : on redemande tout de suite, le serveur reprend
+        // là où il s'est arrêté (les fichiers déjà lus sont en cache).
+        if (json.partial) retry = setTimeout(load, 1000);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Erreur de chargement");
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "Erreur de chargement");
+        // Quelques nouvelles tentatives rapprochées avant d'attendre l'actualisation suivante.
+        if (++failures <= 3) retry = setTimeout(load, 3000 * failures);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -247,6 +257,7 @@ export default function ManifestationsMap({
     const timer = setInterval(load, REFRESH_MS);
     return () => {
       cancelled = true;
+      clearTimeout(retry);
       clearInterval(timer);
     };
   }, [hours]);
@@ -510,6 +521,11 @@ export default function ManifestationsMap({
                     </>
                   )}
                   {loading && <span className="text-gris text-sm"> {t.map.refreshing}</span>}
+                </p>
+              )}
+              {data?.partial && (
+                <p className="text-sm text-gris mt-1" role="status">
+                  {t.map.partial(Math.round((data.slotsLoaded / data.slotsTotal) * 100))}
                 </p>
               )}
               {data && data.filesFailed > 0 && <p className="text-sm text-gris mt-1">{t.map.missingSlots(data.filesFailed)}</p>}

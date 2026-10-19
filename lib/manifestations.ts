@@ -4,7 +4,7 @@ import { downloadSlot, latestSlot, slotStamp, type GeoPrecision, type ProtestEve
 export { TYPE_FAMILY, type Family, type GeoPrecision } from "./gdelt";
 
 const SLOT_MS = 15 * 60 * 1000;
-const FETCH_CONCURRENCY = 8;
+const FETCH_CONCURRENCY = 12;
 // Préfixe de version : à changer quand la forme des données en cache change.
 const CACHE_VERSION = "v2";
 // Un créneau complet ne change plus : on le garde un peu plus que la plus longue
@@ -38,6 +38,11 @@ export type ManifestationsResult = {
   filesFetched: number;
   filesFailed: number;
   totalReports: number;
+  // Chargement progressif : une requête lit les fichiers GDELT pendant un temps
+  // limité, du plus récent au plus ancien. `partial` indique qu'il en reste.
+  slotsLoaded: number;
+  slotsTotal: number;
+  partial: boolean;
   places: ManifestationPlace[];
 };
 
@@ -263,13 +268,22 @@ export function analyzePlace(key: string, events: ProtestEvent[], hours: number,
 
 // --- Chargement d'une période --------------------------------------------
 
-async function build(hours: number, latest: Date): Promise<ManifestationsResult> {
+// Durée de lecture par requête : sous la limite des fonctions Vercel (60 s), pour
+// répondre à temps avec ce qui est déjà lu plutôt qu'échouer. Chaque fichier lu est
+// mis en cache, et la requête suivante reprend là où celle-ci s'est arrêtée.
+export const DEFAULT_BUDGET_MS = Number(process.env.GDELT_BUDGET_MS) || 40_000;
+
+async function build(hours: number, latest: Date, budgetMs = Infinity): Promise<ManifestationsResult> {
+  const deadline = Date.now() + budgetMs;
   const count = Math.max(1, Math.round((hours * 3600_000) / SLOT_MS));
   const stamps = Array.from({ length: count }, (_, i) => slotStamp(new Date(latest.getTime() - i * SLOT_MS)));
 
   const byId = new Map<string, ProtestEvent>();
   let failed = 0;
+  let loaded = 0;
   for (let i = 0; i < stamps.length; i += FETCH_CONCURRENCY) {
+    if (Date.now() > deadline) break;
+    loaded += stamps.slice(i, i + FETCH_CONCURRENCY).length;
     const batch = await Promise.allSettled(stamps.slice(i, i + FETCH_CONCURRENCY).map(getSlot));
     for (const r of batch) {
       if (r.status === "rejected") {
@@ -292,25 +306,28 @@ async function build(hours: number, latest: Date): Promise<ManifestationsResult>
   const result: ManifestationsResult = {
     updatedAt: latest.toISOString(),
     hours,
-    filesFetched: stamps.length - failed,
+    filesFetched: loaded - failed,
     filesFailed: failed,
     totalReports: byId.size,
+    slotsLoaded: loaded,
+    slotsTotal: stamps.length,
+    partial: loaded < stamps.length,
     places: [...byPlace.entries()].map(([key, events]) => summarizePlace(key, events)),
   };
   // Le détail des lieux est toujours gardé (il sert au clic) ; un agrégat incomplet
   // n'est pas partagé, pour que la requête suivante réessaie les fichiers manquants.
   await cacheHashSet(placesKey(hours, stamp), Object.fromEntries(byPlace), AGGREGATE_TTL);
-  if (failed === 0) {
+  if (failed === 0 && loaded === stamps.length) {
     await cacheSet(aggregateKey(hours, stamp), result, AGGREGATE_TTL);
     await cacheSet(lastAggregateKey(hours), result, LAST_AGGREGATE_TTL);
   }
   return result;
 }
 
-export async function getManifestations(hours: number): Promise<ManifestationsResult> {
+export async function getManifestations(hours: number, budgetMs = DEFAULT_BUDGET_MS): Promise<ManifestationsResult> {
   const latest = await latestSlot();
   const cached = await cacheGet<ManifestationsResult>(aggregateKey(hours, slotStamp(latest)));
-  return cached ?? build(hours, latest);
+  return cached ?? build(hours, latest, budgetMs);
 }
 
 export async function getPlaceDetails(hours: number, key: string): Promise<PlaceDetails | null> {
@@ -320,7 +337,7 @@ export async function getPlaceDetails(hours: number, key: string): Promise<Place
   // Détail expiré ou jamais calculé sur cette instance : on reconstruit la période,
   // sauf si l'agrégat est à jour (la clé demandée n'existe simplement pas).
   if (!events && !(await cacheGet<ManifestationsResult>(aggregateKey(hours, stamp)))) {
-    await build(hours, latest);
+    await build(hours, latest, DEFAULT_BUDGET_MS);
     events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, stamp), key);
   }
   return events?.length ? analyzePlace(key, events, hours, latest.toISOString()) : null;
