@@ -7,6 +7,7 @@ import { getDictionary, localePath, type Locale } from "@/lib/i18n";
 import type { ManifestationsResult } from "@/lib/manifestations";
 import type { FollowedPlace } from "@/lib/profile";
 import { Skeleton } from "../Skeleton";
+import { runAction } from "../staleDeployment";
 
 type Counts = { byCountry: Map<string, number>; byPlace: Map<string, number> };
 
@@ -51,7 +52,11 @@ export default function FollowedLists({
   }, [initialCountries.length, initialPlaces.length]);
 
   const count = (n: number | undefined) =>
-    counts ? <span className="tabular-nums font-semibold">{(n ?? 0).toLocaleString(locale)}</span> : <Skeleton className="h-4 w-8" />;
+    counts ? (
+      <span className="tabular-nums font-semibold">{(n ?? 0).toLocaleString(locale)}</span>
+    ) : (
+      <Skeleton className="h-4 w-8" />
+    );
 
   return (
     <>
@@ -68,13 +73,21 @@ export default function FollowedLists({
           <ul className="mt-2 divide-y divide-encre/15">
             {countries.map((code) => (
               <li key={code} className={row}>
-                <Link href={localePath(locale, `/manifestations?pays=${code}`)} className="flex-1 text-lg font-semibold hover:text-bleu hover:underline underline-offset-4">
+                <Link
+                  href={localePath(locale, `/manifestations?pays=${code}`)}
+                  className="flex-1 text-lg font-semibold hover:text-bleu hover:underline underline-offset-4"
+                >
                   {names[code] ?? code}
                 </Link>
                 {count(counts?.byCountry.get(code))}
                 <button
                   disabled={pending}
-                  onClick={() => startTransition(async () => setCountries((await toggleFollowCountry(code)).followedCountries))}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const updated = await runAction(() => toggleFollowCountry(code));
+                      if (updated) setCountries(updated.followedCountries);
+                    })
+                  }
                   className={unfollowClass}
                 >
                   {p.unfollow}
@@ -99,7 +112,10 @@ export default function FollowedLists({
             {places.map((place) => (
               <li key={place.key} className={row}>
                 <Link
-                  href={localePath(locale, `/manifestations?pays=${place.country}&lieu=${encodeURIComponent(place.key)}`)}
+                  href={localePath(
+                    locale,
+                    `/manifestations?pays=${place.country}&lieu=${encodeURIComponent(place.key)}`,
+                  )}
                   className="flex-1 min-w-0 hover:text-bleu hover:underline underline-offset-4"
                 >
                   <span className="block truncate text-lg font-semibold">{place.label.split(",")[0]}</span>
@@ -108,7 +124,12 @@ export default function FollowedLists({
                 {count(counts?.byPlace.get(place.key))}
                 <button
                   disabled={pending}
-                  onClick={() => startTransition(async () => setPlaces((await toggleFollowPlace(place)).followedPlaces))}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const updated = await runAction(() => toggleFollowPlace(place));
+                      if (updated) setPlaces(updated.followedPlaces);
+                    })
+                  }
                   className={unfollowClass}
                 >
                   {p.unfollow}

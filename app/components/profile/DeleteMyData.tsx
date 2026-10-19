@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deleteMyData } from "@/app/actions/profile";
 import { getDictionary, type Locale } from "@/lib/i18n";
+import { runAction } from "../staleDeployment";
 
 export default function DeleteMyData({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).profile;
@@ -18,7 +19,7 @@ export default function DeleteMyData({ locale }: { locale: Locale }) {
       onClick={() => {
         if (!window.confirm(t.deleteConfirm)) return;
         startTransition(async () => {
-          await deleteMyData();
+          await runAction(() => deleteMyData().then(() => true));
           setDone(true);
           router.refresh();
         });
