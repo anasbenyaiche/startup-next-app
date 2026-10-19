@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AlertKind } from "@/lib/alerts";
 import { getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
+import Tilt from "./Tilt";
 
 const ICONS: Record<AlertKind, string> = { fire: "🔥", looting: "🚨", injured: "🚑" };
 const KINDS: AlertKind[] = ["fire", "looting", "injured"];
@@ -31,11 +32,14 @@ export default function SosHome({ locale, activeCount }: { locale: Locale; activ
         <div className="flex flex-col justify-between gap-6">
           <ul className="grid grid-cols-3 gap-2.5">
             {KINDS.map((kind) => (
-              <li key={kind} className={`sos-choice-${kind} rounded-[6px] border-[2px] border-encre px-2 py-4 text-center`}>
-                <span className="block text-[2.4rem] leading-none" aria-hidden="true">
-                  {ICONS[kind]}
-                </span>
-                <span className="mt-1 block font-bold leading-tight">{t.kinds[kind]}</span>
+              <li key={kind}>
+                <Tilt max={14} className={`sos-choice-${kind} h-full rounded-[6px] border-[2px] border-encre px-2 py-4 text-center`}>
+                  {/* L'émoji ressort de la tuile en relief. */}
+                  <span className="block text-[2.4rem] leading-none [transform:translateZ(28px)]" aria-hidden="true">
+                    {ICONS[kind]}
+                  </span>
+                  <span className="mt-1 block font-bold leading-tight [transform:translateZ(14px)]">{t.kinds[kind]}</span>
+                </Tilt>
               </li>
             ))}
           </ul>

@@ -26,6 +26,9 @@ const Navbar = async () => {
           <Link href={localePath(locale, "/manifestations")} className={linkClass}>
             {t.map}
           </Link>
+          <Link href={localePath(locale, "/couvre-feu")} className={`${linkClass} hidden sm:inline`}>
+            {getDictionary(locale).curfew.nav}
+          </Link>
           {session?.user?.id ? (
             <>
               {ANNOUNCEMENTS_ENABLED && (

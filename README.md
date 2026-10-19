@@ -85,6 +85,22 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
 - Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
+## Couvre-feux (`/fr/couvre-feu`)
+
+Les couvre-feux par région, avec leurs horaires à l'heure locale de la région et un état
+calculé à chaque visite : « en vigueur jusqu'à… », « ce soir à partir de… », « à partir du… ».
+
+- Aucune source ouverte ne les recense en temps réel : les modérateurs (`ADMIN_EMAILS`) les
+  saisissent sur la page même, à partir de l'arrêté officiel, dont le lien est obligatoire.
+- Un couvre-feu qui passe minuit (21:00 → 06:00) reste « en vigueur » au petit matin.
+- Les couvre-feux terminés restent affichés une semaine, puis sont effacés (`lib/curfews.ts`).
+
+## Accueil en 3D
+
+Le globe de l'accueil (`app/components/Globe3D.tsx`, Three.js chargé à la demande) montre
+les lieux de manifestation des 6 dernières heures et les alertes SOS actives. Il tourne seul,
+se fait tourner au doigt, s'arrête hors de l'écran et reste fixe si les animations sont réduites.
+
 ## Alertes SOS
 
 Le bouton rouge **SOS** de la carte ouvre une fenêtre d'urgence : la position est lue dès

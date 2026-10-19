@@ -19,6 +19,9 @@ export default function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, `/${COUNTRY_SEGMENT[locale]}`)} className={link}>
             {t.seo.allCountries}
           </Link>
+          <Link href={localePath(locale, "/couvre-feu")} className={link}>
+            {t.curfew.nav}
+          </Link>
           <Link href={localePath(locale, "/legal/mentions")} className={link}>
             {t.legal.notice}
           </Link>
