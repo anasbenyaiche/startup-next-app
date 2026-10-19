@@ -601,6 +601,9 @@ const fr = {
     sosText: "Feu, casseurs, blessé : l'alerte apparaît aussitôt sur la carte de tout le monde, et reste 15 minutes.",
     sosCta: "Ouvrir la carte SOS",
     open: "Ouvrir sur la carte",
+    prevCountry: "Pays précédent",
+    nextCountry: "Pays suivant",
+    countryOf: (i: number, n: number) => `${i} sur ${n}`,
   },
   types: {
     "141": "Manifestation, rassemblement",
@@ -1178,6 +1181,9 @@ const en: Dictionary = {
     sosText: "Fire, rioters, someone injured: the alert shows at once on everyone's map, for 15 minutes.",
     sosCta: "Open the SOS map",
     open: "Open on the map",
+    prevCountry: "Previous country",
+    nextCountry: "Next country",
+    countryOf: (i, n) => `${i} of ${n}`,
   },
   types: {
     "141": "Demonstration, rally",
@@ -1753,6 +1759,9 @@ const es: Dictionary = {
     sosText: "Fuego, destrozos, un herido: la alerta aparece al instante en el mapa de todos, durante 15 minutos.",
     sosCta: "Abrir el mapa SOS",
     open: "Abrir en el mapa",
+    prevCountry: "País anterior",
+    nextCountry: "País siguiente",
+    countryOf: (i, n) => `${i} de ${n}`,
   },
   types: {
     "141": "Manifestación, concentración",
@@ -2328,6 +2337,9 @@ const pt: Dictionary = {
     sosText: "Fogo, destruição, um ferido: o alerta aparece logo no mapa de todos, durante 15 minutos.",
     sosCta: "Abrir o mapa SOS",
     open: "Abrir no mapa",
+    prevCountry: "País anterior",
+    nextCountry: "País seguinte",
+    countryOf: (i, n) => `${i} de ${n}`,
   },
   types: {
     "141": "Manifestação, concentração",
@@ -2903,6 +2915,9 @@ const de: Dictionary = {
     sosText: "Feuer, Randale, Verletzte: Der Alarm erscheint sofort auf der Karte aller, 15 Minuten lang.",
     sosCta: "SOS-Karte öffnen",
     open: "Auf der Karte öffnen",
+    prevCountry: "Vorheriges Land",
+    nextCountry: "Nächstes Land",
+    countryOf: (i, n) => `${i} von ${n}`,
   },
   types: {
     "141": "Demonstration, Kundgebung",
@@ -3467,6 +3482,9 @@ const ar: Dictionary = {
     sosText: "حريق، تخريب، مصاب: يظهر التنبيه فورًا على خريطة الجميع، لمدة 15 دقيقة.",
     sosCta: "فتح خريطة الاستغاثة",
     open: "فتح على الخريطة",
+    prevCountry: "البلد السابق",
+    nextCountry: "البلد التالي",
+    countryOf: (i, n) => `${i} من ${n}`,
   },
   types: {
     "141": "مظاهرة، تجمع",

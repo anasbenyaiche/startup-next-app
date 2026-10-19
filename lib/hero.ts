@@ -17,9 +17,13 @@ export function heroPlaces(data: ManifestationsResult): HeroPlace[] {
   }));
 }
 
-// Le pays du visiteur s'il a des manifestations, sinon le plus actif ; sa position est le
-// centre des lieux pondérés par leur couverture (moyenne sur la sphère, pas en degrés).
-export function heroFocus(data: ManifestationsResult, visitorFips: string | null): HeroFocus | null {
+// Tous les pays avec des manifestations, les plus actifs d'abord, et celui à montrer en
+// premier : le pays du visiteur s'il en a, sinon le plus actif. La position d'un pays est le
+// centre de ses lieux pondérés par leur couverture (moyenne sur la sphère, pas en degrés).
+export function heroCountries(
+  data: ManifestationsResult,
+  visitorFips: string | null,
+): { countries: HeroFocus[]; start: number } {
   const byCountry = new Map<string, { incidents: number; places: number; x: number; y: number; z: number }>();
   for (const p of data.places) {
     const c = byCountry.get(p.country) ?? { incidents: 0, places: 0, x: 0, y: 0, z: 0 };
@@ -33,18 +37,15 @@ export function heroFocus(data: ManifestationsResult, visitorFips: string | null
     c.places++;
     byCountry.set(p.country, c);
   }
-  const visitor = visitorFips ? byCountry.get(visitorFips) : undefined;
-  const [fips, c] = visitor
-    ? [visitorFips!, visitor]
-    : ([...byCountry.entries()].sort((a, b) => b[1].incidents - a[1].incidents)[0] ?? []);
-  if (!fips || !c) return null;
-  const hyp = Math.hypot(c.x, c.y);
-  return {
-    fips,
-    incidents: c.incidents,
-    places: c.places,
-    lat: (Math.atan2(c.z, hyp) * 180) / Math.PI,
-    lng: (Math.atan2(c.y, c.x) * 180) / Math.PI,
-    isVisitor: !!visitor,
-  };
+  const countries = [...byCountry.entries()]
+    .sort((a, b) => b[1].incidents - a[1].incidents)
+    .map(([fips, c]) => ({
+      fips,
+      incidents: c.incidents,
+      places: c.places,
+      lat: (Math.atan2(c.z, Math.hypot(c.x, c.y)) * 180) / Math.PI,
+      lng: (Math.atan2(c.y, c.x) * 180) / Math.PI,
+      isVisitor: fips === visitorFips,
+    }));
+  return { countries, start: Math.max(0, countries.findIndex((c) => c.isVisitor)) };
 }

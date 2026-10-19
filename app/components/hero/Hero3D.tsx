@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { SosAlert } from "@/lib/alerts";
-import { heroFocus, heroPlaces, type HeroFocus, type HeroPlace } from "@/lib/hero";
-import { countryName, countryPath, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
+import { heroCountries, heroPlaces, type HeroFocus, type HeroPlace } from "@/lib/hero";
+import { countryName, countryPath, dir, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
 import type { HeroScene } from "./scene";
 
 // Accueil en 3D : un écran collant de trois hauteurs d'écran. En faisant défiler,
@@ -21,15 +21,17 @@ const smooth = (a: number, b: number, x: number) => {
 export default function Hero3D({
   locale,
   initialPlaces,
-  initialFocus,
-  focusName,
+  initialCountries,
+  initialIndex,
   visitorFips,
 }: {
   locale: Locale;
   initialPlaces: HeroPlace[] | null;
-  initialFocus: HeroFocus | null;
-  // Nom du pays calculé côté serveur : Node et le navigateur ne nomment pas toujours les pays pareil.
-  focusName: string | null;
+  // Pays avec des manifestations, les plus actifs d'abord. Noms calculés côté serveur :
+  // Node et le navigateur ne nomment pas toujours les pays pareil.
+  initialCountries: (HeroFocus & { name: string })[] | null;
+  // Pays montré en premier : celui du visiteur s'il en a, sinon le plus actif.
+  initialIndex: number;
   visitorFips: string | null;
 }) {
   const dict = getDictionary(locale);
@@ -39,8 +41,11 @@ export default function Hero3D({
   const canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<HeroScene | null>(null);
   const [places, setPlaces] = useState(initialPlaces);
-  const [focus, setFocus] = useState(initialFocus);
-  const [name, setName] = useState(focusName);
+  const [countries, setCountries] = useState(initialCountries ?? []);
+  const [startIndex, setStartIndex] = useState(initialIndex);
+  const [index, setIndex] = useState(initialIndex);
+  const focus = countries[index] ?? null;
+  const name = focus?.name ?? null;
   const [alerts, setAlerts] = useState<SosAlert[]>([]);
   const [progress, setProgress] = useState(0);
   const [hover, setHover] = useState<{ place: HeroPlace; x: number; y: number } | null>(null);
@@ -54,9 +59,10 @@ export default function Hero3D({
       .then((json) => {
         if (!json?.places) return;
         setPlaces(heroPlaces(json));
-        const f = heroFocus(json, visitorFips);
-        setFocus(f);
-        setName(f ? countryName(locale, f.fips, f.fips) : null);
+        const { countries: list, start } = heroCountries(json, visitorFips);
+        setCountries(list.map((c) => ({ ...c, name: countryName(locale, c.fips, c.fips) })));
+        setStartIndex(start);
+        setIndex(start);
       })
       .catch(() => undefined);
   }, [initialPlaces, visitorFips, locale]);
@@ -101,7 +107,7 @@ export default function Hero3D({
       // Les données arrivées avant la scène lui sont transmises maintenant.
       setPlaces((p) => p && [...p]);
       setAlerts((a) => [...a]);
-      setFocus((f) => f && { ...f });
+      setCountries((c) => [...c]);
     });
     return () => {
       disposed = true;
@@ -118,6 +124,24 @@ export default function Hero3D({
   useEffect(() => {
     scene.current?.setFocus(focus ? { lat: focus.lat, lng: focus.lng } : null);
   }, [focus]);
+
+  // Flèches : pays précédent ou suivant, en boucle ; le globe tourne vers lui.
+  const step = (delta: number) => setIndex((i) => (countries.length ? (i + delta + countries.length) % countries.length : 0));
+
+  // Flèches du clavier, quand le passage sur les pays est à l'écran.
+  const act2Visible = useRef(false);
+  const count = countries.length;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!act2Visible.current || count < 2 || e.altKey || e.ctrlKey || e.metaKey) return;
+      if ((e.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable]")) return;
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      setIndex((i) => (i + (e.key === "ArrowRight" ? 1 : -1) + count) % count);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [count]);
 
   // Progression du défilement dans la section (0 en haut, 1 à la fin).
   useEffect(() => {
@@ -184,7 +208,10 @@ export default function Hero3D({
   const o2 = smooth(0.26, 0.38, progress) * (1 - smooth(0.56, 0.66, progress));
   const o3 = smooth(0.7, 0.82, progress);
   const act = (o: number) => ({ opacity: o, visibility: o < 0.02 ? ("hidden" as const) : ("visible" as const) });
+  act2Visible.current = o2 > 0.5;
   const placeCount = places?.length ?? 0;
+  const arrow =
+    "flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-papier/70 bg-encre/40 text-papier backdrop-blur-sm transition-colors hover:border-rose hover:bg-rose hover:text-encre focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose";
   const pf = (n: number, p: { one: string; other: string }) => `${n.toLocaleString(locale)} ${plural(locale, n, p)}`;
 
   return (
@@ -223,8 +250,10 @@ export default function Hero3D({
             className="pointer-events-none absolute inset-x-0 bottom-[8svh] px-6 transition-opacity duration-300 md:inset-x-auto md:bottom-auto md:right-[6vw] md:top-1/2 md:max-w-md md:-translate-y-1/2 [text-shadow:0_2px_14px_rgba(15,17,40,0.95)]"
             style={act(o2)}
           >
-            {!focus.isVisitor && <p className="mb-2 text-papier/75">{t.topNote}</p>}
-            <h2 className="display text-[clamp(2.6rem,7vw,5rem)] leading-[0.95]">{name}</h2>
+            {index === startIndex && !focus.isVisitor && <p className="mb-2 text-papier/75">{t.topNote}</p>}
+            <h2 className="display text-[clamp(2.6rem,7vw,5rem)] leading-[0.95]" aria-live="polite">
+              {name}
+            </h2>
             <p className="mt-3 text-lg text-papier/85">
               {t.countryLine(pf(focus.incidents, dict.map.protests), pf(focus.places, dict.map.places))}
             </p>
@@ -234,6 +263,24 @@ export default function Hero3D({
             >
               {t.seeCountry(name)}
             </Link>
+            {countries.length > 1 && (
+              // La scène ne s'inverse pas en arabe : ‹ fait toujours tourner vers le pays précédent.
+              <div dir="ltr" className="pointer-events-auto mt-6 flex items-center gap-3">
+                <button onClick={() => step(-1)} aria-label={t.prevCountry} className={arrow}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
+                    <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <span dir={dir(locale)} className="min-w-[4.5rem] text-center text-sm tabular-nums text-papier/75">
+                  {t.countryOf(index + 1, countries.length)}
+                </span>
+                <button onClick={() => step(1)} aria-label={t.nextCountry} className={arrow}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
+                    <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

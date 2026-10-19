@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { listAlerts } from "@/lib/alerts";
-import { heroFocus, heroPlaces } from "@/lib/hero";
+import { heroCountries, heroPlaces } from "@/lib/hero";
 import { isoToFips } from "@/lib/countries";
 import type { Metadata } from "next";
 import { COUNTRY_SEGMENT, countryName, countryPath, getDictionary, localePath } from "@/lib/i18n";
@@ -45,7 +45,9 @@ export default async function Home() {
     : null;
 
   const visitorFips = visitorIso ? isoToFips(visitorIso) : null;
-  const focus = data24h ? heroFocus(data24h, visitorFips) : null;
+  // Pays parcourus par les flèches de la scène 3D, avec leur nom calculé ici (voir Hero3D).
+  const heroData = data24h ? heroCountries(data24h, visitorFips) : null;
+  const heroList = heroData?.countries.map((c) => ({ ...c, name: countryName(locale, c.fips, c.fips) })) ?? null;
 
   return (
     <>
@@ -79,8 +81,8 @@ export default async function Home() {
         <Hero3D
           locale={locale}
           initialPlaces={data24h ? heroPlaces(data24h) : null}
-          initialFocus={focus}
-          focusName={focus ? countryName(locale, focus.fips, focus.fips) : null}
+          initialCountries={heroList}
+          initialIndex={heroData?.start ?? 0}
           visitorFips={visitorFips}
         />
 
