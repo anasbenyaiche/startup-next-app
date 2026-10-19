@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { signInToFollow, toggleFollowCountry, toggleFollowPlace } from "@/app/actions/profile";
-import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
+import { countryName, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
 import type { ManifestationPlace, ManifestationsResult } from "@/lib/manifestations";
 import type { Profile } from "@/lib/profile";
 import type { Family } from "@/lib/protest-types";
+import type { Announcement } from "@/lib/announcements";
 import type { PublicReport } from "@/lib/reports";
 import AdSlot from "./AdSlot";
+import AnnouncementDetails, { ANNOUNCEMENT_ICON } from "./announcements/AnnouncementDetails";
 import FollowButton from "./FollowButton";
+import { addBaseLayer, loadLeaflet, type LatLng, type LCircleMarker, type LLayerGroup, type LMap, type LMarker, type MarkerStyle } from "./leaflet";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPES_BY_FAMILY, TYPE_FAMILY } from "./map-colors";
 import PlaceDetails from "./PlaceDetails";
 import { relativeTime } from "./relativeTime";
@@ -16,13 +19,10 @@ import { REPORT_ICONS, ReportDetails, ReportForm } from "./Reports";
 import { runAction } from "./staleDeployment";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
-const LEAFLET_VERSION = "1.9.4";
-// Clé CARTO Basemaps (gratuite, obligatoire depuis septembre 2026). Sans elle, le fond
-// de carte CARTO affiche « API KEY REQUIRED » : on se rabat alors sur OpenStreetMap.
-const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY;
 const REFRESH_MS = 15 * 60 * 1000;
 // Les signalements des témoins changent à la minute.
 const REPORTS_REFRESH_MS = 60 * 1000;
+const ANNOUNCEMENTS_REFRESH_MS = 5 * 60 * 1000;
 const WORLD = "";
 const ALL_TYPES = FAMILY_ORDER.flatMap((f) => TYPES_BY_FAMILY[f]);
 
@@ -33,72 +33,8 @@ type Country = { code: string; name: string; incidents: number; places: Place[] 
 
 type Filters = { types: Set<string>; cityOnly: boolean; multiSource: boolean };
 
-// Leaflet est chargé depuis le CDN : on ne type que ce qui est utilisé ici.
-interface LLayer {
-  addTo(target: LMap | LLayerGroup): this;
-}
-type LatLng = { lat: number; lng: number };
-interface LMap {
-  setView(center: [number, number], zoom: number): LMap;
-  on(event: "click", handler: (e: { latlng: LatLng }) => void): LMap;
-  getContainer(): HTMLElement;
-  fitBounds(bounds: [number, number][], options?: { maxZoom?: number; padding?: [number, number] }): LMap;
-  getZoom(): number;
-  remove(): void;
-}
-interface LLayerGroup extends LLayer {
-  clearLayers(): void;
-}
-type MarkerStyle = {
-  radius: number;
-  color: string;
-  fillColor: string;
-  fillOpacity: number;
-  weight: number;
-  dashArray?: string;
-};
-interface LMarker extends LLayer {
-  bindTooltip(text: string): LMarker;
-  on(event: "click", handler: () => void): LMarker;
-  remove(): void;
-}
-type LIcon = object;
-interface LCircleMarker extends LLayer {
-  bindTooltip(text: string): LCircleMarker;
-  on(event: "click", handler: () => void): LCircleMarker;
-  setStyle(style: Partial<MarkerStyle>): LCircleMarker;
-  bringToFront(): void;
-}
-interface LStatic {
-  map(el: HTMLElement, options?: { preferCanvas?: boolean; worldCopyJump?: boolean }): LMap;
-  tileLayer(url: string, options: { maxZoom: number; attribution: string }): LLayer;
-  layerGroup(): LLayerGroup;
-  circleMarker(latlng: [number, number], options: MarkerStyle): LCircleMarker;
-  marker(latlng: [number, number], options: { icon: LIcon; keyboard?: boolean; zIndexOffset?: number }): LMarker;
-  divIcon(options: { className: string; html: string; iconSize: [number, number] }): LIcon;
-}
-
-declare global {
-  interface Window {
-    L?: LStatic;
-  }
-}
-
-function loadLeaflet(): Promise<LStatic> {
-  if (window.L) return Promise.resolve(window.L);
-  return new Promise((resolve, reject) => {
-    const css = document.createElement("link");
-    css.rel = "stylesheet";
-    css.href = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.css`;
-    document.head.appendChild(css);
-
-    const script = document.createElement("script");
-    script.src = `https://unpkg.com/leaflet@${LEAFLET_VERSION}/dist/leaflet.js`;
-    script.onload = () => (window.L ? resolve(window.L) : reject(new Error("Leaflet indisponible")));
-    script.onerror = () => reject(new Error("Impossible de charger Leaflet"));
-    document.body.appendChild(script);
-  });
-}
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 function applyFilters(places: ManifestationPlace[], f: Filters): Place[] {
   const result: Place[] = [];
@@ -208,6 +144,11 @@ export default function ManifestationsMap({
   const [locateFailed, setLocateFailed] = useState(false);
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [reportNotice, setReportNotice] = useState<string | null>(null);
+  // Manifestations annoncées par les utilisateurs (page « Créer »), après vérification de conformité.
+  const announcementLayer = useRef<LLayerGroup | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [showAnnouncements, setShowAnnouncements] = useState(true);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<string | null>(null);
   // Pays à ouvrir dès que carte et données sont prêtes : celui de l'URL (?pays=FR),
   // sinon celui du visiteur. Ce dernier n'est appliqué que s'il a des manifestations.
   const requestedCountry = useRef<{ code: string; explicit: boolean } | null>(null);
@@ -238,23 +179,9 @@ export default function ManifestationsMap({
       .then((L) => {
         if (cancelled || !mapEl.current || map.current) return;
         map.current = L.map(mapEl.current, { preferCanvas: true, worldCopyJump: true }).setView([25, 10], 2);
-        // Fond de carte : CARTO Positron (gris clair) si une clé est fournie, sinon les tuiles
-        // OpenStreetMap, sans clé, passées en gris par CSS pour que les points de couleur ressortent.
-        const gdelt = '<a href="https://www.gdeltproject.org/">GDELT</a>';
-        const osm = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-        if (CARTO_KEY) {
-          L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`, {
-            maxZoom: 18,
-            attribution: `${osm}, &copy; <a href="https://carto.com/attributions">CARTO</a>, ${gdelt}`,
-          }).addTo(map.current);
-        } else {
-          mapEl.current.classList.add("tuiles-grises");
-          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: `${osm}, ${gdelt}`,
-          }).addTo(map.current);
-        }
+        addBaseLayer(L, map.current, mapEl.current, '<a href="https://www.gdeltproject.org/">GDELT</a>');
         layer.current = L.layerGroup().addTo(map.current);
+        announcementLayer.current = L.layerGroup().addTo(map.current);
         reportLayer.current = L.layerGroup().addTo(map.current);
         // En mode signalement, toucher la carte place le point (arrondi comme au serveur).
         map.current.on("click", ({ latlng }) => {
@@ -323,6 +250,17 @@ export default function ManifestationsMap({
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const load = () =>
+      fetch("/api/announcements")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json: { announcements: Announcement[] } | null) => json && setAnnouncements(json.announcements))
+        .catch(() => undefined);
+    load();
+    const timer = setInterval(load, ANNOUNCEMENTS_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, []);
+
   const allPlaces = useMemo(() => applyFilters(data?.places ?? [], filters), [data, filters]);
   const countries = useMemo(() => groupByCountry(allPlaces, locale), [allPlaces, locale]);
   const current = countries.find((c) => c.code === country);
@@ -384,6 +322,26 @@ export default function ManifestationsMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- t et openReport ne changent qu'avec locale
   }, [reports, showReports, selectedReport, mapReady, locale]);
 
+  useEffect(() => {
+    const L = window.L;
+    if (!mapReady || !L || !announcementLayer.current) return;
+    announcementLayer.current.clearLayers();
+    if (!showAnnouncements) return;
+    for (const a of announcements) {
+      const icon = L.divIcon({
+        className: `report-pin announcement-pin${a.id === selectedAnnouncement ? " report-pin-selected" : ""}`,
+        html: `<span>${ANNOUNCEMENT_ICON}</span>`,
+        iconSize: [30, 30],
+      });
+      const when = new Date(a.startsAt).toLocaleString(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      L.marker([a.lat, a.lng], { icon, zIndexOffset: 400 })
+        // Leaflet lit l'infobulle comme du HTML : le titre, saisi par un utilisateur, est échappé.
+        .bindTooltip(`${escapeHtml(a.title)} · ${when}`)
+        .on("click", () => !reportingRef.current && openAnnouncement(a.id))
+        .addTo(announcementLayer.current);
+    }
+  }, [announcements, showAnnouncements, selectedAnnouncement, mapReady, locale]);
+
   // Point en cours de placement pour un nouveau signalement.
   useEffect(() => {
     const L = window.L;
@@ -406,8 +364,17 @@ export default function ManifestationsMap({
   const openReport = (id: string) => {
     setReporting(false);
     setReportNotice(null);
+    setSelectedAnnouncement(null);
     setSelectedReport(id);
   };
+
+  const openAnnouncement = (id: string) => {
+    setReporting(false);
+    setSelectedReport(null);
+    setSelectedAnnouncement(id);
+  };
+
+  const currentAnnouncement = announcements.find((a) => a.id === selectedAnnouncement) ?? null;
 
   const signIn = () => startFollow(() => signInToFollow(window.location.pathname + window.location.search));
 
@@ -545,6 +512,21 @@ export default function ManifestationsMap({
             onLocate={locate}
             onCancel={stopReport}
             onPublished={published}
+          />
+        ) : currentAnnouncement ? (
+          <AnnouncementDetails
+            announcement={currentAnnouncement}
+            locale={locale}
+            signedIn={!!profile}
+            onBack={() => setSelectedAnnouncement(null)}
+            onSignIn={signIn}
+            onFlagged={(updated) =>
+              setAnnouncements((prev) =>
+                updated.status === "published"
+                  ? prev.map((a) => (a.id === updated.id ? updated : a))
+                  : prev.filter((a) => a.id !== updated.id),
+              )
+            }
           />
         ) : currentReport ? (
           <ReportDetails
@@ -713,6 +695,24 @@ export default function ManifestationsMap({
                   ({reports.length.toLocaleString(locale)} {plural(locale, reports.length, t.reports.active)})
                 </span>
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showAnnouncements}
+                  onChange={(e) => setShowAnnouncements(e.target.checked)}
+                  className="accent-[rgb(var(--encre))]"
+                />
+                {ANNOUNCEMENT_ICON} {t.announcements.layer}
+                <span className="text-gris tabular-nums">
+                  ({announcements.length.toLocaleString(locale)} {plural(locale, announcements.length, t.announcements.upcoming)})
+                </span>
+              </label>
+              <a
+                href={localePath(locale, "/startup/create")}
+                className="inline-block font-semibold text-bleu hover:underline underline-offset-4"
+              >
+                + {t.announcements.create}
+              </a>
               <p className="flex items-center gap-2 text-gris pt-1">
                 <span className="inline-block h-3 w-3 rounded-full border-[1.5px] border-dashed border-gris" aria-hidden="true" />
                 <span className="inline-block first-letter:uppercase">{t.map.approx}</span>

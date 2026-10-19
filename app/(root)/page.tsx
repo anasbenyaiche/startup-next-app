@@ -6,6 +6,7 @@ import { getLocale, getVisitorCountry } from "@/lib/locale";
 import { SITE_URL, countryStats, getSeoData, jsonLd, pageMetadata } from "@/lib/seo";
 import Footer from "../components/Footer";
 import LiveCountries from "../components/LiveCountries";
+import StaySafe from "../components/StaySafe";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -33,7 +34,7 @@ export default async function Home() {
 
   return (
     <>
-      <div className="overflow-x-hidden pb-20">
+      <div className="overflow-x-hidden">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={jsonLd({
@@ -93,6 +94,7 @@ export default async function Home() {
             </Link>
           </section>
         </div>
+        <StaySafe locale={locale} visitorIso={visitorIso} />
       </div>
       <Footer locale={locale} />
     </>

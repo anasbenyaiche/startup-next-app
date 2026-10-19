@@ -253,6 +253,20 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             que si vous publiez, et arrondie.
           </li>
         </Ul>
+        <H2>Manifestations annoncées</H2>
+        <Ul>
+          <li>
+            Une annonce publiée est publique : titre, description, lieu, dates, organisateur et lien indiqués. Votre compte
+            n’est jamais affiché ; seule une empreinte chiffrée est gardée pour limiter les abus et vous permettre de la
+            supprimer.
+          </li>
+          <li>
+            Chaque publication passe une vérification de conformité automatique (champs, dates, données personnelles,
+            appels à la violence, liens). En cas de doute, l’annonce n’est pas refusée par la machine seule : elle est
+            relue par un modérateur. Vous recevez le détail de la vérification et pouvez corriger ou supprimer l’annonce.
+          </li>
+          <li>Une annonce est effacée automatiquement deux jours après la fin de la manifestation.</li>
+        </Ul>
         <H2>Vidéos</H2>
         <P>
           Les vidéos proposées sont trouvées par nos serveurs (YouTube, recherche web, Mastodon) et ne sont pas hébergées
@@ -292,6 +306,7 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <Ul>
           <li>Compte et profil : jusqu’à ce que vous les supprimiez depuis votre profil.</li>
           <li>Signalements, empreinte du compte et votes : de une à six heures, puis effacement automatique.</li>
+          <li>Manifestations annoncées : jusqu’à deux jours après la fin de la manifestation.</li>
           <li>Cookie de connexion : 30 jours, ou jusqu’à la déconnexion.</li>
           <li>Statistiques publicitaires : totaux mensuels, sans donnée personnelle.</li>
           <li>Journaux techniques : selon la durée de conservation de l’hébergeur.</li>
@@ -368,6 +383,19 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             rounded.
           </li>
         </Ul>
+        <H2>Announced protests</H2>
+        <Ul>
+          <li>
+            A published announcement is public: the title, description, place, dates, organizer and link you give. Your
+            account is never shown; only a hashed fingerprint is kept, to limit abuse and let you delete it.
+          </li>
+          <li>
+            Each post goes through an automatic compliance check (fields, dates, personal data, calls for violence, links).
+            When in doubt, the machine does not reject it alone: a moderator reviews it. You get the details of the check and
+            can fix or delete the announcement.
+          </li>
+          <li>An announcement is deleted automatically two days after the protest ends.</li>
+        </Ul>
         <H2>Videos</H2>
         <P>
           Suggested videos are found by our servers (YouTube, web search, Mastodon) and are not hosted by Cortège. Until
@@ -406,6 +434,7 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         <Ul>
           <li>Account and profile: until you delete them from your profile.</li>
           <li>Reports, account fingerprint and votes: one to six hours, then deleted automatically.</li>
+          <li>Announced protests: until two days after the protest ends.</li>
           <li>Sign-in cookie: 30 days, or until you sign out.</li>
           <li>Advertising statistics: monthly totals, with no personal data.</li>
           <li>Technical logs: according to the host’s retention period.</li>

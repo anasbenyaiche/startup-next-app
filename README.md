@@ -85,6 +85,25 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
 - Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
+## Annoncer une manifestation (`/fr/startup/create`)
+
+Les utilisateurs connectés annoncent une manifestation à venir (titre, dates, point de
+rendez-vous placé sur une carte, organisateur, lien officiel, déclaration aux autorités).
+
+**Vérification de conformité** (`lib/compliance.ts`), lancée à chaque publication :
+
+| Niveau | Effet | Exemples |
+|---|---|---|
+| Bloquant | non publiée, l'auteur voit quoi corriger | champ manquant, date passée, téléphone ou e-mail, appel à la violence, lien non https, doublon |
+| Relecture | publiée après validation d'un modérateur | vocabulaire ambigu, majuscules, lien raccourci, plus de 7 jours |
+| Information | publiée, avec une mention | manifestation non déclarée en France (art. L211-1 du code de la sécurité intérieure) |
+
+- La vérification est relancée chaque jour sur toutes les annonces (`/api/cron/compliance`,
+  planifiée dans `vercel.json`, protégée par `CRON_SECRET`).
+- Modération : `/fr/startup/moderation`, réservée aux adresses de `ADMIN_EMAILS` (comptes vérifiés).
+  Trois signalements d'abus renvoient une annonce en relecture.
+- 5 annonces par compte et par jour ; effacement automatique deux jours après la manifestation.
+
 ## Vidéos et lives
 
 Le panneau d'un lieu se termine par un carrousel de vidéos (`lib/videos.ts`), les lives d'abord :
