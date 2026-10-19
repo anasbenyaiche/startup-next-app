@@ -39,8 +39,8 @@ const COOKIES: Cookie[] = [
   {
     name: "authjs.session-token",
     purpose: {
-      fr: "Garde votre connexion (seulement si vous vous connectez). Contenu chiffré : identifiant, nom, adresse e-mail et photo de votre compte GitHub.",
-      en: "Keeps you signed in (only if you sign in). Encrypted content: your GitHub account's ID, name, email address and picture.",
+      fr: "Garde votre connexion (seulement si vous vous connectez). Contenu chiffré : identifiant de votre compte Cortège et adresse e-mail (avec Google : aussi votre nom et votre photo).",
+      en: "Keeps you signed in (only if you sign in). Encrypted content: your Cortège account ID and email address (with Google: also your name and picture).",
     },
     duration: { fr: "30 jours", en: "30 days" },
   },
@@ -206,11 +206,21 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             information sur vous.
           </li>
         </Ul>
-        <H2>Si vous vous connectez (compte GitHub)</H2>
+        <H2>Si vous créez un compte</H2>
         <Ul>
           <li>
-            GitHub nous transmet l’identifiant, le nom, l’adresse e-mail et la photo de votre compte. Ils restent dans un
-            cookie chiffré sur votre appareil ; seul l’identifiant est utilisé pour retrouver votre profil.
+            Votre compte est rattaché à votre adresse e-mail. Nous gardons cette adresse, la date de création du compte,
+            la date de vérification de l’adresse et, si vous en choisissez un, une empreinte de votre mot de passe
+            (scrypt) : le mot de passe lui-même n’est jamais enregistré.
+          </li>
+          <li>
+            Si vous vous connectez avec Google, Google nous transmet votre adresse e-mail, votre nom et votre photo. Seule
+            l’adresse est gardée dans notre base ; le nom et la photo restent dans le cookie chiffré de votre appareil.
+          </li>
+          <li>
+            Les e-mails de vérification et de réinitialisation du mot de passe sont envoyés par la messagerie de notre
+            hébergeur de domaine (IONOS). Leurs liens ne servent qu’une fois et expirent après 24 heures (vérification)
+            ou 1 heure (réinitialisation).
           </li>
           <li>
             Votre profil contient les pays et lieux que vous suivez et vos réglages de carte. Il est privé : personne
@@ -264,23 +274,23 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         </Ul>
         <H2>Services tiers chargés par votre navigateur</H2>
         <P>
-          La carte charge la bibliothèque Leaflet depuis unpkg.com et les fonds de carte depuis CARTO (données
-          OpenStreetMap). Comme pour toute page web, ces services reçoivent votre adresse IP et des informations sur votre
+          La carte charge la bibliothèque Leaflet depuis unpkg.com et les fonds de carte depuis CARTO ou OpenStreetMap. Comme pour toute page web, ces services reçoivent votre adresse IP et des informations sur votre
           navigateur.
         </P>
         <H2>Destinataires et sous-traitants</H2>
         <Ul>
           <li>Vercel Inc. (hébergement, États-Unis), dans le cadre du Data Privacy Framework UE–États-Unis.</li>
-          <li>Le fournisseur de la base Redis qui stocke les profils et les signalements.</li>
+          <li>Le fournisseur de la base Redis qui stocke les comptes, les profils et les signalements.</li>
           <li>
             Google (YouTube Data API), Brave (recherche web) et le serveur Mastodon interrogé, qui reçoivent le nom du lieu
             recherché, jamais de donnée sur vous.
           </li>
-          <li>GitHub (authentification), si vous vous connectez.</li>
+          <li>Google (authentification), si vous vous connectez avec Google.</li>
+          <li>IONOS (envoi des e-mails de compte).</li>
         </Ul>
         <H2>Durées de conservation</H2>
         <Ul>
-          <li>Profil : jusqu’à ce que vous le supprimiez.</li>
+          <li>Compte et profil : jusqu’à ce que vous les supprimiez depuis votre profil.</li>
           <li>Signalements, empreinte du compte et votes : de une à six heures, puis effacement automatique.</li>
           <li>Cookie de connexion : 30 jours, ou jusqu’à la déconnexion.</li>
           <li>Statistiques publicitaires : totaux mensuels, sans donnée personnelle.</li>
@@ -316,11 +326,20 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
           </li>
           <li>Article previews are read by our servers, not your browser: news outlets receive nothing about you.</li>
         </Ul>
-        <H2>If you sign in (GitHub account)</H2>
+        <H2>If you create an account</H2>
         <Ul>
           <li>
-            GitHub sends us your account’s ID, name, email address and picture. They stay in an encrypted cookie on your
-            device; only the ID is used to find your profile.
+            Your account is tied to your email address. We keep that address, when the account was created, when the
+            address was verified and, if you choose one, a hash of your password (scrypt): the password itself is never
+            stored.
+          </li>
+          <li>
+            If you sign in with Google, Google sends us your email address, name and picture. Only the address is kept in
+            our database; your name and picture stay in the encrypted cookie on your device.
+          </li>
+          <li>
+            Verification and password-reset emails are sent through our domain host’s mail service (IONOS). Their links
+            work once and expire after 24 hours (verification) or 1 hour (reset).
           </li>
           <li>Your profile holds the countries and places you follow and your map settings. It is private.</li>
           <li>
@@ -369,22 +388,23 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
         </Ul>
         <H2>Third-party services loaded by your browser</H2>
         <P>
-          The map loads the Leaflet library from unpkg.com and base maps from CARTO (OpenStreetMap data). As with any web
+          The map loads the Leaflet library from unpkg.com and base maps from CARTO or OpenStreetMap. As with any web
           page, these services receive your IP address and browser information.
         </P>
         <H2>Recipients and processors</H2>
         <Ul>
           <li>Vercel Inc. (hosting, USA), under the EU–US Data Privacy Framework.</li>
-          <li>The provider of the Redis database that stores profiles and reports.</li>
+          <li>The provider of the Redis database that stores accounts, profiles and reports.</li>
           <li>
             Google (YouTube Data API), Brave (web search) and the Mastodon server queried, which receive the name of the
             place searched, never data about you.
           </li>
-          <li>GitHub (authentication), if you sign in.</li>
+          <li>Google (authentication), if you sign in with Google.</li>
+          <li>IONOS (sending account emails).</li>
         </Ul>
         <H2>Retention</H2>
         <Ul>
-          <li>Profile: until you delete it.</li>
+          <li>Account and profile: until you delete them from your profile.</li>
           <li>Reports, account fingerprint and votes: one to six hours, then deleted automatically.</li>
           <li>Sign-in cookie: 30 days, or until you sign out.</li>
           <li>Advertising statistics: monthly totals, with no personal data.</li>
