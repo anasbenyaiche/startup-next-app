@@ -73,6 +73,31 @@ reprend là où la précédente s'est arrêtée.
 Après la mise en ligne : déclarer le site et le sitemap dans Google Search Console et
 Bing Webmaster Tools.
 
+## Signalements des témoins
+
+Les utilisateurs connectés peuvent signaler un point précis de la carte (cortège, rassemblement,
+gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien vidéo facultatifs.
+
+- Position arrondie à environ 100 m ; le compte de l'auteur n'est jamais publié.
+- Chaque signalement expire seul (1 à 3 h selon le type) ; chaque confirmation le prolonge de
+  30 min, jusqu'au double de sa durée. Trois signalements d'abus le retirent.
+- 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
+- Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
+
+## Vidéos et lives
+
+Le panneau d'un lieu se termine par un carrousel de vidéos (`lib/videos.ts`), les lives d'abord :
+
+| Source | Variable | Remarque |
+|---|---|---|
+| YouTube (vidéos et lives) | `YOUTUBE_API_KEY` | 100 unités de quota par recherche, résultats gardés 10 min par lieu |
+| TikTok | `BRAVE_SEARCH_API_KEY` | TikTok n'ouvre pas sa recherche : les liens sont trouvés par Brave Search |
+| Mastodon | `MASTODON_INSTANCE`, `MASTODON_TOKEN` | hashtags publics, filtrés sur le nom du lieu |
+| Signalements | aucune | liens vidéo joints aux signalements à moins de 20 km |
+
+Sans clé, la source est ignorée. Les vidéos ne sont jamais hébergées : le lecteur de la
+plateforme ne se charge que lorsqu'on clique sur la vignette.
+
 ## Pages légales et cookies
 
 - `/fr/legal/mentions`, `/fr/legal/confidentialite`, `/fr/legal/cookies` (textes en français et en

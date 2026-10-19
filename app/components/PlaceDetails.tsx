@@ -6,6 +6,7 @@ import { countryName, getDictionary, plural, type Locale } from "@/lib/i18n";
 import type { ActorStat, PlaceDetails as Details } from "@/lib/manifestations";
 import { FAMILY_COLORS, TYPE_FAMILY } from "./map-colors";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
+import VideoCarousel from "./VideoCarousel";
 
 // Les premiers articles sont les plus sûrs (triés par confiance) ; le reste sur demande.
 const ARTICLES_SHOWN = 8;
@@ -403,6 +404,8 @@ export default function PlaceDetails({
           </button>
         )}
       </section>
+
+      <VideoCarousel placeKey={placeKey} hours={hours} locale={locale} />
 
       <details className="text-sm">
         <summary className="cursor-pointer font-semibold">{d.method}</summary>
