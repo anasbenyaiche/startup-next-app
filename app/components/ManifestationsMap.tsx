@@ -13,8 +13,8 @@ import PlaceDetails from "./PlaceDetails";
 import { LoadingRegion, SKELETON_WIDTHS, Skeleton } from "./Skeleton";
 
 const LEAFLET_VERSION = "1.9.4";
-// Clé CARTO Basemaps (gratuite, obligatoire depuis septembre 2026) : sans elle,
-// les tuiles affichent « API KEY REQUIRED ».
+// Clé CARTO Basemaps (gratuite, obligatoire depuis septembre 2026). Sans elle, le fond
+// de carte CARTO affiche « API KEY REQUIRED » : on se rabat alors sur OpenStreetMap.
 const CARTO_KEY = process.env.NEXT_PUBLIC_CARTO_KEY;
 const REFRESH_MS = 15 * 60 * 1000;
 const WORLD = "";
@@ -208,12 +208,22 @@ export default function ManifestationsMap({
       .then((L) => {
         if (cancelled || !mapEl.current || map.current) return;
         map.current = L.map(mapEl.current, { preferCanvas: true, worldCopyJump: true }).setView([25, 10], 2);
-        // Fond de carte gris clair (CARTO Positron) : les points de couleur ressortent.
-        L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${CARTO_KEY ? `?key=${CARTO_KEY}` : ""}`, {
-          maxZoom: 18,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>, <a href="https://www.gdeltproject.org/">GDELT</a>',
-        }).addTo(map.current);
+        // Fond de carte : CARTO Positron (gris clair) si une clé est fournie, sinon les tuiles
+        // OpenStreetMap, sans clé, passées en gris par CSS pour que les points de couleur ressortent.
+        const gdelt = '<a href="https://www.gdeltproject.org/">GDELT</a>';
+        const osm = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+        if (CARTO_KEY) {
+          L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`, {
+            maxZoom: 18,
+            attribution: `${osm}, &copy; <a href="https://carto.com/attributions">CARTO</a>, ${gdelt}`,
+          }).addTo(map.current);
+        } else {
+          mapEl.current.classList.add("tuiles-grises");
+          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: `${osm}, ${gdelt}`,
+          }).addTo(map.current);
+        }
         layer.current = L.layerGroup().addTo(map.current);
         setMapReady(true);
       })

@@ -84,3 +84,9 @@ body {
 .leaflet-popup-content a {
   color: rgb(var(--bleu));
 }
+
+/* Tuiles OpenStreetMap (sans clé CARTO) : passées en gris clair pour garder l'aspect
+   du fond CARTO Positron. Seul le fond est filtré, pas les points de couleur. */
+.tuiles-grises .leaflet-tile-pane {
+  filter: grayscale(1) brightness(1.08) contrast(0.85);
+}
