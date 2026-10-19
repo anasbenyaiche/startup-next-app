@@ -92,7 +92,7 @@ Deux rôles, stockés sur le compte :
 | Rôle | Peut |
 |---|---|
 | Administrateur | tout ce que fait un modérateur, plus gérer les comptes : nommer ou retirer un rôle, bannir, débannir, vérifier une adresse, supprimer un compte |
-| Modérateur | retirer des alertes SOS et des signalements, saisir les couvre-feux, relire les annonces, afficher des exemples SOS |
+| Modérateur | retirer des alertes SOS et des signalements, afficher des exemples SOS, et, quand ces fonctions sont activées, saisir les couvre-feux et relire les annonces |
 
 - Les adresses de `ADMIN_EMAILS` sont administratrices d'office (compte vérifié requis) et ne
   peuvent pas être rétrogradées, bannies ni supprimées depuis l'interface. Personne ne peut agir
@@ -102,6 +102,8 @@ Deux rôles, stockés sur le compte :
 - Chaque action de l'équipe est inscrite au journal (300 dernières), visible dans l'onglet « Journal ».
 
 ## Couvre-feux (`/fr/couvre-feu`)
+
+En préparation : masqué tant que `NEXT_PUBLIC_FEATURE_CURFEWS` ne vaut pas `1` (pas de lien, page en 404).
 
 Les couvre-feux par région, avec leurs horaires à l'heure locale de la région et un état
 calculé à chaque visite : « en vigueur jusqu'à… », « ce soir à partir de… », « à partir du… ».

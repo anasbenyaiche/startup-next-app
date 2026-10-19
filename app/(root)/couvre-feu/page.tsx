@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CURFEWS_ENABLED } from "@/lib/features";
 import { CurfewForm, DeleteCurfew } from "@/app/components/curfews/CurfewAdmin";
 import Footer from "@/app/components/Footer";
 import { isModerator } from "@/lib/admin";
@@ -54,6 +56,7 @@ function StatusBadge({ status, locale }: { status: CurfewStatus; locale: Locale 
 }
 
 export default async function CurfewPage({ searchParams }: { searchParams: Promise<{ pays?: string }> }) {
+  if (!CURFEWS_ENABLED) notFound();
   const [locale, admin, visitorIso, params] = await Promise.all([getLocale(), isModerator(), getVisitorCountry(), searchParams]);
   const dict = getDictionary(locale);
   const t = dict.curfew;

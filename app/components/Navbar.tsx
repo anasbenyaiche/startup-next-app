@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
 import { isModerator } from "@/lib/admin";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { ANNOUNCEMENTS_ENABLED, CURFEWS_ENABLED } from "@/lib/features";
 import { getDictionary, localePath } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -29,9 +29,11 @@ const Navbar = async () => {
           <Link href={localePath(locale, "/manifestations")} className={linkClass}>
             {t.map}
           </Link>
-          <Link href={localePath(locale, "/couvre-feu")} className={`${linkClass} hidden sm:inline`}>
-            {getDictionary(locale).curfew.nav}
-          </Link>
+          {CURFEWS_ENABLED && (
+            <Link href={localePath(locale, "/couvre-feu")} className={`${linkClass} hidden sm:inline`}>
+              {getDictionary(locale).curfew.nav}
+            </Link>
+          )}
           {session?.user?.id ? (
             <>
               {ANNOUNCEMENTS_ENABLED && (
