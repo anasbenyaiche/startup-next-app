@@ -72,7 +72,7 @@ export default async function Home() {
                 "@id": `${SITE_URL}/#organization`,
                 name: "Cortège",
                 url: SITE_URL,
-                logo: `${SITE_URL}/icon.svg`,
+                logo: `${SITE_URL}/logo.png`,
               },
             ],
           })}
