@@ -234,8 +234,8 @@ const fr = {
     mapTitle: "Carte des manifestations en direct",
     mapDescription:
       "Où manifeste-t-on maintenant ? Carte interactive des manifestations et des grèves dans le monde, avec la fiabilité de chaque signalement.",
-    countriesTitle: "Manifestations par pays",
-    countriesDescription: "Les pays où la presse signale des manifestations, grèves et blocages en ce moment, mis à jour toutes les 15 minutes.",
+    countriesTitle: "Manifestations aujourd'hui dans le monde, pays par pays",
+    countriesDescription: "Y a-t-il des manifestations aujourd'hui ? Tous les pays où la presse signale manifestations, grèves et blocages, avec leur nombre, mis à jour toutes les 15 minutes.",
     countriesIntro: "Les pays où la presse a signalé des manifestations ces dernières 24 heures, du plus actif au moins actif.",
     countryTitle: (c: string) => `${c} : manifestations et grèves aujourd'hui`,
     countryDescription: (c: string, n: number) =>
@@ -878,8 +878,8 @@ const en: Dictionary = {
     mapTitle: "Live protest map",
     mapDescription:
       "Where are people protesting right now? Interactive map of protests and strikes worldwide, with the reliability of each report.",
-    countriesTitle: "Protests by country",
-    countriesDescription: "Countries where the press is reporting protests, strikes and blockades right now, updated every 15 minutes.",
+    countriesTitle: "Protests today around the world, country by country",
+    countriesDescription: "Where are protests happening today? Every country where the press is reporting protests, strikes and blockades, with counts, updated every 15 minutes.",
     countriesIntro: "Countries where the press reported protests in the last 24 hours, from most to least active.",
     countryTitle: (c) => `${c}: protests and strikes today`,
     countryDescription: (c, n) =>
@@ -1517,8 +1517,8 @@ const es: Dictionary = {
     mapTitle: "Mapa de protestas en directo",
     mapDescription:
       "¿Dónde se protesta ahora? Mapa interactivo de manifestaciones y huelgas en el mundo, con la fiabilidad de cada aviso.",
-    countriesTitle: "Protestas por país",
-    countriesDescription: "Los países donde la prensa informa ahora de manifestaciones, huelgas y bloqueos, actualizado cada 15 minutos.",
+    countriesTitle: "Manifestaciones hoy en el mundo, país por país",
+    countriesDescription: "¿Dónde hay manifestaciones hoy? Todos los países donde la prensa informa de manifestaciones, huelgas y bloqueos, con su número, actualizado cada 15 minutos.",
     countriesIntro: "Los países donde la prensa informó de protestas en las últimas 24 horas, del más activo al menos activo.",
     countryTitle: (c) => `${c}: protestas y huelgas hoy`,
     countryDescription: (c, n) =>
@@ -2098,8 +2098,8 @@ const pt: Dictionary = {
     mapTitle: "Mapa de protestos ao vivo",
     mapDescription:
       "Onde se protesta agora? Mapa interativo de manifestações e greves no mundo, com a fiabilidade de cada notícia.",
-    countriesTitle: "Protestos por país",
-    countriesDescription: "Os países onde a imprensa noticia agora manifestações, greves e bloqueios, atualizado a cada 15 minutos.",
+    countriesTitle: "Manifestações hoje no mundo, país a país",
+    countriesDescription: "Onde há manifestações hoje? Todos os países onde a imprensa noticia manifestações, greves e bloqueios, com o seu número, atualizado a cada 15 minutos.",
     countriesIntro: "Os países onde a imprensa noticiou protestos nas últimas 24 horas, do mais ativo ao menos ativo.",
     countryTitle: (c) => `${c}: protestos e greves hoje`,
     countryDescription: (c, n) =>
@@ -2679,8 +2679,8 @@ const de: Dictionary = {
     mapTitle: "Live-Karte der Proteste",
     mapDescription:
       "Wo wird gerade protestiert? Interaktive Karte der Demonstrationen und Streiks weltweit, mit der Verlässlichkeit jeder Meldung.",
-    countriesTitle: "Proteste nach Land",
-    countriesDescription: "Die Länder, in denen die Presse gerade über Demonstrationen, Streiks und Blockaden berichtet, alle 15 Minuten aktualisiert.",
+    countriesTitle: "Demonstrationen heute weltweit, Land für Land",
+    countriesDescription: "Wo wird heute demonstriert? Alle Länder, in denen die Presse über Demonstrationen, Streiks und Blockaden berichtet, mit Anzahl, alle 15 Minuten aktualisiert.",
     countriesIntro: "Die Länder, in denen die Presse in den letzten 24 Stunden über Proteste berichtet hat, vom aktivsten zum am wenigsten aktiven.",
     countryTitle: (c) => `${c}: Proteste und Streiks heute`,
     countryDescription: (c, n) =>
@@ -3258,8 +3258,8 @@ const ar: Dictionary = {
     homeDescription: "خريطة مباشرة للمظاهرات والإضرابات وعمليات الإغلاق وأعمال الشغب التي تنقلها الصحافة في العالم كله، تُحدَّث كل 15 دقيقة.",
     mapTitle: "خريطة الاحتجاجات المباشرة",
     mapDescription: "أين يحتج الناس الآن؟ خريطة تفاعلية للمظاهرات والإضرابات في العالم، مع موثوقية كل رصد.",
-    countriesTitle: "الاحتجاجات حسب البلد",
-    countriesDescription: "البلدان التي تنقل الصحافة منها الآن مظاهرات وإضرابات وعمليات إغلاق، تُحدَّث كل 15 دقيقة.",
+    countriesTitle: "الاحتجاجات اليوم حول العالم، بلدًا بلدًا",
+    countriesDescription: "أين تجري الاحتجاجات اليوم؟ كل البلدان التي تنقل الصحافة منها مظاهرات وإضرابات وعمليات إغلاق، مع عددها، تُحدَّث كل 15 دقيقة.",
     countriesIntro: "البلدان التي رصدت فيها الصحافة احتجاجات خلال آخر 24 ساعة، من الأكثر نشاطًا إلى الأقل.",
     countryTitle: (c) => `${c}: الاحتجاجات والإضرابات اليوم`,
     countryDescription: (c, n) => `${c}: عدد الاحتجاجات التي رصدتها الصحافة خلال 24 ساعة: ${n}. الأماكن وأنواع التحرك والموثوقية، تُحدَّث كل 15 دقيقة.`,
