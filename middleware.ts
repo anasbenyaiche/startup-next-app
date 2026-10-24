@@ -47,6 +47,15 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 307);
   }
 
+  // Segment pays d'une autre langue (/fr/country/…, souvent atteint via le x-default) :
+  // redirection permanente vers le segment de la langue, pour une seule adresse indexée.
+  if (second && COUNTRY_SEGMENTS.has(second) && second !== COUNTRY_SEGMENT[first]) {
+    const url = req.nextUrl.clone();
+    url.pathname = `/${[first, COUNTRY_SEGMENT[first], ...rest].join("/")}`.replace(/\/$/, "");
+    url.search = search;
+    return NextResponse.redirect(url, 308);
+  }
+
   // /fr/pays/france → /pays/france, /en/country/germany → /pays/germany, /fr/profil → /profil.
   const inner = second && COUNTRY_SEGMENTS.has(second) ? ["pays", ...rest] : [second, ...rest].filter((s) => s !== undefined);
   const url = req.nextUrl.clone();
