@@ -42,7 +42,7 @@ describe("GDELT — état des créneaux", () => {
     const result = await getManifestations(6, 40_000);
     expect(result.partial).toBe(false);
     expect(result.filesFailed).toBe(0);
-    expect([...mocks.cache.keys()].some((key) => key.includes(":agg:6:last"))).toBe(true);
+    expect([...mocks.cache.keys()].some((key) => key.endsWith(":agg:6:last"))).toBe(true);
   });
 
   it("réutilise un agrégat récent lorsque la source tombe", async () => {
