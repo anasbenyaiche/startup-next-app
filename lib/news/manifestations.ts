@@ -1,17 +1,17 @@
 import "server-only";
 import { cacheGet, cacheHashGet, cacheHashSet, cacheSet } from "@/lib/core/cache";
-import { downloadSlot, latestSlot, slotStamp, type GeoPrecision, type ProtestEvent } from "@/lib/news/gdelt";
+import { downloadSlot, latestSlot, slotStamp, type GeoPrecision, type ProtestEvent, type SlotResult } from "@/lib/news/gdelt";
 
 export { TYPE_FAMILY, type Family, type GeoPrecision } from "@/lib/news/gdelt";
 
 const SLOT_MS = 15 * 60 * 1000;
 const FETCH_CONCURRENCY = 12;
 // Préfixe de version : à changer quand la forme des données en cache change.
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 // Un créneau complet ne change plus : on le garde un peu plus que la plus longue
 // période affichée (72 h). Un créneau incomplet est réessayé au bout d'une heure.
 const SLOT_TTL = 4 * 24 * 3600;
-const INCOMPLETE_SLOT_TTL = 3600;
+const INCOMPLETE_SLOT_TTL = 90;
 // Le résultat agrégé et le détail des lieux valent jusqu'au prochain fichier GDELT.
 const AGGREGATE_TTL = 15 * 60;
 
@@ -44,6 +44,8 @@ export type ManifestationsResult = {
   slotsLoaded: number;
   slotsTotal: number;
   partial: boolean;
+  // Agrégat complet antérieur affiché pendant une interruption de GDELT.
+  stale?: boolean;
   places: ManifestationPlace[];
 };
 
@@ -93,12 +95,13 @@ const lastAggregateKey = (hours: number) => `gdelt:${CACHE_VERSION}:agg:${hours}
 const LAST_AGGREGATE_TTL = 6 * 3600;
 const placesKey = (hours: number, stamp: string) => `gdelt:${CACHE_VERSION}:places:${hours}:${stamp}`;
 
-async function getSlot(stamp: string): Promise<ProtestEvent[]> {
-  const cached = await cacheGet<ProtestEvent[]>(slotKey(stamp));
+async function getSlot(stamp: string): Promise<SlotResult> {
+  const cached = await cacheGet<SlotResult>(slotKey(stamp));
   if (cached) return cached;
-  const { events, complete } = await downloadSlot(stamp);
-  await cacheSet(slotKey(stamp), events, complete ? SLOT_TTL : INCOMPLETE_SLOT_TTL);
-  return events;
+  const slot = await downloadSlot(stamp);
+  // Conserver complete : une réponse GDELT 404 n'est pas un fichier vide.
+  await cacheSet(slotKey(stamp), slot, slot.complete ? SLOT_TTL : INCOMPLETE_SLOT_TTL);
+  return slot;
 }
 
 // --- Analyse -------------------------------------------------------------
@@ -281,6 +284,7 @@ async function build(hours: number, latest: Date, budgetMs = Infinity): Promise<
 
   const byId = new Map<string, ProtestEvent>();
   let failed = 0;
+  let pending = 0;
   let loaded = 0;
   for (let i = 0; i < stamps.length; i += FETCH_CONCURRENCY) {
     if (Date.now() > deadline) break;
@@ -291,7 +295,8 @@ async function build(hours: number, latest: Date, budgetMs = Infinity): Promise<
         failed++;
         continue;
       }
-      for (const e of r.value) if (!byId.has(e.id)) byId.set(e.id, e);
+      if (!r.value.complete) pending++;
+      for (const e of r.value.events) if (!byId.has(e.id)) byId.set(e.id, e);
     }
   }
 
@@ -307,41 +312,78 @@ async function build(hours: number, latest: Date, budgetMs = Infinity): Promise<
   const result: ManifestationsResult = {
     updatedAt: latest.toISOString(),
     hours,
-    filesFetched: loaded - failed,
-    filesFailed: failed,
+    filesFetched: loaded - failed - pending,
+    filesFailed: failed + pending,
     totalReports: byId.size,
     slotsLoaded: loaded,
     slotsTotal: stamps.length,
-    partial: loaded < stamps.length,
+    partial: loaded < stamps.length || failed > 0 || pending > 0,
     places: [...byPlace.entries()].map(([key, events]) => summarizePlace(key, events)),
   };
   // Le détail des lieux est toujours gardé (il sert au clic) ; un agrégat incomplet
   // n'est pas partagé, pour que la requête suivante réessaie les fichiers manquants.
-  await cacheHashSet(placesKey(hours, stamp), Object.fromEntries(byPlace), AGGREGATE_TTL);
-  if (failed === 0 && loaded === stamps.length) {
+  await cacheHashSet(placesKey(hours, stamp), Object.fromEntries(byPlace), LAST_AGGREGATE_TTL);
+  if (!result.partial) {
     await cacheSet(aggregateKey(hours, stamp), result, AGGREGATE_TTL);
     await cacheSet(lastAggregateKey(hours), result, LAST_AGGREGATE_TTL);
   }
   return result;
 }
 
+// Une interruption de la source ne doit pas effacer le dernier état validé.
+// L'horodatage d'origine est préservé pour éviter de présenter du vieux comme neuf.
+const MAX_STALE_MS = 6 * 3600_000;
+async function recentFallback(hours: number): Promise<ManifestationsResult | null> {
+  const previous = await getCachedManifestations(hours);
+  if (!previous) return null;
+  const age = Date.now() - Date.parse(previous.updatedAt);
+  return Number.isFinite(age) && age >= 0 && age <= MAX_STALE_MS ? { ...previous, stale: true } : null;
+}
+
 export async function getManifestations(hours: number, budgetMs = DEFAULT_BUDGET_MS): Promise<ManifestationsResult> {
-  const latest = await latestSlot();
-  const cached = await cacheGet<ManifestationsResult>(aggregateKey(hours, slotStamp(latest)));
-  return cached ?? build(hours, latest, budgetMs);
+  try {
+    const latest = await latestSlot();
+    const cached = await cacheGet<ManifestationsResult>(aggregateKey(hours, slotStamp(latest)));
+    if (cached) return cached;
+    const result = await build(hours, latest, budgetMs);
+    return result.partial ? (await recentFallback(hours)) ?? result : result;
+  } catch (error) {
+    const fallback = await recentFallback(hours);
+    if (fallback) {
+      console.warn("[gdelt] source indisponible, dernier agrégat réutilisé", error);
+      return fallback;
+    }
+    throw error;
+  }
 }
 
 export async function getPlaceDetails(hours: number, key: string): Promise<PlaceDetails | null> {
-  const latest = await latestSlot();
+  // Lire d'abord la période actuelle, puis la dernière période validée si nécessaire.
+  const previous = await recentFallback(hours);
+  let latest: Date;
+  try {
+    latest = await latestSlot();
+  } catch (error) {
+    if (!previous) throw error;
+    latest = new Date(previous.updatedAt);
+  }
   const stamp = slotStamp(latest);
   let events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, stamp), key);
-  // Détail expiré ou jamais calculé sur cette instance : on reconstruit la période,
-  // sauf si l'agrégat est à jour (la clé demandée n'existe simplement pas).
   if (!events && !(await cacheGet<ManifestationsResult>(aggregateKey(hours, stamp)))) {
-    await build(hours, latest, DEFAULT_BUDGET_MS);
-    events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, stamp), key);
+    try {
+      await build(hours, latest, DEFAULT_BUDGET_MS);
+      events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, stamp), key);
+    } catch (error) {
+      if (!previous) throw error;
+      console.warn("[gdelt] détail courant indisponible", error);
+    }
   }
-  return events?.length ? analyzePlace(key, events, hours, latest.toISOString()) : null;
+  let updatedAt = latest.toISOString();
+  if (!events && previous) {
+    updatedAt = previous.updatedAt;
+    events = await cacheHashGet<ProtestEvent[]>(placesKey(hours, slotStamp(new Date(updatedAt))), key);
+  }
+  return events?.length ? analyzePlace(key, events, hours, updatedAt) : null;
 }
 
 // Agrégat déjà calculé (jusqu'à quelques heures), sans appel réseau ni calcul.
