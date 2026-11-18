@@ -211,8 +211,8 @@ export const fr = {
     mapTitle: "Carte des manifestations en direct",
     mapDescription:
       "Où manifeste-t-on maintenant ? Carte interactive des manifestations et des grèves dans le monde, avec la fiabilité de chaque signalement.",
-    countriesTitle: "Manifestations par pays",
-    countriesDescription: "Les pays où la presse signale des manifestations, grèves et blocages en ce moment, mis à jour toutes les 15 minutes.",
+    countriesTitle: "Manifestations aujourd'hui dans le monde, pays par pays",
+    countriesDescription: "Y a-t-il des manifestations aujourd'hui ? Tous les pays où la presse signale manifestations, grèves et blocages, avec leur nombre, mis à jour toutes les 15 minutes.",
     countriesIntro: "Les pays où la presse a signalé des manifestations ces dernières 24 heures, du plus actif au moins actif.",
     countryTitle: (c: string) => `${c} : manifestations et grèves aujourd'hui`,
     countryDescription: (c: string, n: number) =>

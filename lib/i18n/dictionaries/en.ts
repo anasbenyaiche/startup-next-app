@@ -200,8 +200,8 @@ export const en: Dictionary = {
     mapTitle: "Live protest map",
     mapDescription:
       "Where are people protesting right now? Interactive map of protests and strikes worldwide, with the reliability of each report.",
-    countriesTitle: "Protests by country",
-    countriesDescription: "Countries where the press is reporting protests, strikes and blockades right now, updated every 15 minutes.",
+    countriesTitle: "Protests today around the world, country by country",
+    countriesDescription: "Where are protests happening today? Every country where the press is reporting protests, strikes and blockades, with counts, updated every 15 minutes.",
     countriesIntro: "Countries where the press reported protests in the last 24 hours, from most to least active.",
     countryTitle: (c) => `${c}: protests and strikes today`,
     countryDescription: (c, n) =>

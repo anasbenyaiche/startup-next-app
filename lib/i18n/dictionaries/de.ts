@@ -201,8 +201,8 @@ export const de: Dictionary = {
     mapTitle: "Live-Karte der Proteste",
     mapDescription:
       "Wo wird gerade protestiert? Interaktive Karte der Demonstrationen und Streiks weltweit, mit der Verlässlichkeit jeder Meldung.",
-    countriesTitle: "Proteste nach Land",
-    countriesDescription: "Die Länder, in denen die Presse gerade über Demonstrationen, Streiks und Blockaden berichtet, alle 15 Minuten aktualisiert.",
+    countriesTitle: "Demonstrationen heute weltweit, Land für Land",
+    countriesDescription: "Wo wird heute demonstriert? Alle Länder, in denen die Presse über Demonstrationen, Streiks und Blockaden berichtet, mit Anzahl, alle 15 Minuten aktualisiert.",
     countriesIntro: "Die Länder, in denen die Presse in den letzten 24 Stunden über Proteste berichtet hat, vom aktivsten zum am wenigsten aktiven.",
     countryTitle: (c) => `${c}: Proteste und Streiks heute`,
     countryDescription: (c, n) =>
