@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   try {
     const data = await getManifestations(hours);
     return Response.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      headers: { "Cache-Control": data.partial || data.stale ? "no-store" : "public, s-maxage=60, stale-while-revalidate=120" },
     });
   } catch (err) {
     console.error("[manifestations] collecte GDELT indisponible", err);
