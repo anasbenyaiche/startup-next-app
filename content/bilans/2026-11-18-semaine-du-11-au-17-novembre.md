@@ -1,15 +1,10 @@
+---
 titre: Bilan de la semaine du 11 au 17 novembre 2026
-
 date: 2026-11-18
-
 langue: fr
-
 resume: Des centaines de milliers de personnes à Prague pour défendre les médias publics, le logement dans la rue dans plus de 30 villes portugaises, et une troisième journée de grève dans la fonction publique en France.
-
 pays: CZ, PT, FR, DE, IT, BE
-
 brouillon: non
-
 ---
 
 Les mobilisations ont marqué plusieurs régions de France, d'Italie, de la République tchèque, d'Allemagne, de la Belgique, du Portugal et du Canada.
