@@ -17,6 +17,7 @@ export interface LMap {
   fitBounds(bounds: [number, number][], options?: { maxZoom?: number; padding?: [number, number] }): LMap;
   getZoom(): number;
   getCenter(): LatLng;
+  invalidateSize(options?: { pan?: boolean }): LMap;
   remove(): void;
 }
 export interface LLayerGroup extends LLayer {
