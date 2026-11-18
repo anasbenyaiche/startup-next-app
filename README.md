@@ -81,6 +81,14 @@ reprend là où la précédente s'est arrêtée.
 Après la mise en ligne : déclarer le site et le sitemap dans Google Search Console et
 Bing Webmaster Tools.
 
+## Bilans de la semaine et textes des pays
+
+Contenu écrit à la main, dans le dossier `content/` : un fichier Markdown par bilan
+(`content/bilans/`, publié sur `/fr/bilans`) et par texte de contexte d'un pays
+(`content/pays/FR.fr.md`, affiché en haut de la page du pays). Mode d'emploi et modèles :
+[content/README.md](content/README.md). La page `/bilans` reste hors index tant qu'aucun
+bilan n'est publié ; une page pays avec un texte écrit à la main est toujours indexée.
+
 ## Signalements des témoins
 
 Les utilisateurs connectés peuvent signaler un point précis de la carte (cortège, rassemblement,
