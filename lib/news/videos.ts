@@ -3,6 +3,7 @@ import { cacheGet, cacheSet } from "@/lib/core/cache";
 import { listReports } from "@/lib/community/reports";
 import { distanceKm } from "@/lib/geo/distance";
 import { rankVideos } from "@/lib/news/video-ranking";
+import { braveVideoQueries, withinVideoWindow, youtubeVideoQuery } from "@/lib/news/video-discovery";
 
 // Vidéos et lives d'un lieu, réunis depuis plusieurs sources :
 // - YouTube (API officielle, lives compris), si YOUTUBE_API_KEY est défini ;
@@ -46,7 +47,7 @@ type Place = {
   hours: number;
 };
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 // Les recherches coûtent du quota (YouTube : 100 unités par recherche) : 10 minutes de cache par lieu.
 const SEARCH_TTL = 10 * 60;
 const MASTODON_TTL = 5 * 60;
@@ -203,14 +204,15 @@ async function fromYouTube(place: Place): Promise<VideoItem[] | null> {
     type: "video",
     order: "date",
     maxResults: "15",
-    q: `${cityOf(place.location)} ${KEYWORDS.join("|")}`,
+    q: youtubeVideoQuery(place.location),
     publishedAfter: new Date(Date.now() - Math.max(place.hours, 24) * 3600_000).toISOString(),
     key,
   });
   const json = await getJson<YouTubeSearch>(`${base}/search?${params}`);
   if (!json) return null;
   return (json.items ?? [])
-    .filter((it) => it.id.videoId && it.snippet.liveBroadcastContent !== "upcoming")
+    .filter((it) => it.id.videoId && it.snippet.liveBroadcastContent !== "upcoming"
+      && (it.snippet.liveBroadcastContent === "live" || withinVideoWindow(it.snippet.publishedAt, place.hours)))
     .map((it) => {
       const id = it.id.videoId!;
       const s = it.snippet;
@@ -236,19 +238,22 @@ async function fromWebSearch(place: Place): Promise<VideoItem[] | null> {
   const key = process.env.BRAVE_SEARCH_API_KEY;
   if (!key) return null;
   const base = process.env.BRAVE_SEARCH_URL ?? "https://api.search.brave.com/res/v1/web/search";
-  const words = KEYWORDS.slice(0, 5).join(" OR ");
-  const params = new URLSearchParams({
-    q: `site:tiktok.com "${cityOf(place.location)}" (${words})`,
-    freshness: place.hours <= 24 ? "pd" : "pw",
-    count: "20",
-  });
-  const json = await getJson<BraveSearch>(`${base}?${params}`, {
-    headers: { Accept: "application/json", "X-Subscription-Token": key },
-  });
-  if (!json) return null;
-  const urls = [
-    ...new Set((json.web?.results ?? []).map((r) => r.url).filter((u) => parseVideoUrl(u).platform === "tiktok")),
-  ];
+  const queries = braveVideoQueries(place.location);
+  // Deux recherches complémentaires, mises en cache par lieu pour limiter le quota.
+  const searches = await Promise.all(queries.map((q) => {
+    const params = new URLSearchParams({
+      q,
+      freshness: place.hours <= 24 ? "pd" : "pw",
+      count: "20",
+    });
+    return getJson<BraveSearch>(`${base}?${params}`, {
+      headers: { Accept: "application/json", "X-Subscription-Token": key },
+    });
+  }));
+  if (searches.every((result) => result === null)) return null;
+  const urls = [...new Set(searches.flatMap((result) => result?.web?.results ?? [])
+    .map((result) => result.url)
+    .filter((url) => parseVideoUrl(url).platform === "tiktok"))];
   const now = new Date().toISOString();
   const items = await Promise.all(urls.slice(0, MAX_TIKTOK).map((u) => tiktokItem(u, "web", now)));
   return items.filter((v): v is VideoItem => v !== null);
@@ -358,7 +363,8 @@ export async function getPlaceVideos(place: Place): Promise<VideosResult> {
     }),
     fromReports(place),
   ]);
-  const all = [...fromUsers, ...(searched?.youtube ?? []), ...(searched?.web ?? []), ...(searched?.mastodon ?? [])];
+  const all = [...fromUsers, ...(searched?.youtube ?? []), ...(searched?.web ?? []), ...(searched?.mastodon ?? [])]
+    .filter((video) => video.live || withinVideoWindow(video.publishedAt, place.hours));
 
   // Une même vidéo peut venir de plusieurs sources : on garde la première (signalement d'abord).
   const seen = new Set<string>();
