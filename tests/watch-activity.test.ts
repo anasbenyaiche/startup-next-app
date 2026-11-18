@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activityForTargets, countReports } from "@/lib/news/watch-activity";
+import { activityForTargets, activityTrend, countReports } from "@/lib/news/watch-activity";
 import type { ManifestationPlace } from "@/lib/news/manifestations";
 
 const place = (key: string, country: string, incidents: number): ManifestationPlace => ({
@@ -25,6 +25,14 @@ describe("followed activity", () => {
     expect(rows.find((r) => r.id === "country:FR")).toMatchObject({ sixHours: 5, twentyFourHours: 11 });
     expect(rows.find((r) => r.id === "place:paris")).toMatchObject({ sixHours: 2, twentyFourHours: 7 });
     expect(rows.find((r) => r.id === "country:DE")).toMatchObject({ sixHours: 1, twentyFourHours: 8 });
+  });
+
+  it("compares hourly rates rather than overlapping raw windows", () => {
+    expect(activityTrend(9, 12)).toBe("rising");
+    expect(activityTrend(1, 19)).toBe("falling");
+    expect(activityTrend(6, 24)).toBe("stable");
+    expect(activityTrend(1, 3)).toBe("insufficient");
+    expect(activityTrend(10, 4)).toBe("insufficient");
   });
 
   it("returns zero for a followed place with no reported activity", () => {
