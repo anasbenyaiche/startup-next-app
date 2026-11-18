@@ -16,7 +16,7 @@ export function youtubeVideoQuery(location: string): string {
 export function braveVideoQueries(location: string): string[] {
   const city = videoCity(location).replace(/["\\]/g, " ").trim();
   return [
-    `site:tiktok.com/@/video/ "${city}" (manifestation OR protest OR grève)`,
+    `site:tiktok.com "${city}" (manifestation OR protest OR grève)`,
     `site:tiktok.com "${city}" (manifestación OR protesta OR strike)`,
   ];
 }
