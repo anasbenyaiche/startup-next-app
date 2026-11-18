@@ -128,6 +128,7 @@ export default function VideoCarousel({
   locale: Locale;
 }) {
   const t = getDictionary(locale).videos;
+  const closeLabel = ({ fr: "Fermer le lecteur", en: "Close player", es: "Cerrar reproductor", pt: "Fechar leitor", de: "Player schließen", ar: "إغلاق المشغل" } as const)[locale];
   const [data, setData] = useState<VideosResult | null>(null);
   const [failed, setFailed] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
@@ -206,7 +207,7 @@ export default function VideoCarousel({
             <p className="min-w-0 truncate text-sm font-semibold">{activeVideo.title ?? platformName(activeVideo)}</p>
             <button type="button" onClick={() => setActiveVideoId(null)}
               className="shrink-0 rounded-[3px] border border-encre px-3 py-2 text-sm font-semibold hover:bg-papier-fonce focus-visible:outline-offset-2"
-              aria-label={locale === "fr" ? "Fermer le lecteur" : "Close player"}>
+              aria-label={closeLabel}>
               ✕
             </button>
           </div>
