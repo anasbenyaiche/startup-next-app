@@ -2,6 +2,7 @@ import "server-only";
 import { cacheGet, cacheSet } from "@/lib/core/cache";
 import { listReports } from "@/lib/community/reports";
 import { distanceKm } from "@/lib/geo/distance";
+import { rankVideos } from "@/lib/news/video-ranking";
 
 // Vidéos et lives d'un lieu, réunis depuis plusieurs sources :
 // - YouTube (API officielle, lives compris), si YOUTUBE_API_KEY est défini ;
@@ -45,7 +46,7 @@ type Place = {
   hours: number;
 };
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 // Les recherches coûtent du quota (YouTube : 100 unités par recherche) : 10 minutes de cache par lieu.
 const SEARCH_TTL = 10 * 60;
 const MASTODON_TTL = 5 * 60;
@@ -125,7 +126,7 @@ export function parseVideoUrl(raw: string): {
       embedUrl: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1`,
     };
   }
-  const tiktok = host.endsWith("tiktok.com") ? url.pathname.match(/\/video\/(\d{8,25})/)?.[1] : undefined;
+  const tiktok = (host === "tiktok.com" || host.endsWith(".tiktok.com")) ? url.pathname.match(/\/video\/(\d{8,25})/)?.[1] : undefined;
   if (tiktok)
     return {
       platform: "tiktok",
@@ -361,11 +362,9 @@ export async function getPlaceVideos(place: Place): Promise<VideosResult> {
 
   // Une même vidéo peut venir de plusieurs sources : on garde la première (signalement d'abord).
   const seen = new Set<string>();
-  const videos = all
-    .filter((v) => !seen.has(v.id) && seen.add(v.id))
-    // Les lives d'abord, puis les plus récentes.
-    .sort((a, b) => Number(b.live) - Number(a.live) || b.publishedAt.localeCompare(a.publishedAt))
-    .slice(0, MAX_VIDEOS);
+  const deduplicated = all
+    .filter((v) => !seen.has(v.id) && seen.add(v.id));
+  const videos = rankVideos(deduplicated, place.location).slice(0, MAX_VIDEOS);
 
   return {
     updatedAt: new Date().toISOString(),

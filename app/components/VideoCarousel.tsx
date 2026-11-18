@@ -26,9 +26,8 @@ function platformName(v: VideoItem): string {
 
 // Une vignette tant qu'on n'a pas cliqué : le lecteur de la plateforme (lourd, et qui
 // peut déposer ses cookies) ne se charge que si la personne lance la vidéo.
-function VideoCard({ video, locale }: { video: VideoItem; locale: Locale }) {
+function VideoCard({ video, locale, playing = false, onPlay }: { video: VideoItem; locale: Locale; playing?: boolean; onPlay?: () => void }) {
   const t = getDictionary(locale).videos;
-  const [playing, setPlaying] = useState(false);
   const canPlay = Boolean(video.embedUrl || video.fileUrl);
   const vertical = video.platform === "tiktok";
   const name = platformName(video);
@@ -68,15 +67,15 @@ function VideoCard({ video, locale }: { video: VideoItem; locale: Locale }) {
   }
 
   return (
-    <li className="snap-start shrink-0 w-[13.5rem]">
+    <li className={playing ? "w-full min-w-0" : "snap-start shrink-0 w-[13.5rem]"}>
       <div
         className={`relative overflow-hidden rounded-[3px] border-[1.5px] border-encre bg-encre ${
-          playing && !vertical ? "aspect-video" : "aspect-[9/14]"
+          playing && !vertical ? "aspect-video max-h-[70vh]" : playing ? "mx-auto aspect-[9/14] max-h-[70vh] max-w-[min(100%,24rem)]" : "aspect-[9/14]"
         }`}
       >
         {!playing && canPlay ? (
           <button
-            onClick={() => setPlaying(true)}
+            onClick={onPlay}
             className="absolute inset-0 h-full w-full"
             aria-label={`${t.play} (${name})`}
           >
@@ -129,14 +128,17 @@ export default function VideoCarousel({
   locale: Locale;
 }) {
   const t = getDictionary(locale).videos;
+  const closeLabel = ({ fr: "Fermer le lecteur", en: "Close player", es: "Cerrar reproductor", pt: "Fechar leitor", de: "Player schließen", ar: "إغلاق المشغل" } as const)[locale];
   const [data, setData] = useState<VideosResult | null>(null);
   const [failed, setFailed] = useState(false);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const track = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
     let cancelled = false;
     setData(null);
     setFailed(false);
+    setActiveVideoId(null);
     const load = () =>
       fetch(`/api/videos?hours=${hours}&key=${encodeURIComponent(placeKey)}`)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
@@ -158,6 +160,17 @@ export default function VideoCarousel({
       clearInterval(timer);
     };
   }, [placeKey, hours]);
+
+  const activeVideo = data?.videos.find((video) => video.id === activeVideoId) ?? null;
+
+  useEffect(() => {
+    if (!activeVideoId) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveVideoId(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [activeVideoId]);
 
   const scroll = (direction: 1 | -1) => {
     const el = track.current;
@@ -188,6 +201,19 @@ export default function VideoCarousel({
         )}
       </div>
 
+      {activeVideo && (
+        <div className="mb-4 rounded-[4px] border-[1.5px] border-encre bg-papier p-3 sm:p-4" role="region" aria-label={activeVideo.title ?? platformName(activeVideo)}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="min-w-0 truncate text-sm font-semibold">{activeVideo.title ?? platformName(activeVideo)}</p>
+            <button type="button" onClick={() => setActiveVideoId(null)}
+              className="shrink-0 rounded-[3px] border border-encre px-3 py-2 text-sm font-semibold hover:bg-papier-fonce focus-visible:outline-offset-2"
+              aria-label={closeLabel}>
+              ✕
+            </button>
+          </div>
+          <ol><VideoCard key={activeVideo.id} video={activeVideo} locale={locale} playing /></ol>
+        </div>
+      )}
       {!data && !failed ? (
         <div className="flex gap-3 overflow-hidden" role="status" aria-label={t.loading}>
           {[0, 1].map((i) => (
@@ -210,7 +236,7 @@ export default function VideoCarousel({
             className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 items-start [scrollbar-width:thin]"
           >
             {data.videos.map((v) => (
-              <VideoCard key={v.id} video={v} locale={locale} />
+              <VideoCard key={v.id} video={v} locale={locale} onPlay={() => setActiveVideoId(v.id)} />
             ))}
           </ol>
           <p className="mt-1 text-xs text-gris">{t.playerNotice}</p>
