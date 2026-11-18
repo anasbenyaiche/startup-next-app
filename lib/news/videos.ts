@@ -58,18 +58,6 @@ const REPORT_RADIUS_KM = 20;
 const MAX_TIKTOK = 10;
 
 // Mots de la manifestation dans les langues du site, pour les recherches.
-const KEYWORDS = [
-  "manifestation",
-  "manif",
-  "grève",
-  "protest",
-  "strike",
-  "manifestación",
-  "protesta",
-  "protesto",
-  "Demo",
-  "مظاهرة",
-];
 const MASTODON_TAGS = ["manif", "manifestation", "greve", "protest", "demo"];
 
 async function getJson<T>(url: string, init?: RequestInit): Promise<T | null> {
