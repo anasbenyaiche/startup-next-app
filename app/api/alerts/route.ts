@@ -1,4 +1,4 @@
-import { AlertError, alertsNear, listAlerts } from "@/lib/alerts";
+import { AlertError, alertsNear, listAlerts } from "@/lib/community/alerts";
 
 const MAX_RADIUS_KM = 50;
 

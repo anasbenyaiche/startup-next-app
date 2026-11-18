@@ -5,11 +5,11 @@ import { auth } from "@/auth";
 import DeleteMyData from "@/app/components/profile/DeleteMyData";
 import FollowedLists from "@/app/components/profile/FollowedLists";
 import PreferencesForm from "@/app/components/profile/PreferencesForm";
-import { FIPS_TO_ISO, isoToFips } from "@/lib/countries";
+import { FIPS_TO_ISO, isoToFips } from "@/lib/geo/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
-import { getProfile } from "@/lib/profile";
-import { currentRole } from "@/lib/admin";
+import { getLocale } from "@/lib/i18n/request";
+import { getProfile } from "@/lib/users/profile";
+import { currentRole } from "@/lib/users/admin";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: `${getDictionary(await getLocale()).profile.title}, Cortège`, robots: { index: false } };

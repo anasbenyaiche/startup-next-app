@@ -1,6 +1,6 @@
-import type { Family } from "@/lib/protest-types";
+import type { Family } from "@/lib/news/protest-types";
 
-export { TYPE_FAMILY } from "@/lib/protest-types";
+export { TYPE_FAMILY } from "@/lib/news/protest-types";
 
 // Trois teintes validées (daltonisme compris) pour que n'importe quels points
 // voisins sur la carte restent distinguables. Le rose reste réservé à la marque.

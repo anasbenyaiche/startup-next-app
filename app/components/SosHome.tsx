@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AlertKind } from "@/lib/alerts";
+import type { AlertKind } from "@/lib/community/alerts";
 import { getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
 import Tilt from "./Tilt";
 

@@ -8,13 +8,12 @@ import {
   getAccountByEmail,
   getAccountById,
   normalizeEmail,
-  resetLimit,
-  underLimit,
   verifyPassword,
-} from "@/lib/accounts";
+} from "@/lib/users/accounts";
+import { resetLimit, underLimit } from "@/lib/core/rate-limit";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
-import { sendAccountMail } from "@/lib/mail";
-import { siteOrigin } from "@/lib/site";
+import { sendAccountMail } from "@/lib/core/mail";
+import { siteOrigin } from "@/lib/core/site";
 
 // Connexion par Google (AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, lus automatiquement)
 // ou par e-mail et mot de passe. Les deux mènent au compte de l'adresse e-mail

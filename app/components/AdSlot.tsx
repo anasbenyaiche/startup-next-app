@@ -3,7 +3,8 @@
 import Script from "next/script";
 import { useEffect, useRef } from "react";
 import { getDictionary, type Locale } from "@/lib/i18n";
-import { pickSponsor, sponsorText } from "@/lib/sponsors";
+import { pickSponsor, sponsorText } from "@/lib/content/sponsors";
+import { useConsent } from "./consent";
 
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 const ADSENSE_SLOT = process.env.NEXT_PUBLIC_ADSENSE_SLOT;
@@ -21,9 +22,8 @@ function Label({ text }: { text: string }) {
   return <p className="text-xs text-gris mb-1">{text}</p>;
 }
 
-// Bloc Google AdSense. Dans l'Union européenne, AdSense exige une plateforme de
-// consentement certifiée : activez le message « Confidentialité et messages »
-// de Google dans le tableau de bord AdSense, il est servi par ce même script.
+// Bloc Google AdSense, affiché seulement si le visiteur a accepté les cookies
+// publicitaires (bandeau CookieNotice).
 function AdSense({ label }: { label: string }) {
   const pushed = useRef(false);
   useEffect(() => {
@@ -60,6 +60,7 @@ export default function AdSlot({ locale, country }: { locale: Locale; country: s
   const t = getDictionary(locale).ads;
   const sponsor = pickSponsor(country);
   const ref = useRef<HTMLElement>(null);
+  const consent = useConsent();
 
   // Un affichage n'est compté que quand l'annonce est réellement visible.
   useEffect(() => {
@@ -95,7 +96,8 @@ export default function AdSlot({ locale, country }: { locale: Locale; country: s
     );
   }
 
-  if (ADSENSE_CLIENT && ADSENSE_SLOT) return <AdSense label={t.label} />;
+  // AdSense seulement après accord : sans accord, on passe à l'invitation à annoncer.
+  if (ADSENSE_CLIENT && ADSENSE_SLOT && consent === "accepted") return <AdSense label={t.label} />;
 
   if (!ADS_CONTACT) return null;
   return (

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { auth, currentAccount, signOut } from "@/auth";
 import { goToSignIn } from "@/app/actions/account";
-import { deleteAccount } from "@/lib/accounts";
-import { deleteProfile, getProfile, isCountryCode, saveProfile, type Profile } from "@/lib/profile";
+import { deleteAccount } from "@/lib/users/accounts";
+import { deleteProfile, getProfile, isCountryCode, saveProfile, type Profile } from "@/lib/users/profile";
 
 // Actions serveur du profil. L'utilisateur est toujours relu depuis la session :
 // le navigateur ne peut agir que sur son propre profil.

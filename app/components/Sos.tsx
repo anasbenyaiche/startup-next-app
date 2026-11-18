@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { reportFalseAlert, sendAlert, showDemoAlerts, withdrawAlert } from "@/app/actions/alerts";
-import type { AlertKind, SosAlert } from "@/lib/alerts";
-import { emergencyNumbers, type EmergencyKind } from "@/lib/emergency";
+import type { AlertKind, SosAlert } from "@/lib/community/alerts";
+import { emergencyNumbers, type EmergencyKind } from "@/lib/geo/emergency";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import { relativeTime } from "./relativeTime";
 import { runAction } from "./staleDeployment";

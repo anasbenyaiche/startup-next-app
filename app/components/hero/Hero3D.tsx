@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { SosAlert } from "@/lib/alerts";
-import { heroCountries, heroPlaces, type HeroFocus, type HeroPlace } from "@/lib/hero";
+import type { SosAlert } from "@/lib/community/alerts";
+import { heroCountries, heroPlaces, type HeroFocus, type HeroPlace } from "@/lib/news/hero";
 import { countryName, countryPath, dir, getDictionary, localePath, plural, type Locale } from "@/lib/i18n";
 import type { HeroScene } from "./scene";
+import { usePolling } from "../hooks/usePolling";
 
 // Accueil en 3D : un écran collant de trois hauteurs d'écran. En faisant défiler,
 // la caméra passe du monde au pays du visiteur, puis à une alerte SOS ; les textes
@@ -67,16 +68,7 @@ export default function Hero3D({
       .catch(() => undefined);
   }, [initialPlaces, visitorFips, locale]);
 
-  useEffect(() => {
-    const load = () =>
-      fetch("/api/alerts")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((json: { alerts: SosAlert[] } | null) => json && setAlerts(json.alerts))
-        .catch(() => undefined);
-    load();
-    const timer = setInterval(load, ALERTS_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, []);
+  usePolling<{ alerts: SosAlert[] }>("/api/alerts", ALERTS_REFRESH_MS, (json) => setAlerts(json.alerts));
 
   // Création de la scène (three.js chargé à la demande), animation seulement à l'écran.
   useEffect(() => {

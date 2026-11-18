@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { publishReport, voteOnReport, type ReportResult } from "@/app/actions/reports";
 import { getDictionary, plural, type Locale } from "@/lib/i18n";
-import type { CrowdSize, PublicReport, ReportKind } from "@/lib/reports";
+import type { CrowdSize, PublicReport, ReportKind } from "@/lib/community/reports";
 import { relativeTime } from "./relativeTime";
 import { runAction } from "./staleDeployment";
 

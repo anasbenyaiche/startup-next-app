@@ -1,24 +1,20 @@
 "use server";
 
 import { currentAccount } from "@/auth";
-import { isModerator } from "@/lib/admin";
-import { AlertError, cancelAlert, createAlert, flagAlert, seedDemoAlerts, type SosAlert } from "@/lib/alerts";
+import { isModerator } from "@/lib/users/admin";
+import { cancelAlert, createAlert, flagAlert, seedDemoAlerts, type AlertError, type SosAlert } from "@/lib/community/alerts";
+import { runForUser, type ActionResult } from "@/lib/core/action";
 
 // Seuls les « reporters » envoient une alerte : un compte connecté dont l'adresse
 // e-mail est vérifiée. Le compte n'est jamais publié avec l'alerte.
 
-export type AlertResult<T> = { ok: true; value: T } | { ok: false; error: AlertError["code"] | "signIn" };
+export type AlertResult<T> = ActionResult<T, AlertError["code"] | "signIn">;
 
-async function run<T>(fn: (userId: string) => Promise<T>): Promise<AlertResult<T>> {
+// Compte vérifié exigé : un compte dont l'adresse n'est pas vérifiée compte comme non connecté.
+const run = async <T>(fn: (userId: string) => Promise<T>): Promise<AlertResult<T>> => {
   const account = await currentAccount();
-  if (!account?.verifiedAt) return { ok: false, error: "signIn" };
-  try {
-    return { ok: true, value: await fn(account.id) };
-  } catch (err) {
-    if (err instanceof AlertError) return { ok: false, error: err.code };
-    throw err;
-  }
-}
+  return runForUser<T, AlertError["code"]>(account?.verifiedAt ? account.id : null, fn);
+};
 
 export async function sendAlert(input: { kind: string; lat: number; lng: number }): Promise<AlertResult<SosAlert>> {
   return run((id) => createAlert(id, input));

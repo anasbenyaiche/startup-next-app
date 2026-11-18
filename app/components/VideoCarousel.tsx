@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getDictionary, type Locale } from "@/lib/i18n";
-import type { VideoItem, VideosResult } from "@/lib/videos";
+import type { VideoItem, VideosResult } from "@/lib/news/videos";
 import { relativeTime } from "./relativeTime";
 import { Skeleton } from "./Skeleton";
 

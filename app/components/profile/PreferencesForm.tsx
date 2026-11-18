@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { savePreferences } from "@/app/actions/profile";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import { runAction } from "../staleDeployment";
-import type { Profile } from "@/lib/profile";
+import type { Profile } from "@/lib/users/profile";
 
 type Prefs = Pick<Profile, "defaultHours" | "defaultCountry" | "cityOnly" | "multiSource">;
 

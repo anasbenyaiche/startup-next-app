@@ -1,10 +1,9 @@
 import { auth, signOut } from "@/auth";
 import Link from "next/link";
 import React from "react";
-import { isAdmin } from "@/lib/admin";
-import { ANNOUNCEMENTS_ENABLED, CURFEWS_ENABLED } from "@/lib/features";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { getDictionary, localePath } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { getLocale } from "@/lib/i18n/request";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Logo from "./Logo";
 
@@ -14,8 +13,6 @@ const buttonClass =
 
 const Navbar = async () => {
   const session = await auth();
-  // Lien d'administration : administrateurs seulement (rôle relu dans la base).
-  const staff = session?.user?.id ? await isAdmin() : false;
   const locale = await getLocale();
   const t = getDictionary(locale).nav;
   return (
@@ -36,16 +33,6 @@ const Navbar = async () => {
           )}
           {session?.user?.id ? (
             <>
-              {ANNOUNCEMENTS_ENABLED && (
-                <Link href={localePath(locale, "/startup/create")} className={`${linkClass} hidden sm:inline`}>
-                  {t.create}
-                </Link>
-              )}
-              {staff && (
-                <Link href={localePath(locale, "/startup/moderate")} className={`${linkClass} hidden md:inline`}>
-                  {getDictionary(locale).admin.nav}
-                </Link>
-              )}
               <Link href={localePath(locale, "/profil")} className={linkClass}>
                 {getDictionary(locale).nav2.profile}
               </Link>

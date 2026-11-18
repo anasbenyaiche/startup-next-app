@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CURFEWS_ENABLED } from "@/lib/features";
+import CookieSettingsButton from "./CookieSettingsButton";
+import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { COUNTRY_SEGMENT, LOCALES, LOCALE_NAMES, getDictionary, localePath, type Locale } from "@/lib/i18n";
 
 // Pied de page : liens vers les pages principales et vers chaque langue, utiles
@@ -25,6 +26,15 @@ export default function Footer({ locale }: { locale: Locale }) {
               {t.curfew.nav}
             </Link>
           )}
+          <Link href={localePath(locale, "/a-propos")} className={link}>
+            {t.legal.about}
+          </Link>
+          <Link href={localePath(locale, "/methodologie")} className={link}>
+            {t.legal.methodology}
+          </Link>
+          <Link href={localePath(locale, "/contact")} className={link}>
+            {t.legal.contact}
+          </Link>
           <Link href={localePath(locale, "/legal/mentions")} className={link}>
             {t.legal.notice}
           </Link>
@@ -34,6 +44,7 @@ export default function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, "/legal/cookies")} className={link}>
             {t.legal.cookies}
           </Link>
+          <CookieSettingsButton label={t.legal.manageCookies} className={`${link} text-start`} />
         </nav>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t.nav.language}>
           {LOCALES.map((l) => (

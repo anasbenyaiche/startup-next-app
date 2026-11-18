@@ -13,6 +13,9 @@ yarn dev
 
 Ouvrir [http://localhost:3000](http://localhost:3000).
 
+Avant une PR : `yarn verify` (lint, types, tests). La CI GitHub lance aussi `yarn build`.
+L'organisation du code est décrite dans [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Variables d'environnement
 
 | Variable | Obligatoire | Rôle |
@@ -34,7 +37,7 @@ nécessaire pour qu'ils survivent aux redémarrages.
 
 L'encart de la carte affiche, dans l'ordre :
 
-1. un **annonceur direct** déclaré dans `lib/sponsors.ts`, ciblé sur le pays affiché ;
+1. un **annonceur direct** déclaré dans `lib/content/sponsors.ts`, ciblé sur le pays affiché ;
 2. sinon un bloc **Google AdSense**, si les deux variables sont définies (dans l'Union
    européenne, activez le message de consentement « Confidentialité et messages » d'AdSense) ;
 3. sinon l'encart **« Votre annonce ici »**, si `NEXT_PUBLIC_ADS_CONTACT` est défini.
@@ -66,7 +69,11 @@ reprend là où la précédente s'est arrêtée.
   dans les autres langues (`hreflang`) et son adresse canonique.
 - **Pages pays indexables**, rendues côté serveur avec les chiffres du moment :
   `/fr/pays/france`, `/en/country/france`, `/de/land/frankreich`… et une page qui les liste
-  (`/fr/pays`). Un pays sans manifestation récente est marqué `noindex`.
+  (`/fr/pays`). Un pays avec moins de 5 manifestations sur 24 h (`INDEX_MIN_INCIDENTS`,
+  `lib/content/pages.ts`) est marqué `noindex` et sort du sitemap : pas de pages trop minces.
+- **Pages de confiance** : À propos (`/fr/a-propos`), Méthodologie (`/fr/methodologie`) et
+  Contact (`/fr/contact`), liées dans le pied de page. L'éditeur et l'e-mail viennent de
+  `LEGAL_PUBLISHER` et `LEGAL_EMAIL`. La méthodologie décrit le calcul réel : à garder à jour.
 - `sitemap.xml` (pages et pays actifs, avec leurs versions linguistiques) et `robots.txt`.
 - Données structurées schema.org (site, fil d'Ariane, listes) et images d'aperçu générées
   par page (`/api/og`).
@@ -83,7 +90,7 @@ gaz lacrymogène, danger, rue bloquée), avec la taille de la foule et un lien v
 - Chaque signalement expire seul (1 à 3 h selon le type) ; chaque confirmation le prolonge de
   30 min, jusqu'au double de sa durée. Trois signalements d'abus le retirent.
 - 10 signalements par compte et par heure au plus ; un vote par compte et par signalement.
-- Stockés dans Redis (`lib/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
+- Stockés dans Redis (`lib/community/reports.ts`) : sans Redis, ils restent en mémoire d'une seule instance.
 
 ## Administration (`/fr/startup/moderate`)
 
@@ -113,7 +120,7 @@ calculé à chaque visite : « en vigueur jusqu'à… », « ce soir à partir d
 - Aucune source ouverte ne les recense en temps réel : les modérateurs (`ADMIN_EMAILS`) les
   saisissent sur la page même, à partir de l'arrêté officiel, dont le lien est obligatoire.
 - Un couvre-feu qui passe minuit (21:00 → 06:00) reste « en vigueur » au petit matin.
-- Les couvre-feux terminés restent affichés une semaine, puis sont effacés (`lib/curfews.ts`).
+- Les couvre-feux terminés restent affichés une semaine, puis sont effacés (`lib/community/curfews.ts`).
 
 ## Accueil en 3D
 
@@ -151,7 +158,7 @@ En préparation : masqué tant que `NEXT_PUBLIC_FEATURE_ANNOUNCEMENTS` ne vaut p
 Les utilisateurs connectés annoncent une manifestation à venir (titre, dates, point de
 rendez-vous placé sur une carte, organisateur, lien officiel, déclaration aux autorités).
 
-**Vérification de conformité** (`lib/compliance.ts`), lancée à chaque publication :
+**Vérification de conformité** (`lib/community/compliance.ts`), lancée à chaque publication :
 
 | Niveau | Effet | Exemples |
 |---|---|---|
@@ -167,7 +174,7 @@ rendez-vous placé sur une carte, organisateur, lien officiel, déclaration aux 
 
 ## Vidéos et lives
 
-Le panneau d'un lieu se termine par un carrousel de vidéos (`lib/videos.ts`), les lives d'abord :
+Le panneau d'un lieu se termine par un carrousel de vidéos (`lib/news/videos.ts`), les lives d'abord :
 
 | Source | Variable | Remarque |
 |---|---|---|

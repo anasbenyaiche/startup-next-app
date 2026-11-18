@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import Footer from "@/app/components/Footer";
 import { LEGAL_TITLES, LegalContent, type LegalLang } from "@/app/components/legal/LegalContent";
 import { getDictionary, localePath } from "@/lib/i18n";
-import { LEGAL_PAGES, LEGAL_UPDATED, legalInfo, type LegalPage } from "@/lib/legal";
-import { getLocale } from "@/lib/locale";
-import { pageMetadata } from "@/lib/seo";
+import { LEGAL_PAGES, LEGAL_UPDATED, legalInfo, type LegalPage } from "@/lib/content/legal";
+import { getLocale } from "@/lib/i18n/request";
+import { pageMetadata } from "@/lib/news/seo";
 
 type Props = { params: Promise<{ page: string }> };
 

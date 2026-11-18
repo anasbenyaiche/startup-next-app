@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { publish } from "@/app/actions/announcements";
-import type { Announcement } from "@/lib/announcements";
-import { LIMITS, type ComplianceReport } from "@/lib/compliance";
+import type { Announcement } from "@/lib/community/announcements";
+import { LIMITS, type ComplianceReport } from "@/lib/community/compliance";
 import { getDictionary, localePath, type Locale } from "@/lib/i18n";
 import type { LatLng } from "../leaflet";
 import { runAction } from "../staleDeployment";

@@ -2,31 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { isModerator } from "@/lib/admin";
-import { ANNOUNCEMENTS_ENABLED } from "@/lib/features";
+import { isModerator } from "@/lib/users/admin";
+import { ANNOUNCEMENTS_ENABLED } from "@/lib/core/features";
+import { runForUser, type ActionResult } from "@/lib/core/action";
 import {
-  AnnouncementError,
+  type AnnouncementError,
   deleteAnnouncement,
   flagAnnouncement,
   moderateAnnouncement,
   publishAnnouncement,
   type Announcement,
-} from "@/lib/announcements";
-import type { ComplianceReport } from "@/lib/compliance";
+} from "@/lib/community/announcements";
+import type { ComplianceReport } from "@/lib/community/compliance";
 
 // Les erreurs attendues reviennent comme des codes, traduits par le navigateur.
-export type AnnouncementResult<T> = { ok: true; value: T } | { ok: false; error: AnnouncementError["code"] | "signIn" | "consent" };
+export type AnnouncementResult<T> = ActionResult<T, AnnouncementError["code"] | "signIn" | "consent">;
 
-async function run<T>(fn: (userId: string) => Promise<T>): Promise<AnnouncementResult<T>> {
-  const id = (await auth())?.user?.id;
-  if (!id) return { ok: false, error: "signIn" };
-  try {
-    return { ok: true, value: await fn(id) };
-  } catch (err) {
-    if (err instanceof AnnouncementError) return { ok: false, error: err.code };
-    throw err;
-  }
-}
+const run = async <T>(fn: (userId: string) => Promise<T>): Promise<AnnouncementResult<T>> =>
+  runForUser<T, AnnouncementError["code"]>((await auth())?.user?.id, fn);
 
 export async function publish(
   input: Record<string, unknown>,

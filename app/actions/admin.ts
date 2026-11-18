@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { currentAccount } from "@/auth";
-import { deleteAccount, getAccountById, markVerified, updateAccount, type Account } from "@/lib/accounts";
-import { isEnvAdmin, logAction, roleOf } from "@/lib/admin";
-import { removeAlert } from "@/lib/alerts";
-import { deleteProfile } from "@/lib/profile";
-import { removeReport } from "@/lib/reports";
+import { deleteAccount, getAccountById, markVerified, updateAccount, type Account } from "@/lib/users/accounts";
+import { isEnvAdmin, logAction, roleOf } from "@/lib/users/admin";
+import { removeAlert } from "@/lib/community/alerts";
+import { deleteProfile } from "@/lib/users/profile";
+import { removeReport } from "@/lib/community/reports";
 
 // Actions de l'équipe. Le rôle est relu dans la base à chaque appel : un rôle retiré
 // ou un compte banni n'a plus aucun pouvoir, même avec une page encore ouverte.
