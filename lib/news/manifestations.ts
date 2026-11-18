@@ -9,7 +9,7 @@ const FETCH_CONCURRENCY = 12;
 // Préfixe de version : à changer quand la forme des données en cache change.
 const CACHE_VERSION = "v3";
 // Un créneau complet ne change plus : on le garde un peu plus que la plus longue
-// période affichée (72 h). Un créneau incomplet est réessayé au bout d'une heure.
+// période affichée (72 h). Un créneau incomplet est réessayé après 90 secondes.
 const SLOT_TTL = 4 * 24 * 3600;
 const INCOMPLETE_SLOT_TTL = 90;
 // Le résultat agrégé et le détail des lieux valent jusqu'au prochain fichier GDELT.
