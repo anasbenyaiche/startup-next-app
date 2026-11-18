@@ -7,7 +7,7 @@ import { getLocale } from "@/lib/i18n/request";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Logo from "./Logo";
 
-const linkClass = "whitespace-nowrap hover:text-bleu underline-offset-4 hover:underline";
+const linkClass = "whitespace-nowrap hover:text-bleu underline-offset-4 hover:underline focus-visible:outline-offset-4";
 const buttonClass =
   "whitespace-nowrap rounded-[3px] border-[1.5px] border-encre px-2 sm:px-3 py-1 text-sm sm:text-base font-semibold hover:bg-encre hover:text-papier transition-colors";
 
@@ -16,14 +16,14 @@ const Navbar = async () => {
   const locale = await getLocale();
   const t = getDictionary(locale).nav;
   return (
-    <header className="h-14 px-3 sm:px-6 bg-papier border-b-[1.5px] border-encre">
-      <nav className="h-full flex justify-between items-center gap-4">
-        <Link href={localePath(locale, "/")} aria-label={t.home}>
+    <header className="relative z-30 min-h-14 px-3 sm:px-6 bg-papier border-b-[1.5px] border-encre">
+      <nav className="min-h-14 flex justify-between items-center gap-2 sm:gap-4">
+        <Link href={localePath(locale, "/")} aria-label={t.home} className="shrink-0 focus-visible:outline-offset-4">
           <Logo />
         </Link>
-        <div className="flex items-center gap-2.5 sm:gap-6 text-[0.95rem]">
+        <div className="flex items-center gap-2 sm:gap-6 text-[0.95rem] min-w-0">
           <LanguageSwitcher locale={locale} label={t.language} />
-          <Link href={localePath(locale, "/manifestations")} className={linkClass}>
+          <Link href={localePath(locale, "/manifestations")} className={`${linkClass} font-semibold`}>
             {t.map}
           </Link>
           {CURFEWS_ENABLED && (
@@ -33,7 +33,7 @@ const Navbar = async () => {
           )}
           {session?.user?.id ? (
             <>
-              <Link href={localePath(locale, "/profil")} className={linkClass}>
+              <Link href={localePath(locale, "/profil")} className={`${linkClass} hidden sm:inline`}>
                 {getDictionary(locale).nav2.profile}
               </Link>
               <form
