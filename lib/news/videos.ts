@@ -126,7 +126,7 @@ export function parseVideoUrl(raw: string): {
       embedUrl: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1`,
     };
   }
-  const tiktok = host.endsWith("tiktok.com") ? url.pathname.match(/\/video\/(\d{8,25})/)?.[1] : undefined;
+  const tiktok = (host === "tiktok.com" || host.endsWith(".tiktok.com")) ? url.pathname.match(/\/video\/(\d{8,25})/)?.[1] : undefined;
   if (tiktok)
     return {
       platform: "tiktok",
