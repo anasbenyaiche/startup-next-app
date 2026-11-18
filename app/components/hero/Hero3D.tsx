@@ -79,7 +79,15 @@ export default function Hero3D({
     setReduceMotion(reduce);
     let disposed = false;
     let cleanup = () => {};
-    import("./scene").then(async ({ createHeroScene }) => {
+    // Charger Three.js seulement lorsque le hero approche de la zone visible.
+    // Les textes et liens restent accessibles pendant ce chargement.
+    let observer: IntersectionObserver | null = null;
+    let started = false;
+    const loadScene = async () => {
+      if (started || disposed) return;
+      started = true;
+      try {
+      const { createHeroScene } = await import("./scene");
       const s = await createHeroScene({ canvas: el, reduceMotion: reduce, landUrl: "/geo/land-dots.bin" });
       if (!s) return;
       if (disposed) return s.dispose();
@@ -100,9 +108,22 @@ export default function Hero3D({
       setPlaces((p) => p && [...p]);
       setAlerts((a) => [...a]);
       setCountries((c) => [...c]);
-    });
+      } catch (error) {
+        // Le contenu HTML reste utilisable même si WebGL est indisponible.
+        console.warn("[hero] scène 3D indisponible", error);
+      }
+    };
+    observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        observer?.disconnect();
+        observer = null;
+        void loadScene();
+      }
+    }, { rootMargin: "300px" });
+    observer.observe(section);
     return () => {
       disposed = true;
+      observer?.disconnect();
       cleanup();
     };
   }, []);
