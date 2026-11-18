@@ -6,6 +6,7 @@ import { LOCALES, countryName, countryPath, countrySlug, localePath, type Locale
 import { getCachedManifestations, getManifestations, type ManifestationsResult } from "@/lib/news/manifestations";
 
 import { SITE_URL } from "@/lib/core/site";
+import { INDEX_MIN_INCIDENTS } from "@/lib/content/pages";
 
 export { SITE_URL };
 
@@ -68,6 +69,11 @@ export function countryStats(data: ManifestationsResult | null): CountryStat[] {
     byCountry.set(p.country, c);
   }
   return [...byCountry.values()].filter((c) => c.fips in FIPS_TO_ISO).sort((a, b) => b.incidents - a.incidents);
+}
+
+// Pays dont la page est assez fournie pour être indexée et listée dans le sitemap.
+export function indexableCountries(data: ManifestationsResult | null): CountryStat[] {
+  return countryStats(data).filter((c) => c.incidents >= INDEX_MIN_INCIDENTS);
 }
 
 // Un code FIPS par pays ISO (plusieurs FIPS désignent parfois le même pays).

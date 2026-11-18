@@ -14,6 +14,7 @@ import {
   countryStats,
   fipsFromSlug,
   getSeoData,
+  indexableCountries,
   jsonLd,
   localePath,
   pageMetadata,
@@ -42,8 +43,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     description: stat ? t.countryDescription(name, stat.incidents) : t.countryNoData,
     ogTitle: t.countryTitle(name),
   });
-  // Sans manifestation récente, la page est trop pauvre pour être indexée.
-  return stat ? meta : { ...meta, robots: { index: false, follow: true } };
+  // Trop peu de manifestations récentes : la page reste visible mais n'est pas indexée.
+  const indexable = indexableCountries(data).some((c) => c.fips === fips);
+  return indexable ? meta : { ...meta, robots: { index: false, follow: true } };
 }
 
 export default async function CountryPage(props: Props) {

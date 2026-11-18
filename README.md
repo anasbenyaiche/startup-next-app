@@ -69,7 +69,11 @@ reprend là où la précédente s'est arrêtée.
   dans les autres langues (`hreflang`) et son adresse canonique.
 - **Pages pays indexables**, rendues côté serveur avec les chiffres du moment :
   `/fr/pays/france`, `/en/country/france`, `/de/land/frankreich`… et une page qui les liste
-  (`/fr/pays`). Un pays sans manifestation récente est marqué `noindex`.
+  (`/fr/pays`). Un pays avec moins de 5 manifestations sur 24 h (`INDEX_MIN_INCIDENTS`,
+  `lib/content/pages.ts`) est marqué `noindex` et sort du sitemap : pas de pages trop minces.
+- **Pages de confiance** : À propos (`/fr/a-propos`), Méthodologie (`/fr/methodologie`) et
+  Contact (`/fr/contact`), liées dans le pied de page. L'éditeur et l'e-mail viennent de
+  `LEGAL_PUBLISHER` et `LEGAL_EMAIL`. La méthodologie décrit le calcul réel : à garder à jour.
 - `sitemap.xml` (pages et pays actifs, avec leurs versions linguistiques) et `robots.txt`.
 - Données structurées schema.org (site, fil d'Ariane, listes) et images d'aperçu générées
   par page (`/api/og`).

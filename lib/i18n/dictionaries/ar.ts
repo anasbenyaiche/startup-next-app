@@ -215,6 +215,9 @@ export const ar: Dictionary = {
     reliabilityShort: (score) => `الموثوقية ${score}/100`,
   },
   legal: {
+    about: "من نحن",
+    methodology: "المنهجية",
+    contact: "اتصل بنا",
     notice: "الإشعار القانوني",
     privacy: "الخصوصية",
     cookies: "ملفات تعريف الارتباط",

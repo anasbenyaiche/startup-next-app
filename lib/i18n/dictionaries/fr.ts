@@ -231,6 +231,9 @@ export const fr = {
     reliabilityShort: (score: number) => `fiabilité ${score}/100`,
   },
   legal: {
+    about: "À propos",
+    methodology: "Méthodologie",
+    contact: "Contact",
     notice: "Mentions légales",
     privacy: "Confidentialité",
     cookies: "Cookies",

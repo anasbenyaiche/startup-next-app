@@ -219,6 +219,9 @@ export const en: Dictionary = {
     reliabilityShort: (score) => `reliability ${score}/100`,
   },
   legal: {
+    about: "About",
+    methodology: "Methodology",
+    contact: "Contact",
     notice: "Legal notice",
     privacy: "Privacy",
     cookies: "Cookies",

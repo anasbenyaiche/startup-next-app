@@ -220,6 +220,9 @@ export const de: Dictionary = {
     reliabilityShort: (score) => `Verlässlichkeit ${score}/100`,
   },
   legal: {
+    about: "Über uns",
+    methodology: "Methodik",
+    contact: "Kontakt",
     notice: "Impressum",
     privacy: "Datenschutz",
     cookies: "Cookies",

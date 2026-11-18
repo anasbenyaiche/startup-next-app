@@ -25,6 +25,15 @@ export default function Footer({ locale }: { locale: Locale }) {
               {t.curfew.nav}
             </Link>
           )}
+          <Link href={localePath(locale, "/a-propos")} className={link}>
+            {t.legal.about}
+          </Link>
+          <Link href={localePath(locale, "/methodologie")} className={link}>
+            {t.legal.methodology}
+          </Link>
+          <Link href={localePath(locale, "/contact")} className={link}>
+            {t.legal.contact}
+          </Link>
           <Link href={localePath(locale, "/legal/mentions")} className={link}>
             {t.legal.notice}
           </Link>
