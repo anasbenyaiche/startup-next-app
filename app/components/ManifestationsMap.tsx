@@ -130,6 +130,7 @@ export default function ManifestationsMap({
   const draftMarker = useRef<LMarker | null>(null);
 
   const [mapReady, setMapReady] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<"map" | "filters">("map");
   // Leaflet calcule sa taille à l'initialisation. Après réaffichage d'un
   // panneau mobile masqué, il faut recalculer le viewport et les tuiles.
   useEffect(() => {
@@ -137,7 +138,6 @@ export default function ManifestationsMap({
     const frame = requestAnimationFrame(() => map.current?.invalidateSize({ pan: false }));
     return () => cancelAnimationFrame(frame);
   }, [mobilePanel, mapReady]);
-  const [mobilePanel, setMobilePanel] = useState<"map" | "filters">("map");
   const [search, setSearch] = useState("");
   const searchId = "manifestations-place-search";
   const [hours, setHours] = useState(profile?.defaultHours ?? 24);
