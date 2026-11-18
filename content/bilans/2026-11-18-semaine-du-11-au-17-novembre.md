@@ -7,11 +7,11 @@ pays: CZ, PT, FR, DE, IT, BE
 brouillon: non
 ---
 
-Les mobilisations ont marqué plusieurs régions de France, d'Italie, de la République tchèque, d'Allemagne, de la Belgique, du Portugal .
+Les mobilisations ont marqué plusieurs régions de France, d'Italie, de la République tchèque, d'Allemagne, de Belgique et du Portugal.
 
 ## Tchéquie : la plus grande manifestation depuis 1989
 
-Le dimanche 15 novembre, la plaine de Letná à Prague a accueilli entre 350 000 et 450 000 personnes, selon les communiqués de presse.
+Le dimanche 15 novembre, la plaine de Letná à Prague a accueilli entre 350 000 et 450 000 personnes, selon les estimations rapportées par la presse.
 
 Le point de tension : un projet du gouvernement d'Andrej Babiš qui viserait à supprimer la redevance payée par les ménages pour la télévision et la radio publiques. Ces médias seraient alors financés directement par le budget de l'État. Les opposants craignent que cette mesure mette en péril l'indépendance éditoriale des médias publics, surtout que la subvention proposée serait bien inférieure aux revenus actuels. Le slogan « Plus jamais 4 h 36 » évoque l'heure du vote nocturne en première lecture, en octobre. Les employés des deux médias publics avaient déjà fait grève le 3 novembre.
 
@@ -19,7 +19,7 @@ Ce que nous suivons : la suite de l'examen du texte à la Chambre des députés,
 
 ## Portugal : le logement mobilise dans plus de 30 villes
 
-Samedi 14 novembre, des dizaines de milliers de personnes ont manifesté à Lisbonne, Porto, Faro, Coimbra, Braga et dans une trentaine d'autres villes. C'était la plus grande journée nationale depuis le début du mouvement. L'appel venait de la plateforme **Casa Para Viver**, qui regroupe une centaine d'associations. Leur objectif : la réforme des baux votée par le Parlement, qui facilite les contrats en faveur des propriétaires et accélère les expulsions.
+Samedi 14 novembre, des dizaines de milliers de personnes ont manifesté à Lisbonne, Porto, Faro, Coimbra, Braga et dans une trentaine d'autres villes. C'était la plus grande journée nationale depuis le début du mouvement. L'appel venait de la plateforme **Casa Para Viver**, qui regroupe une centaine d'associations. Leur cible : la réforme des baux votée par le Parlement, qui facilite les contrats en faveur des propriétaires et accélère les expulsions.
 
 Le contexte explique l’ampleur de la mobilisation. Selon le gouvernement lui-même, les loyers ont augmenté de 68 % depuis 2020. Le rapport entre prix des logements et revenus a progressé plus vite au Portugal que dans tout autre pays de l’Union européenne entre 2015 et 2025.
 
