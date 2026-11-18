@@ -4,6 +4,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import DeleteMyData from "@/app/components/profile/DeleteMyData";
 import FollowedLists from "@/app/components/profile/FollowedLists";
+import FollowedActivity from "@/app/components/profile/FollowedActivity";
 import PreferencesForm from "@/app/components/profile/PreferencesForm";
 import { FIPS_TO_ISO, isoToFips } from "@/lib/geo/countries";
 import { countryName, getDictionary, localePath, type Locale } from "@/lib/i18n";
@@ -79,6 +80,12 @@ export default async function ProfilePage() {
         </Link>
       )}
 
+      <FollowedActivity
+        locale={locale}
+        countries={profile.followedCountries}
+        places={profile.followedPlaces}
+        names={names}
+      />
       <FollowedLists
         locale={locale}
         countries={profile.followedCountries}
