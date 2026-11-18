@@ -1,12 +1,14 @@
 import Link from "next/link";
 import CookieSettingsButton from "./CookieSettingsButton";
+import { listBilans } from "@/lib/content/editorial";
 import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { COUNTRY_SEGMENT, LOCALES, LOCALE_NAMES, getDictionary, localePath, type Locale } from "@/lib/i18n";
 
 // Pied de page : liens vers les pages principales et vers chaque langue, utiles
 // aux visiteurs comme aux moteurs de recherche pour découvrir toutes les versions.
-export default function Footer({ locale }: { locale: Locale }) {
+export default async function Footer({ locale }: { locale: Locale }) {
   const t = getDictionary(locale);
+  const hasBilans = (await listBilans()).length > 0;
   const link = "hover:text-bleu hover:underline underline-offset-4";
   return (
     <footer className="border-t-[1.5px] border-encre px-4 sm:px-6 py-8 text-sm text-gris">
@@ -24,6 +26,11 @@ export default function Footer({ locale }: { locale: Locale }) {
           {CURFEWS_ENABLED && (
             <Link href={localePath(locale, "/couvre-feu")} className={link}>
               {t.curfew.nav}
+            </Link>
+          )}
+          {hasBilans && (
+            <Link href={localePath(locale, "/bilans")} className={link}>
+              {t.bilans.title}
             </Link>
           )}
           <Link href={localePath(locale, "/a-propos")} className={link}>

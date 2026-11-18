@@ -231,3 +231,46 @@ body {
 .sos-choice-injured {
   background: #ffe0e4;
 }
+
+/* Texte éditorial écrit en Markdown (bilans, contexte des pays). */
+.editorial {
+  line-height: 1.7;
+  color: rgb(var(--encre) / 0.9);
+}
+.editorial > * + * {
+  margin-top: 0.9rem;
+}
+.editorial h2 {
+  margin-top: 2.2rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgb(var(--encre));
+}
+.editorial h3 {
+  margin-top: 1.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.editorial ul,
+.editorial ol {
+  padding-inline-start: 1.5rem;
+}
+.editorial ul {
+  list-style: disc;
+}
+.editorial ol {
+  list-style: decimal;
+}
+.editorial li + li {
+  margin-top: 0.35rem;
+}
+.editorial a {
+  color: rgb(var(--bleu));
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.editorial blockquote {
+  border-inline-start: 3px solid rgb(var(--encre) / 0.25);
+  padding-inline-start: 1rem;
+  color: rgb(var(--gris));
+}

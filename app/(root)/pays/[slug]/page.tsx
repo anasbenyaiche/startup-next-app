@@ -6,6 +6,7 @@ import { withNode } from "@/app/components/withNode";
 import { notFound, permanentRedirect } from "next/navigation";
 import { FAMILY_COLORS, FAMILY_ORDER, TYPE_FAMILY } from "@/app/components/map-colors";
 import { COUNTRY_SEGMENT, countrySlug, getDictionary, plural } from "@/lib/i18n";
+import { getCountryText, listBilans } from "@/lib/content/editorial";
 import { getLocale } from "@/lib/i18n/request";
 import {
   SITE_URL,
@@ -44,7 +45,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     ogTitle: t.countryTitle(name),
   });
   // Trop peu de manifestations récentes : la page reste visible mais n'est pas indexée.
-  const indexable = indexableCountries(data).some((c) => c.fips === fips);
+  // Un texte écrit à la main suffit à rendre la page utile, même un jour calme.
+  const indexable = indexableCountries(data).some((c) => c.fips === fips) || !!(await getCountryText(fips, locale));
   return indexable ? meta : { ...meta, robots: { index: false, follow: true } };
 }
 
@@ -73,6 +75,9 @@ export default async function CountryPage(props: Props) {
     (x) => x.n > 0,
   );
   const others = stats.filter((c) => c.fips !== fips).slice(0, 12);
+  const [context, bilans] = await Promise.all([getCountryText(fips, locale), listBilans()]);
+  const related = bilans.filter((b) => b.countries.includes(fips)).slice(0, 3);
+  const date = (d: string) => new Date(d).toLocaleDateString(locale, { dateStyle: "long", timeZone: "UTC" });
   const mapHref = localePath(locale, `/manifestations?pays=${fips}`);
   const hubHref = localePath(locale, `/${COUNTRY_SEGMENT[locale]}`);
   const n = (v: number) => v.toLocaleString(locale);
@@ -152,6 +157,37 @@ export default async function CountryPage(props: Props) {
             {t.openMap}
           </Link>
         </header>
+
+        {context && (
+          <section aria-labelledby="contexte">
+            <h2 id="contexte" className="text-xl font-bold mb-1">
+              {dict.bilans.context}
+            </h2>
+            {context.updated && <p className="text-sm text-gris">{dict.bilans.contextUpdated(date(context.updated))}</p>}
+            <div className="editorial mt-3" dangerouslySetInnerHTML={{ __html: context.html }} />
+          </section>
+        )}
+
+        {related.length > 0 && (
+          <section aria-labelledby="bilans">
+            <h2 id="bilans" className="text-xl font-bold mb-3">
+              {dict.bilans.recent}
+            </h2>
+            <ul className="space-y-3">
+              {related.map((b) => (
+                <li key={b.slug} lang={b.lang}>
+                  <Link
+                    href={localePath(b.lang, `/bilans/${b.slug}`)}
+                    className="font-semibold hover:text-bleu hover:underline underline-offset-4"
+                  >
+                    {b.title}
+                  </Link>
+                  <span className="text-sm text-gris"> · {date(b.date)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {families.length > 0 && (
           <section aria-labelledby="types">

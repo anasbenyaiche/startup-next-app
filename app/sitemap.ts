@@ -2,6 +2,7 @@ import { CURFEWS_ENABLED } from "@/lib/core/features";
 import type { MetadataRoute } from "next";
 import { COUNTRY_SEGMENT, LOCALES, localePath, type Locale } from "@/lib/i18n";
 import { LEGAL_PAGES, LEGAL_UPDATED } from "@/lib/content/legal";
+import { countriesWithText, listBilans } from "@/lib/content/editorial";
 import { INFO_PAGES, INFO_UPDATED } from "@/lib/content/pages";
 import { SITE_URL, countryPath, getSeoData, indexableCountries } from "@/lib/news/seo";
 
@@ -20,8 +21,10 @@ function entry(path: (l: Locale) => string, lastModified: Date, priority: number
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const data = await getSeoData(24);
+  const [data, bilans, texts] = await Promise.all([getSeoData(24), listBilans(), countriesWithText()]);
   const updated = data ? new Date(data.updatedAt) : new Date();
+  const indexable = indexableCountries(data);
+  const busy = new Set(indexable.map((c) => c.fips));
   return [
     ...entry((l) => localePath(l, "/"), updated, 1),
     ...entry((l) => localePath(l, "/manifestations"), updated, 0.9),
@@ -30,6 +33,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...INFO_PAGES.flatMap((page) => entry((l) => localePath(l, `/${page}`), new Date(INFO_UPDATED), 0.5)),
     ...LEGAL_PAGES.flatMap((page) => entry((l) => localePath(l, `/legal/${page}`), new Date(LEGAL_UPDATED), 0.2)),
     // Seuls les pays assez fournis (INDEX_MIN_INCIDENTS) : les autres pages sont trop minces.
-    ...indexableCountries(data).flatMap((c) => entry((l) => countryPath(l, c.fips), updated, 0.7)),
+    ...indexable.flatMap((c) => entry((l) => countryPath(l, c.fips), updated, 0.7)),
+    // Pays calmes mais avec un texte écrit à la main : seulement dans la langue du texte.
+    ...texts
+      .filter((c) => !busy.has(c.fips))
+      .map((c) => ({ url: `${SITE_URL}${countryPath(c.locale, c.fips)}`, lastModified: updated, priority: 0.6 })),
+    // Bilans de la semaine : la liste dans chaque langue, chaque bilan dans sa langue.
+    ...(bilans.length ? entry((l) => localePath(l, "/bilans"), new Date(bilans[0].date), 0.7) : []),
+    ...bilans.map((b) => ({
+      url: `${SITE_URL}${localePath(b.lang, `/bilans/${b.slug}`)}`,
+      lastModified: new Date(b.date),
+      priority: 0.7,
+    })),
   ];
 }
