@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { saveActivityAlertPreferences } from "@/app/actions/profile";
 import { runAction } from "@/app/components/staleDeployment";
-import { ALERT_THRESHOLDS, type ActivityAlertSettings } from "@/lib/users/profile";
+import type { ActivityAlertSettings } from "@/lib/users/profile";
+
+const ALERT_THRESHOLDS = [5, 10, 20, 50] as const;
 import type { Locale } from "@/lib/i18n";
 
 const translations = {
