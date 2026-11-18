@@ -418,6 +418,7 @@ export default function ManifestationsMap({
   }, [reporting]);
 
   const openReport = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setReportNotice(null);
     setSelectedAnnouncement(null);
@@ -425,6 +426,7 @@ export default function ManifestationsMap({
   };
 
   const openAnnouncement = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setSelectedReport(null);
     setSelectedAnnouncement(id);
@@ -433,6 +435,7 @@ export default function ManifestationsMap({
   const currentAnnouncement = announcements.find((a) => a.id === selectedAnnouncement) ?? null;
 
   const openAlert = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setSelectedReport(null);
     setSelectedAnnouncement(null);
@@ -449,6 +452,7 @@ export default function ManifestationsMap({
   };
 
   const alertSent = (a: SosAlert) => {
+    setMobilePanel("filters");
     setAlerts((prev) => [a, ...prev.filter((x) => x.id !== a.id)]);
     setSelectedAlert(a.id);
     map.current?.setView([a.lat, a.lng], Math.max(map.current.getZoom(), 15));
@@ -468,6 +472,7 @@ export default function ManifestationsMap({
   const signIn = () => startFollow(() => signInToFollow(window.location.pathname + window.location.search));
 
   const startReport = () => {
+    setMobilePanel("filters");
     if (!profile) return signIn();
     setReportNotice(null);
     setSelectedReport(null);
@@ -501,6 +506,7 @@ export default function ManifestationsMap({
   };
 
   const published = (report: PublicReport) => {
+    setMobilePanel("filters");
     setReports((prev) => [report, ...prev.filter((r) => r.id !== report.id)]);
     setReporting(false);
     setDraft(null);
@@ -522,6 +528,7 @@ export default function ManifestationsMap({
 
   const selectCountry = (code: string) => {
     setMobilePanel("map");
+    setSearch("");
     setCountry(code);
     updateUrl({ pays: code || null });
     const c = countries.find((x) => x.code === code);
