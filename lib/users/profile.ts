@@ -8,6 +8,8 @@ import { storeDelete, storeGet, storeSet } from "@/lib/core/store";
 // sensibles au sens du RGPD) : ils ne sont ni publiés, ni utilisés pour la publicité.
 
 export type FollowedPlace = { key: string; label: string; country: string };
+export type ActivityAlertSettings = { enabled: boolean; minIncidents6h: number; consentAt: string | null };
+export const ALERT_THRESHOLDS = [5, 10, 20, 50] as const;
 
 export type Profile = {
   followedCountries: string[];
@@ -16,6 +18,7 @@ export type Profile = {
   defaultCountry: string | null;
   cityOnly: boolean;
   multiSource: boolean;
+  activityAlerts: ActivityAlertSettings;
   // Date du consentement explicite à l'enregistrement des suivis (article 9 du RGPD),
   // demandé au premier suivi ; null tant qu'il n'a pas été donné.
   followsConsentAt: string | null;
@@ -36,6 +39,7 @@ export function emptyProfile(): Profile {
     defaultCountry: null,
     cityOnly: false,
     multiSource: false,
+    activityAlerts: { enabled: false, minIncidents6h: 10, consentAt: null },
     followsConsentAt: null,
     createdAt: now,
     updatedAt: now,
@@ -63,6 +67,12 @@ export async function saveProfile(userId: string, profile: Profile): Promise<Pro
     defaultCountry: isCountryCode(profile.defaultCountry) ? profile.defaultCountry : null,
     cityOnly: Boolean(profile.cityOnly),
     multiSource: Boolean(profile.multiSource),
+    activityAlerts: {
+      enabled: Boolean(profile.activityAlerts?.enabled && profile.activityAlerts?.consentAt),
+      minIncidents6h: ALERT_THRESHOLDS.includes(profile.activityAlerts?.minIncidents6h as (typeof ALERT_THRESHOLDS)[number])
+        ? profile.activityAlerts.minIncidents6h : 10,
+      consentAt: typeof profile.activityAlerts?.consentAt === "string" ? profile.activityAlerts.consentAt : null,
+    },
     followsConsentAt: typeof profile.followsConsentAt === "string" ? profile.followsConsentAt : null,
     createdAt: profile.createdAt,
     updatedAt: new Date().toISOString(),
