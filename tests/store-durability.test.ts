@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/core/cache", () => ({ readyRedis: vi.fn(async () => null) }));
 import { storeGet, storeSet } from "@/lib/core/store";
 
 afterEach(() => vi.unstubAllEnvs());
