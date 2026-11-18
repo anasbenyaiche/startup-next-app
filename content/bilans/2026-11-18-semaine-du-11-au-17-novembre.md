@@ -7,7 +7,7 @@ pays: CZ, PT, FR, DE, IT, BE
 brouillon: non
 ---
 
-Les mobilisations ont marqué plusieurs régions de France, d'Italie, de la République tchèque, d'Allemagne, de la Belgique, du Portugal et du Canada.
+Les mobilisations ont marqué plusieurs régions de France, d'Italie, de la République tchèque, d'Allemagne, de la Belgique, du Portugal .
 
 ## Tchéquie : la plus grande manifestation depuis 1989
 
