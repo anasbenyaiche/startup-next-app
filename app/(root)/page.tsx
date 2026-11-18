@@ -86,19 +86,19 @@ export default async function Home() {
           visitorFips={visitorFips}
         />
 
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 pt-16 grid gap-12 md:grid-cols-[1.1fr_1fr] md:gap-16">
-          <section>
-            <p className="text-xl leading-relaxed max-w-[34ch]">{t.intro}</p>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20 grid gap-10 md:grid-cols-[1.1fr_1fr] md:gap-16">
+          <section className="rounded-[4px] border-[1.5px] border-encre/15 bg-white/40 p-5 sm:p-8 shadow-[5px_5px_0_rgb(var(--encre)/0.08)]">
+            <p className="text-xl sm:text-2xl leading-relaxed max-w-[34ch]">{t.intro}</p>
             <Link
               href={localePath(locale, "/manifestations")}
-              className="mt-8 inline-block rounded-[3px] border-[1.5px] border-encre bg-encre px-5 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_rgb(var(--rose))] hover:bg-bleu hover:border-bleu"
+              className="mt-8 inline-flex min-h-12 items-center justify-center rounded-[3px] border-[1.5px] border-encre bg-encre px-6 py-3 text-lg font-semibold text-papier shadow-[4px_4px_0_rgb(var(--rose))] transition-transform hover:-translate-y-0.5 hover:bg-bleu hover:border-bleu focus-visible:outline-offset-4"
             >
               {t.cta}
             </Link>
             <p className="mt-10 text-sm text-gris max-w-[46ch] leading-relaxed">{t.sourceNote}</p>
           </section>
 
-          <section aria-labelledby="en-direct">
+          <section aria-labelledby="en-direct" className="rounded-[4px] border-[1.5px] border-encre/15 bg-papier-fonce/60 p-5 sm:p-8">
             <h2 id="en-direct" className="flex items-center gap-2.5 text-xl font-bold mb-3">
               <span className="live-dot" aria-hidden="true" />
               {t.liveTitle}

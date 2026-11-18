@@ -130,6 +130,16 @@ export default function ManifestationsMap({
   const draftMarker = useRef<LMarker | null>(null);
 
   const [mapReady, setMapReady] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<"map" | "filters">("map");
+  // Leaflet calcule sa taille à l'initialisation. Après réaffichage d'un
+  // panneau mobile masqué, il faut recalculer le viewport et les tuiles.
+  useEffect(() => {
+    if (mobilePanel !== "map" || !mapReady) return;
+    const frame = requestAnimationFrame(() => map.current?.invalidateSize({ pan: false }));
+    return () => cancelAnimationFrame(frame);
+  }, [mobilePanel, mapReady]);
+  const [search, setSearch] = useState("");
+  const searchId = "manifestations-place-search";
   const [hours, setHours] = useState(profile?.defaultHours ?? 24);
   const [data, setData] = useState<ManifestationsResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -304,6 +314,7 @@ export default function ManifestationsMap({
 
   const selectPlace = (key: string | null) => {
     setSelected(key);
+    if (key) setMobilePanel("filters");
     updateUrl({ lieu: key });
   };
 
@@ -414,6 +425,7 @@ export default function ManifestationsMap({
   }, [reporting]);
 
   const openReport = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setReportNotice(null);
     setSelectedAnnouncement(null);
@@ -421,6 +433,7 @@ export default function ManifestationsMap({
   };
 
   const openAnnouncement = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setSelectedReport(null);
     setSelectedAnnouncement(id);
@@ -429,6 +442,7 @@ export default function ManifestationsMap({
   const currentAnnouncement = announcements.find((a) => a.id === selectedAnnouncement) ?? null;
 
   const openAlert = (id: string) => {
+    setMobilePanel("filters");
     setReporting(false);
     setSelectedReport(null);
     setSelectedAnnouncement(null);
@@ -445,6 +459,7 @@ export default function ManifestationsMap({
   };
 
   const alertSent = (a: SosAlert) => {
+    setMobilePanel("filters");
     setAlerts((prev) => [a, ...prev.filter((x) => x.id !== a.id)]);
     setSelectedAlert(a.id);
     map.current?.setView([a.lat, a.lng], Math.max(map.current.getZoom(), 15));
@@ -464,6 +479,7 @@ export default function ManifestationsMap({
   const signIn = () => startFollow(() => signInToFollow(window.location.pathname + window.location.search));
 
   const startReport = () => {
+    setMobilePanel("filters");
     if (!profile) return signIn();
     setReportNotice(null);
     setSelectedReport(null);
@@ -497,6 +513,7 @@ export default function ManifestationsMap({
   };
 
   const published = (report: PublicReport) => {
+    setMobilePanel("filters");
     setReports((prev) => [report, ...prev.filter((r) => r.id !== report.id)]);
     setReporting(false);
     setDraft(null);
@@ -517,6 +534,8 @@ export default function ManifestationsMap({
   const currentReport = reports.find((r) => r.id === selectedReport) ?? null;
 
   const selectCountry = (code: string) => {
+    setMobilePanel("map");
+    setSearch("");
     setCountry(code);
     updateUrl({ pays: code || null });
     const c = countries.find((x) => x.code === code);
@@ -534,6 +553,7 @@ export default function ManifestationsMap({
   }, [mapReady, countries]);
 
   const openPlace = (p: Place) => {
+    setMobilePanel("filters");
     map.current?.setView([p.lat, p.lng], Math.max(map.current.getZoom(), p.precision === "city" ? 9 : 6));
     selectPlace(p.key);
   };
@@ -576,6 +596,20 @@ export default function ManifestationsMap({
   const followedCountryRows = countries.filter((c) => followedCountries.includes(c.code));
 
   const total = places.reduce((n, p) => n + p.incidents, 0);
+  const normalizedSearch = search.trim().toLocaleLowerCase(locale);
+  const matchingPlaces = normalizedSearch
+    ? places.filter((p) =>
+        [p.location, p.countryName, p.country].some((part) => part.toLocaleLowerCase(locale).includes(normalizedSearch)),
+      )
+    : places;
+  const mobileText = ({
+    fr: { map: "Carte", filters: "Filtres et lieux", search: "Rechercher une ville ou un lieu", results: "Résultats" },
+    en: { map: "Map", filters: "Filters and places", search: "Search for a city or place", results: "Results" },
+    es: { map: "Mapa", filters: "Filtros y lugares", search: "Buscar una ciudad o lugar", results: "Resultados" },
+    pt: { map: "Mapa", filters: "Filtros e locais", search: "Pesquisar cidade ou local", results: "Resultados" },
+    de: { map: "Karte", filters: "Filter und Orte", search: "Stadt oder Ort suchen", results: "Ergebnisse" },
+    ar: { map: "الخريطة", filters: "الفلاتر والأماكن", search: "ابحث عن مدينة أو مكان", results: "النتائج" },
+  } as const)[locale];
   const listButton =
     "w-full text-start flex items-center gap-2.5 rounded-[3px] px-1.5 py-1 hover:bg-papier-fonce hover:text-bleu";
   const dot = (p: Place) => (
@@ -587,7 +621,20 @@ export default function ManifestationsMap({
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)]">
-      <aside className="md:w-[23rem] w-full md:h-full max-h-[52vh] md:max-h-none overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5">
+      <div className="flex shrink-0 border-b-[1.5px] border-encre bg-papier p-2 gap-2 md:hidden" role="group" aria-label={mobileText.filters}>
+        {(["map", "filters"] as const).map((panel) => (
+          <button
+            key={panel}
+            type="button"
+            onClick={() => setMobilePanel(panel)}
+            aria-pressed={mobilePanel === panel}
+            className={`min-h-11 flex-1 rounded-[3px] border-[1.5px] border-encre px-3 py-2 text-sm font-bold focus-visible:outline-offset-2 ${mobilePanel === panel ? "bg-encre text-papier" : "bg-papier text-encre"}`}
+          >
+            {mobileText[panel]}
+          </button>
+        ))}
+      </div>
+      <aside id="manifestations-filters" className={`${mobilePanel === "filters" ? "block" : "hidden"} md:block md:w-[23rem] w-full md:h-full flex-1 md:flex-none min-h-0 overflow-y-auto border-b-[1.5px] md:border-b-0 md:border-e-[1.5px] border-encre bg-papier p-5 space-y-5`}>
         {currentAlert ? (
           <SosDetails
             alert={currentAlert}
@@ -846,6 +893,24 @@ export default function ManifestationsMap({
               </p>
             </fieldset>
 
+            <div className="space-y-2">
+              <label htmlFor={searchId} className="block text-sm font-semibold">{mobileText.search}</label>
+              <input
+                id={searchId}
+                type="search"
+                autoComplete="off"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={mobileText.search}
+                className="w-full min-h-11 rounded-[3px] border-[1.5px] border-encre bg-papier px-3 py-2 focus-visible:outline-offset-2"
+              />
+              {normalizedSearch && (
+                <p className="text-sm text-gris" role="status">
+                  {mobileText.results}: {matchingPlaces.length.toLocaleString(locale)}
+                </p>
+              )}
+            </div>
+
             <div className="border-t-[1.5px] border-encre pt-4">
               {error ? (
                 <p className="text-[#c0262d]">{t.map.feedDown(error)}</p>
@@ -936,7 +1001,7 @@ export default function ManifestationsMap({
                   </button>
                 </div>
                 <ol>
-                  {places.slice(0, 50).map((p) => (
+                  {matchingPlaces.slice(0, 50).map((p) => (
                     <li key={p.key}>
                       <button onClick={() => openPlace(p)} className={listButton}>
                         {dot(p)}
@@ -951,7 +1016,7 @@ export default function ManifestationsMap({
           </>
         )}
       </aside>
-      <div className="relative flex-1 min-h-[48vh]">
+      <div className={`${mobilePanel === "map" ? "block" : "hidden"} md:block relative flex-1 min-h-0`}>
         {/* Leaflet ne gère pas le sens droite-à-gauche : la carte reste en LTR, et le bouton à droite (le zoom est à gauche). */}
         {/* z-0 contient les calques de Leaflet ; les boutons posés sur la carte restent au-dessus. */}
         <div ref={mapEl} dir="ltr" className="absolute inset-0 z-0" />
