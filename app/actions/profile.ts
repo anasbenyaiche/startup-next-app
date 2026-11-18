@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth, currentAccount, signOut } from "@/auth";
 import { goToSignIn } from "@/app/actions/account";
 import { deleteAccount } from "@/lib/users/accounts";
-import { deleteProfile, getProfile, isCountryCode, saveProfile, type Profile } from "@/lib/users/profile";
+import { ALERT_THRESHOLDS, deleteProfile, getProfile, isCountryCode, saveProfile, type Profile } from "@/lib/users/profile";
 
 // Actions serveur du profil. L'utilisateur est toujours relu depuis la session :
 // le navigateur ne peut agir que sur son propre profil.
@@ -61,6 +61,32 @@ export async function savePreferences(prefs: Pick<Profile, "defaultHours" | "def
   const saved = await saveProfile(userId, { ...profile, ...prefs });
   revalidatePath("/profil");
   revalidatePath("/manifestations");
+  return saved;
+}
+
+// Préférences de seuil : aucune notification n'est envoyée par cette action.
+// L'activation nécessite un consentement distinct du simple suivi de lieux.
+export async function saveActivityAlertPreferences(input: {
+  enabled: boolean;
+  minIncidents6h: number;
+  consent: boolean;
+}): Promise<Profile> {
+  const userId = await requireUserId();
+  if (!ALERT_THRESHOLDS.includes(input.minIncidents6h as (typeof ALERT_THRESHOLDS)[number])) {
+    throw new Error("Seuil d'alerte invalide");
+  }
+  const profile = await getProfile(userId);
+  if (input.enabled && !input.consent && !profile.activityAlerts.consentAt) {
+    throw new Error("Consentement explicite requis pour les alertes");
+  }
+  const consentAt = input.enabled
+    ? (profile.activityAlerts.consentAt ?? new Date().toISOString())
+    : null;
+  const saved = await saveProfile(userId, {
+    ...profile,
+    activityAlerts: { enabled: Boolean(input.enabled), minIncidents6h: input.minIncidents6h, consentAt },
+  });
+  revalidatePath("/profil");
   return saved;
 }
 
