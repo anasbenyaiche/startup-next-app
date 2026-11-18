@@ -29,8 +29,9 @@ export function pageMetadata({
   ogTitle?: string;
 }): Metadata {
   const languages: Record<string, string> = Object.fromEntries(LOCALES.map((l) => [l, path(l)]));
-  // Version par défaut : l'adresse sans langue, qui redirige selon le visiteur.
-  languages["x-default"] = path(locale).replace(/^\/[a-z]{2}/, "") || "/";
+  // Version par défaut : l'anglais. Pas l'adresse sans langue : elle redirige en 307
+  // selon le visiteur, et Google l'indexait comme une page à part (doublons).
+  languages["x-default"] = path("en");
   const image = `/api/og?lang=${locale}&title=${encodeURIComponent(ogTitle ?? title)}`;
   return {
     title: { absolute: title },

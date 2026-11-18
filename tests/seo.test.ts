@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/server", () => ({ after: () => undefined }));
 
-const { countryStats, indexableCountries } = await import("@/lib/news/seo");
+const { countryStats, indexableCountries, pageMetadata } = await import("@/lib/news/seo");
 const { INDEX_MIN_INCIDENTS } = await import("@/lib/content/pages");
 import type { ManifestationPlace, ManifestationsResult } from "@/lib/news/manifestations";
 
@@ -27,5 +27,19 @@ describe("indexableCountries", () => {
     expect(countryStats(data).map((c) => c.fips)).toEqual(["FR", "GM", "PO"]);
     expect(indexableCountries(data).map((c) => c.fips)).toEqual(["FR"]);
     expect(indexableCountries(null)).toEqual([]);
+  });
+});
+
+describe("pageMetadata", () => {
+  it("fait pointer x-default vers la version anglaise, jamais vers une adresse sans langue", () => {
+    const meta = pageMetadata({
+      locale: "fr",
+      path: (l) => `/${l}/${l === "fr" ? "pays" : "country"}/canada`,
+      title: "t",
+      description: "d",
+    });
+    const languages = meta.alternates?.languages as Record<string, string>;
+    expect(languages["x-default"]).toBe("/en/country/canada");
+    expect(meta.alternates?.canonical).toBe("/fr/pays/canada");
   });
 });
