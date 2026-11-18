@@ -13,7 +13,10 @@ export async function GET(request: Request) {
       headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return Response.json({ error: message }, { status: 502 });
+    console.error("[manifestations] collecte GDELT indisponible", err);
+    return Response.json({ error: "Source temporairement indisponible" }, {
+      status: 503,
+      headers: { "Cache-Control": "no-store", "Retry-After": "60" },
+    });
   }
 }
