@@ -307,6 +307,7 @@ export default function ManifestationsMap({
 
   const selectPlace = (key: string | null) => {
     setSelected(key);
+    if (key) setMobilePanel("filters");
     updateUrl({ lieu: key });
   };
 
@@ -538,7 +539,7 @@ export default function ManifestationsMap({
   }, [mapReady, countries]);
 
   const openPlace = (p: Place) => {
-    setMobilePanel("map");
+    setMobilePanel("filters");
     map.current?.setView([p.lat, p.lng], Math.max(map.current.getZoom(), p.precision === "city" ? 9 : 6));
     selectPlace(p.key);
   };
