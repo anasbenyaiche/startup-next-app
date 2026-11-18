@@ -33,4 +33,4 @@ export const LEGAL_PAGES = ["mentions", "confidentialite", "cookies"] as const;
 export type LegalPage = (typeof LEGAL_PAGES)[number];
 
 // Date de dernière mise à jour des textes, affichée en tête de chaque page.
-export const LEGAL_UPDATED = "2026-10-19";
+export const LEGAL_UPDATED = "2026-11-18";

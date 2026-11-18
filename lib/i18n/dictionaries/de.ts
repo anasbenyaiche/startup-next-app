@@ -229,9 +229,11 @@ export const de: Dictionary = {
     updated: (date) => `Stand: ${date}`,
     onlyFrEn: "Diese Seite gibt es nur auf Englisch und Französisch.",
     bannerText:
-      "Cortège verwendet nur notwendige Cookies: Ihre Sprache und, wenn Sie sich anmelden, Ihre Sitzung. Keine Analyse- oder Werbe-Cookies.",
+      "Cortège verwendet notwendige Cookies (Ihre Sprache und, wenn Sie sich anmelden, Ihre Sitzung). Mit Ihrer Einwilligung kann Google AdSense auch Werbe-Cookies setzen. Ablehnen ändert nichts an der Nutzung der Website.",
     bannerMore: "Mehr erfahren",
-    bannerOk: "Verstanden",
+    bannerAccept: "Akzeptieren",
+    bannerRefuse: "Ablehnen",
+    manageCookies: "Cookies verwalten",
     followConsent:
       "Wem Sie folgen, kann politische Meinungen verraten. Sind Sie einverstanden, dass dies in Ihrem privaten Profil gespeichert wird? Es wird nie veröffentlicht oder für Werbung genutzt, und Sie können es jederzeit löschen.",
     exportData: "Meine Daten herunterladen",

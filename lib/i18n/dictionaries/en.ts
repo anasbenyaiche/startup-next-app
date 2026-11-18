@@ -228,9 +228,11 @@ export const en: Dictionary = {
     updated: (date) => `Updated: ${date}`,
     onlyFrEn: "",
     bannerText:
-      "Cortège only uses necessary cookies: your language and, if you sign in, your session. No analytics or advertising cookies.",
+      "Cortège uses necessary cookies (your language and, if you sign in, your session). With your consent, Google AdSense may also set advertising cookies. Refusing changes nothing in how the site works.",
     bannerMore: "Learn more",
-    bannerOk: "Got it",
+    bannerAccept: "Accept",
+    bannerRefuse: "Refuse",
+    manageCookies: "Manage cookies",
     followConsent:
       "What you follow can reveal political opinions. Do you agree to store it in your private profile? It is never published or used for advertising, and you can delete it at any time.",
     exportData: "Download my data",

@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Noto_Sans_Arabic } from "next/font/google";
 import { dir, getDictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/request";
 import { SITE_URL } from "@/lib/news/seo";
+import AdsenseScript, { ADSENSE_PUBLISHER } from "./components/AdsenseScript";
 import CookieNotice from "./components/CookieNotice";
 import "./globals.css";
 
@@ -29,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t.meta.description,
     formatDetection: { telephone: false },
     // Relie le site au compte AdSense (vérification de propriété demandée par Google).
-    other: { "google-adsense-account": "ca-pub-4562660686818427" },
+    other: { "google-adsense-account": ADSENSE_PUBLISHER },
   };
 }
 
@@ -41,19 +42,10 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} dir={dir(locale)}>
-      <head>
-        {/* Script AdSense sur toutes les pages : demandé par Google pour examiner le site.
-            Le consentement des visiteurs européens passe par le message « Confidentialité
-            et messages » d'AdSense, servi par ce même script. */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4562660686818427"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className={`${bricolage.variable} ${arabic.variable} antialiased`}>
         {children}
         <CookieNotice locale={locale} />
+        <AdsenseScript />
       </body>
     </html>
   );

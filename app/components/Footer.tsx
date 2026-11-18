@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CookieSettingsButton from "./CookieSettingsButton";
 import { CURFEWS_ENABLED } from "@/lib/core/features";
 import { COUNTRY_SEGMENT, LOCALES, LOCALE_NAMES, getDictionary, localePath, type Locale } from "@/lib/i18n";
 
@@ -43,6 +44,7 @@ export default function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, "/legal/cookies")} className={link}>
             {t.legal.cookies}
           </Link>
+          <CookieSettingsButton label={t.legal.manageCookies} className={`${link} text-start`} />
         </nav>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t.nav.language}>
           {LOCALES.map((l) => (

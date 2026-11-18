@@ -298,8 +298,8 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             seulement le nombre total d’affichages et de clics par annonce et par mois.
           </li>
           <li>
-            Si des annonces Google AdSense sont affichées, Google agit comme responsable de traitement indépendant et vous
-            demande votre consentement par son propre message. Voir{" "}
+            Les annonces Google AdSense ne sont chargées que si vous acceptez les cookies publicitaires dans le bandeau.
+            Google agit alors comme responsable de traitement indépendant. Voir{" "}
             <A href="https://policies.google.com/technologies/ads">les règles de Google</A>.
           </li>
         </Ul>
@@ -452,8 +452,8 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
             clicks per ad and per month.
           </li>
           <li>
-            If Google AdSense ads are shown, Google acts as an independent controller and asks for your consent through its
-            own message. See <A href="https://policies.google.com/technologies/ads">Google’s policies</A>.
+            Google AdSense ads are only loaded if you accept advertising cookies in the banner. Google then acts as an
+            independent controller. See <A href="https://policies.google.com/technologies/ads">Google’s policies</A>.
           </li>
         </Ul>
         <H2>Third-party services loaded by your browser</H2>
@@ -503,22 +503,22 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
   return lang === "fr" ? (
     <>
       <P>
-        Un cookie est un petit fichier déposé sur votre appareil. Cortège n’utilise que des cookies nécessaires à son
-        fonctionnement : ils sont dispensés de consentement (article 82 de la loi Informatique et Libertés). Aucun cookie de
-        mesure d’audience ni de publicité n’est déposé par Cortège.
+        Un cookie est un petit fichier déposé sur votre appareil. Cortège dépose des cookies nécessaires à son fonctionnement,
+        dispensés de consentement (article 82 de la loi Informatique et Libertés). Les cookies publicitaires de Google
+        AdSense ne sont déposés que si vous les acceptez. Aucun cookie de mesure d’audience n’est utilisé.
       </P>
       <H2>Cookies utilisés</H2>
       <CookieTable lang="fr" />
       <P>
         Sur une connexion sécurisée, les cookies de connexion portent le préfixe <code>__Secure-</code> ou{" "}
-        <code>__Host-</code>. Votre navigateur garde aussi, sans cookie, le fait que vous avez fermé le bandeau
-        d’information (stockage local, clé <code>cortege-cookie-notice</code>).
+        <code>__Host-</code>. Votre navigateur garde aussi, sans cookie, votre choix sur les cookies publicitaires
+        (stockage local, clé <code>cortege-consent</code>).
       </P>
       <H2>Publicité</H2>
       <P>
-        Les annonces directes ne déposent aucun cookie. Si des annonces Google AdSense sont affichées, Google peut déposer
-        ses propres cookies : il vous demande alors votre consentement par son message, et vous pouvez le modifier à tout
-        moment depuis celui-ci.
+        Les annonces directes ne déposent aucun cookie. Le script de Google AdSense n’est chargé que si vous cliquez sur
+        « Accepter » dans le bandeau : Google peut alors déposer ses propres cookies publicitaires. Si vous refusez, il
+        n’est pas chargé du tout, et le site fonctionne de la même façon.
       </P>
       <H2>Services tiers</H2>
       <P>
@@ -531,27 +531,28 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
       </P>
       <H2>Gérer les cookies</H2>
       <P>
-        Vous pouvez supprimer ou bloquer les cookies dans les réglages de votre navigateur. Le site restera utilisable : vous
+        Vous pouvez changer d’avis à tout moment avec le lien « Gérer les cookies » en bas de chaque page. Vous pouvez
+        aussi supprimer ou bloquer les cookies dans les réglages de votre navigateur. Le site restera utilisable : vous
         perdrez seulement le choix de la langue et votre connexion.
       </P>
     </>
   ) : (
     <>
       <P>
-        A cookie is a small file stored on your device. Cortège only uses cookies needed for the site to work: they do not
-        require consent. Cortège sets no analytics or advertising cookies.
+        A cookie is a small file stored on your device. Cortège sets cookies needed for the site to work, which do not
+        require consent. Google AdSense advertising cookies are only set if you accept them. No analytics cookies are used.
       </P>
       <H2>Cookies we use</H2>
       <CookieTable lang="en" />
       <P>
         Over a secure connection, sign-in cookies carry the <code>__Secure-</code> or <code>__Host-</code> prefix. Your
-        browser also remembers, without a cookie, that you closed the information banner (local storage, key{" "}
-        <code>cortege-cookie-notice</code>).
+        browser also remembers, without a cookie, your choice about advertising cookies (local storage, key{" "}
+        <code>cortege-consent</code>).
       </P>
       <H2>Advertising</H2>
       <P>
-        Direct ads set no cookies. If Google AdSense ads are shown, Google may set its own cookies: it then asks for your
-        consent through its own message, where you can change your choice at any time.
+        Direct ads set no cookies. The Google AdSense script is only loaded if you click « Accept » in the banner: Google
+        may then set its own advertising cookies. If you refuse, it is not loaded at all, and the site works the same.
       </P>
       <H2>Third-party services</H2>
       <P>
@@ -564,7 +565,8 @@ export function LegalContent({ page, lang, info }: { page: LegalPage; lang: Lega
       </P>
       <H2>Managing cookies</H2>
       <P>
-        You can delete or block cookies in your browser settings. The site stays usable: you only lose your language choice
+        You can change your mind at any time with the « Manage cookies » link at the bottom of every page. You can also
+        delete or block cookies in your browser settings. The site stays usable: you only lose your language choice
         and your sign-in.
       </P>
     </>

@@ -240,9 +240,11 @@ export const fr = {
     updated: (date: string) => `Mise à jour : ${date}`,
     onlyFrEn: "",
     bannerText:
-      "Cortège n'utilise que des cookies nécessaires : votre langue et, si vous vous connectez, votre session. Aucun cookie de mesure d'audience ni de publicité.",
+      "Cortège utilise des cookies nécessaires (votre langue et, si vous vous connectez, votre session). Avec votre accord, Google AdSense peut aussi déposer des cookies publicitaires. Refuser ne change rien à l'utilisation du site.",
     bannerMore: "En savoir plus",
-    bannerOk: "J'ai compris",
+    bannerAccept: "Accepter",
+    bannerRefuse: "Refuser",
+    manageCookies: "Gérer les cookies",
     followConsent:
       "Vos suivis peuvent révéler des opinions politiques. Acceptez-vous qu'ils soient enregistrés dans votre profil privé ? Ils ne sont jamais publiés ni utilisés pour la publicité, et vous pouvez les supprimer à tout moment.",
     exportData: "Télécharger mes données",
