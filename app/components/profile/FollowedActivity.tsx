@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { localePath, type Locale } from "@/lib/i18n";
 import { activityForTargets, type WatchTarget, type WatchActivity } from "@/lib/news/watch-activity";
 import type { ManifestationsResult } from "@/lib/news/manifestations";
@@ -23,17 +23,22 @@ export default function FollowedActivity({ locale, countries, places, names }: {
   names: Record<string, string>;
 }) {
   const t = copy[locale];
-  const targets = useMemo<WatchTarget[]>(() => [
+  const targets: WatchTarget[] = [
     ...countries.map((country) => ({ id: `country:${country}`, country, label: names[country] ?? country })),
     ...places.map((place) => ({ id: `place:${place.key}`, country: place.country, label: place.label, placeKey: place.key })),
-  ], [countries, places, names]);
+  ];
+  const targetKey = targets.map((target) => target.id).join("|");
   const [rows, setRows] = useState<WatchActivity[] | null>(null);
   const [error, setError] = useState(false);
   const [partial, setPartial] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    if (targets.length === 0) return;
+    if (targets.length === 0) {
+      setRows([]);
+      setError(false);
+      return;
+    }
     const controller = new AbortController();
     setRows(null);
     setError(false);
@@ -50,7 +55,9 @@ export default function FollowedActivity({ locale, countries, places, names }: {
       if (!controller.signal.aborted) setError(true);
     });
     return () => controller.abort();
-  }, [targets]);
+  // La liste est sérialisée pour ne pas relancer les deux appels à chaque rendu.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey]);
 
   return (
     <section className="border-t-[1.5px] border-encre pt-6" aria-labelledby="followed-activity">
