@@ -7,7 +7,7 @@ import { TYPE_FAMILY } from "@/lib/news/protest-types";
 // - les mentions (une ligne par article citant un événement, avec un score de
 //   confiance de l'extraction). On ne garde que les manifestations (CAMEO 14x).
 // GDELT_BASE_URL permet de pointer vers un miroir (ou un serveur de test).
-export const GDELT_BASE = process.env.GDELT_BASE_URL ?? "http://data.gdeltproject.org/gdeltv2";
+export const GDELT_BASE = process.env.GDELT_BASE_URL ?? "https://data.gdeltproject.org/gdeltv2";
 
 export { PROTEST_TYPES, TYPE_FAMILY, type Family } from "@/lib/news/protest-types";
 
@@ -204,17 +204,17 @@ export function attachMentions(events: ProtestEvent[], csv: string): void {
 }
 
 // GET avec une nouvelle tentative sur erreur réseau ou 5xx.
-export async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
+export async function fetchWithRetry(url: string, attempts = 2): Promise<Response> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
-      const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(30_000) });
+      const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
       if (res.status < 500) return res;
       lastError = new Error(`HTTP ${res.status}`);
     } catch (err) {
       lastError = err;
     }
-    await new Promise((r) => setTimeout(r, 500 * 2 ** i));
+    if (i + 1 < attempts) await new Promise((r) => setTimeout(r, 500 * 2 ** i));
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
@@ -243,7 +243,10 @@ export function slotStamp(d: Date): string {
 }
 
 export async function latestSlot(): Promise<Date> {
-  const res = await fetch(`${GDELT_BASE}/lastupdate.txt`, { next: { revalidate: 60 } });
+  const res = await fetch(`${GDELT_BASE}/lastupdate.txt`, {
+    next: { revalidate: 60 },
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) throw new Error(`GDELT lastupdate.txt : HTTP ${res.status}`);
   const match = (await res.text()).match(/(\d{14})\.export\.CSV\.zip/);
   if (!match) throw new Error("GDELT lastupdate.txt : format inattendu");
