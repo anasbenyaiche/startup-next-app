@@ -10,10 +10,13 @@ export async function GET(request: Request) {
   try {
     const data = await getManifestations(hours);
     return Response.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      headers: { "Cache-Control": data.partial || data.stale ? "no-store" : "public, s-maxage=60, stale-while-revalidate=120" },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return Response.json({ error: message }, { status: 502 });
+    console.error("[manifestations] collecte GDELT indisponible", err);
+    return Response.json({ error: "Source temporairement indisponible" }, {
+      status: 503,
+      headers: { "Cache-Control": "no-store", "Retry-After": "60" },
+    });
   }
 }

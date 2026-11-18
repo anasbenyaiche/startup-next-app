@@ -247,7 +247,11 @@ export default function ManifestationsMap({
         setError(null);
         // Période encore incomplète : on redemande tout de suite, le serveur reprend
         // là où il s'est arrêté (les fichiers déjà lus sont en cache).
-        if (json.partial) retry = setTimeout(load, 1000);
+        if (json.partial) {
+          // Évite une boucle de rafraîchissements à 1 seconde sur les 404
+          // de publication, qui amplifierait une panne pour chaque visiteur.
+          retry = setTimeout(load, json.slotsLoaded < json.slotsTotal ? 5000 : 60_000);
+        }
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : "Erreur de chargement");
@@ -706,7 +710,7 @@ export default function ManifestationsMap({
               </div>
               <p className="mt-2 flex items-center gap-2 text-sm text-gris">
                 <span className="live-dot" aria-hidden="true" />
-                {error
+                {error || data?.stale
                   ? t.map.interrupted
                   : data
                     ? t.map.live(new Date(data.updatedAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))
@@ -863,6 +867,11 @@ export default function ManifestationsMap({
                     </>
                   )}
                   {loading && <span className="text-gris text-sm"> {t.map.refreshing}</span>}
+                </p>
+              )}
+              {data?.stale && (
+                <p className="text-sm text-[#c0262d] mt-1" role="status">
+                  {t.map.interrupted} · {new Date(data.updatedAt).toLocaleString(locale)}
                 </p>
               )}
               {data?.partial && (

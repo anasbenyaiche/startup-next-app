@@ -59,8 +59,27 @@ Sur Vercel, le pays du visiteur vient de l'en-tête `x-vercel-ip-country` : la l
 le pays ouvert sur la carte s'adaptent sans configuration.
 
 Les routes d'API ont une durée maximale de 60 secondes. Le premier calcul sur 72 h peut
-la dépasser ; avec Redis, chaque fichier GDELT lu est gardé, et la requête suivante
-reprend là où la précédente s'est arrêtée.
+être progressif ; avec Redis, les créneaux GDELT lus restent en cache. Un 404
+de publication est conservé seulement 90 secondes et n'est plus traité comme
+un agrégat complet.
+
+### Supervision et préchauffage GDELT
+
+- `GET /api/health` vérifie Redis et la fraîcheur du dernier agrégat 6 h ;
+  renvoie 503 si le stockage durable manque en production ou si le flux
+  est absent ou plus vieux que 45 minutes. Cette route ne lance aucune collecte.
+- `GET /api/cron/manifestations?hours=6` (ou 24 / 72) préchauffe une période.
+  L'en-tête `Authorization: Bearer <CRON_SECRET>` est obligatoire.
+  Chaque appel travaille au maximum 35 secondes ; des appels successifs peuvent
+  être nécessaires lorsque Redis n'a jamais été rempli.
+- Il faut programmer le préchauffage selon le plan Vercel (toutes les
+  15 minutes lorsqu'autorisé), ou via un ordonnanceur externe protégé par
+  le même secret. Le cron de conformité quotidien n'est pas modifié.
+- Pendant une panne temporaire de GDELT, la carte peut servir pendant six
+  heures au maximum le dernier agrégat complet, marqué « Mise à jour interrompue ».
+- En production, les comptes et leurs paramètres nécessitent Redis.
+  Une panne Redis bloque ces opérations au lieu d'écrire dans une mémoire volatile.
+
 
 ## Référencement
 

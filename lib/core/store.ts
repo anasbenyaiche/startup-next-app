@@ -7,12 +7,11 @@ import { readyRedis } from "@/lib/core/cache";
 // au redémarrage, ce qui suffit pour le développement local.
 
 const memory = new Map<string, string>();
-let warned = false;
-
-function warnMemory() {
-  if (warned || process.env.NODE_ENV !== "production") return;
-  warned = true;
-  console.warn("[store] Redis indisponible : les profils sont gardés en mémoire et seront perdus au redémarrage.");
+// La mémoire n'est jamais un stockage fiable pour les comptes en production.
+function requireDurableStore() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Stockage durable indisponible : configurer Redis (REDIS_URL / KV_URL).");
+  }
 }
 
 export async function storeGet<T>(key: string): Promise<T | null> {
@@ -21,7 +20,7 @@ export async function storeGet<T>(key: string): Promise<T | null> {
     const raw = await redis.get(key);
     return raw === null ? null : (JSON.parse(raw) as T);
   }
-  warnMemory();
+  requireDurableStore();
   const raw = memory.get(key);
   return raw === undefined ? null : (JSON.parse(raw) as T);
 }
@@ -33,13 +32,14 @@ export async function storeSet(key: string, value: unknown): Promise<void> {
     await redis.set(key, raw);
     return;
   }
-  warnMemory();
+  requireDurableStore();
   memory.set(key, raw);
 }
 
 export async function storeDelete(key: string): Promise<void> {
   const redis = await readyRedis();
   if (redis) await redis.del(key);
+  else requireDurableStore();
   memory.delete(key);
 }
 
@@ -57,6 +57,7 @@ export async function storeScan(prefix: string): Promise<string[]> {
     } while (cursor !== "0");
     return keys;
   }
+  requireDurableStore();
   return [...memory.keys()].filter((k) => k.startsWith(prefix));
 }
 
@@ -67,5 +68,6 @@ export async function storeIncrement(key: string): Promise<void> {
     await redis.incr(key);
     return;
   }
+  requireDurableStore();
   memory.set(key, String(Number(memory.get(key) ?? 0) + 1));
 }
